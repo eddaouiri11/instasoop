@@ -32,11 +32,11 @@
             color: var(--text-main);
             height: 100%; width: 100%;
             overflow: hidden;
+            /* هادي هي اللي كتحبس الـ Reload عند السحب لتحت */
+            overscroll-behavior-y: contain; 
         }
 
-        /* Scrollbar Styling */
-        #chat-box::-webkit-scrollbar { width: 4px; }
-        #chat-box::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        body { display: flex; justify-content: center; }
 
         /* Login Screen */
         #login-screen {
@@ -55,7 +55,6 @@
         }
 
         .logo-text {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             font-size: 2.5rem; font-weight: bold;
             background: linear-gradient(to right, #0095f6, #00f2ea);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
@@ -68,41 +67,37 @@
             font-size: 0.9rem; margin-bottom: 15px; outline: none; text-align: center;
         }
 
-        input:focus { border-color: var(--text-dim); }
-
         .btn-primary {
             width: 100%; background: var(--primary);
             color: white; border: none; padding: 12px; border-radius: 10px;
-            font-weight: 600; cursor: pointer; transition: 0.3s;
+            font-weight: 600; cursor: pointer; transition: 0.2s;
         }
 
-        .btn-primary:active { transform: scale(0.98); opacity: 0.8; }
-
         /* Main Chat Layout */
-        #chat-app { width: 100%; max-width: 500px; height: 100%; display: none; flex-direction: column; margin: 0 auto; border-right: 1px solid #262626; border-left: 1px solid #262626; }
+        #chat-app { width: 100%; max-width: 500px; height: 100%; display: none; flex-direction: column; background: var(--bg); position: relative; }
 
         header {
             padding: 15px 20px; padding-top: max(15px, env(safe-area-inset-top));
             background: var(--glass); backdrop-filter: blur(10px);
             display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid #262626; position: sticky; top: 0; z-index: 100;
+            border-bottom: 1px solid #262626; z-index: 100;
         }
 
         #chat-box {
             flex: 1; overflow-y: auto; padding: 20px 15px; display: flex;
             flex-direction: column; gap: 12px;
-            background: var(--bg);
+            -webkit-overflow-scrolling: touch;
         }
 
         .message-row { display: flex; flex-direction: column; max-width: 85%; animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } }
 
-        .user-tag { font-size: 0.75rem; margin-bottom: 4px; font-weight: 600; color: var(--text-dim); }
-        .bubble { padding: 12px 16px; border-radius: 22px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; }
+        .user-tag { font-size: 0.7rem; margin-bottom: 2px; color: var(--text-dim); }
+        .bubble { padding: 10px 16px; border-radius: 18px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; }
         
         .sent { align-self: flex-end; } 
         .sent .bubble { background: var(--primary); color: white; border-bottom-right-radius: 4px; }
-        .sent .user-tag { align-self: flex-end; color: var(--primary); }
+        .sent .user-tag { text-align: left; padding-left: 5px; }
 
         .received { align-self: flex-start; } 
         .received .bubble { background: #262626; color: white; border-bottom-left-radius: 4px; border: 1px solid #333; }
@@ -113,14 +108,15 @@
             border-top: 1px solid #262626;
         }
 
-        #msgInput { margin: 0; border-radius: 25px; padding: 12px 20px; text-align: right; }
+        #msgInput { margin: 0; border-radius: 25px; text-align: right; }
 
-        /* Admin Dashboard */
+        /* Admin Panel */
         #admin-panel {
             position: fixed; inset: 0; background: #000; z-index: 2000;
-            display: none; flex-direction: column; padding: 20px; overflow-y: auto;
+            display: none; flex-direction: column; padding: 20px;
         }
-        .admin-item { background: #1a1a1a; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
+        .admin-scroll { flex: 1; overflow-y: auto; margin-top: 20px; }
+        .admin-item { background: #1a1a1a; padding: 12px 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
     </style>
 </head>
 <body>
@@ -128,18 +124,17 @@
     <div id="login-screen">
         <div class="login-card">
             <div class="logo-text">Instasoop</div>
-            <p style="color: var(--text-dim); margin-bottom: 20px; font-size: 0.8rem;">سجل دخولك للمتابعة</p>
             <input type="text" id="usernameInput" placeholder="اسم المستخدم" maxlength="15">
-            <button class="btn-primary" onclick="startApp()">تسجيل الدخول</button>
+            <button class="btn-primary" onclick="startApp()">دخول</button>
         </div>
     </div>
 
     <div id="chat-app">
         <header>
-            <div style="font-weight:800; font-size: 1.2rem; letter-spacing: -0.5px;">Instasoop</div>
+            <div style="font-weight:800; font-size: 1.1rem; color: var(--primary);">INSTASOOP</div>
             <div style="display:flex; align-items:center; gap:8px;">
-                <span id="displayUser" style="font-size: 0.8rem; color: var(--primary); font-weight:bold;"></span>
-                <div style="width:8px; height:8px; background:var(--success); border-radius:50%; box-shadow: 0 0 8px var(--success);"></div>
+                <span id="displayUser" style="font-size: 0.8rem; font-weight:bold;"></span>
+                <div style="width:8px; height:8px; background:var(--success); border-radius:50%;"></div>
             </div>
         </header>
 
@@ -147,16 +142,16 @@
 
         <div class="input-container">
             <input type="text" id="msgInput" placeholder="رسالة..." autocomplete="off">
-            <button class="btn-primary" style="width:auto; padding: 10px 20px; border-radius: 20px;" onclick="send()">إرسال</button>
+            <button class="btn-primary" style="width:60px; height:40px; border-radius:20px;" onclick="send()">✔</button>
         </div>
     </div>
 
     <div id="admin-panel">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-            <h1 style="font-size: 1.5rem;">Control Center</h1>
-            <button onclick="closeAdmin()" style="background:none; border:1px solid #ed4956; color:#ed4956; padding:8px 15px; border-radius:8px;">إغلاق</button>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h1 style="font-size: 1.2rem; color: var(--primary);">Dashboard</h1>
+            <button onclick="closeAdmin()" style="background:var(--danger); border:none; color:white; padding:5px 15px; border-radius:8px;">إغلاق</button>
         </div>
-        <div id="admin-users-list"></div>
+        <div class="admin-scroll" id="admin-users-list"></div>
     </div>
 
     <script>
@@ -174,38 +169,41 @@
         let currentUser = "";
         const PHOENIX_KEY = "20102010";
 
-        // Logic للحفاظ على تسجيل الدخول
         window.onload = () => {
-            const savedUser = localStorage.getItem('instasoop_session');
-            if (savedUser) {
-                checkBanAndStart(savedUser);
-            }
-            fixHeight();
+            const saved = localStorage.getItem('instasoop_session');
+            if (saved) checkBanAndStart(saved);
         };
-
-        function fixHeight() { document.body.style.height = window.innerHeight + "px"; }
-        window.addEventListener('resize', fixHeight);
 
         function startApp() {
             const val = document.getElementById('usernameInput').value.trim();
-            if (val.length >= 3) checkBanAndStart(val);
-            else alert("السمية قصيرة بزاف!");
+            if (val.length >= 2) checkBanAndStart(val);
+            else alert("دخل سمية!");
         }
 
         function checkBanAndStart(name) {
-            db.ref('banned_users/' + name).once('value', (snap) => {
+            // مراقبة الحظر بشكل مباشر (Real-time)
+            db.ref('banned_users/' + name).on('value', (snap) => {
                 if (snap.exists()) {
-                    alert("عذراً، حسابك محظور!");
+                    alert("🚫 تم حظرك من النظام");
                     localStorage.removeItem('instasoop_session');
                     location.reload();
-                } else {
+                } else if (!currentUser) {
+                    // الدخول لأول مرة
                     currentUser = name;
                     localStorage.setItem('instasoop_session', name);
                     document.getElementById('displayUser').innerText = "@" + currentUser;
                     document.getElementById('login-screen').style.display = 'none';
                     document.getElementById('chat-app').style.display = 'flex';
+                    trackUser(name); // تسجيل المستخدم في Dashboard
                     loadMessages();
                 }
+            });
+        }
+
+        // تسجيل المستخدم لكي يظهر في الـ Dashboard
+        function trackUser(name) {
+            db.ref('active_users/' + name).set({
+                lastSeen: firebase.database.ServerValue.TIMESTAMP
             });
         }
 
@@ -223,48 +221,45 @@
             db.ref('messages').push({
                 user: currentUser,
                 text: msg,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
+                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
             });
             input.value = '';
         }
 
         function loadMessages() {
-            const chatBox = document.getElementById('chat-box');
-            db.ref('messages').limitToLast(50).on('value', (snapshot) => {
-                chatBox.innerHTML = '';
-                snapshot.forEach((child) => {
-                    const data = child.val();
-                    const isMe = data.user === currentUser;
-                    const row = document.createElement('div');
-                    row.className = `message-row ${isMe ? 'sent' : 'received'}`;
-                    row.innerHTML = `
-                        <span class="user-tag">${data.user}</span>
-                        <div class="bubble">${data.text}</div>
-                    `;
-                    chatBox.appendChild(row);
+            const box = document.getElementById('chat-box');
+            db.ref('messages').limitToLast(40).on('value', (snap) => {
+                box.innerHTML = '';
+                snap.forEach(c => {
+                    const d = c.val();
+                    const isMe = d.user === currentUser;
+                    const div = document.createElement('div');
+                    div.className = `message-row ${isMe ? 'sent' : 'received'}`;
+                    div.innerHTML = `<span class="user-tag">${d.user}</span><div class="bubble">${d.text}</div>`;
+                    box.appendChild(div);
                 });
-                chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+                box.scrollTop = box.scrollHeight;
             });
         }
 
-        // Admin Engine
         function openAdmin() {
             document.getElementById('admin-panel').style.display = 'flex';
             const list = document.getElementById('admin-users-list');
-            db.ref('messages').once('value', (snap) => {
+            
+            // جلب المستخدمين من active_users لضمان ظهور الجميع
+            db.ref('active_users').on('value', (snap) => {
                 list.innerHTML = '';
-                const users = new Set();
-                snap.forEach(c => users.add(c.val().user));
-                users.forEach(u => {
-                    db.ref('banned_users/' + u).on('value', (bSnap) => {
-                        const banned = bSnap.exists();
+                snap.forEach(child => {
+                    const userName = child.key;
+                    db.ref('banned_users/' + userName).once('value', (bSnap) => {
+                        const isBanned = bSnap.exists();
                         const item = document.createElement('div');
                         item.className = 'admin-item';
                         item.innerHTML = `
-                            <span>${u} ${banned ? '🚫' : '💎'}</span>
-                            <button onclick="toggleBan('${u}', ${banned})" 
-                                style="background:${banned ? '#00f2ea' : '#ed4956'}; color:black; border:none; padding:5px 12px; border-radius:6px; font-weight:bold;">
-                                ${banned ? 'Unban' : 'Ban'}
+                            <span>${userName} ${isBanned ? '🚫' : '💎'}</span>
+                            <button onclick="toggleBan('${userName}', ${isBanned})" 
+                                style="background:${isBanned ? 'var(--success)' : 'var(--danger)'}; color:black; border:none; padding:5px 12px; border-radius:6px; font-weight:bold;">
+                                ${isBanned ? 'فك الحظر' : 'تبنيد'}
                             </button>
                         `;
                         list.appendChild(item);
@@ -273,13 +268,12 @@
             });
         }
 
-        function toggleBan(user, isBanned) {
-            if (!isBanned) {
-                if(confirm("تبنيد " + user + "?")) db.ref('banned_users/' + user).set(true);
+        function toggleBan(u, isB) {
+            if (!isB) {
+                if(confirm("تبنيد " + u + "?")) db.ref('banned_users/' + u).set(true);
             } else {
-                db.ref('banned_users/' + user).remove();
+                db.ref('banned_users/' + u).remove();
             }
-            openAdmin();
         }
 
         function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
