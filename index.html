@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Instagram | Instasoop</title>
+    <!-- Firebase Legacy SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     
@@ -11,9 +12,11 @@
         :root {
             --insta-blue: #0095f6;
             --bg: #000000;
+            --card-bg: #121212;
             --border: #262626;
             --text: #ffffff;
             --dim: #a8a8a8;
+            --danger: #ed4956;
         }
 
         * { 
@@ -24,81 +27,150 @@
 
         html, body {
             margin: 0; padding: 0; background: var(--bg);
-            color: var(--text); height: 100%; width: 100%;
+            color: var(--text); height: 100vh; width: 100vw;
             overflow: hidden;
         }
 
+        /* Login Screen Styles */
         .overlay-screen {
             position: fixed; inset: 0; background: var(--bg);
             z-index: 3000; display: none; flex-direction: column;
-            justify-content: center; align-items: center; padding: 30px;
+            justify-content: center; align-items: center; padding: 20px;
         }
 
-        .logo-text {
-            font-size: 3rem; font-weight: bold; font-style: italic;
+        .insta-logo {
+            font-size: 3.5rem; font-weight: bold; font-style: italic;
             margin-bottom: 40px; color: white; letter-spacing: -2px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .login-box {
+            width: 100%; max-width: 350px; display: flex; flex-direction: column; gap: 12px;
         }
 
         input {
             width: 100%; background: #121212; border: 1px solid #363636;
-            padding: 14px; border-radius: 8px; color: white;
-            font-size: 0.85rem; margin-bottom: 15px; outline: none;
+            padding: 12px 15px; border-radius: 4px; color: white;
+            font-size: 0.9rem; outline: none; transition: border 0.3s;
         }
+
+        input:focus { border-color: #555; }
 
         .btn-insta {
             width: 100%; background: var(--insta-blue); color: white;
-            border: none; padding: 12px; border-radius: 8px;
-            font-weight: 700; cursor: pointer;
+            border: none; padding: 10px; border-radius: 8px;
+            font-weight: 700; cursor: pointer; font-size: 0.95rem; margin-top: 10px;
         }
 
+        /* Main App Layout */
         #chat-app { 
-            display: none; flex-direction: column; height: 100%; 
-            max-width: 500px; margin: 0 auto;
+            display: none; flex-direction: column; height: 100vh; 
+            max-width: 500px; margin: 0 auto; background: var(--bg);
         }
 
         header {
-            padding: 12px 16px; border-bottom: 1px solid var(--border);
+            padding: 15px; border-bottom: 1px solid var(--border);
             display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            position: sticky; top: 0; z-index: 100;
         }
 
-        #chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
-        
-        .msg { max-width: 75%; display: flex; flex-direction: column; }
-        .u-name { font-size: 0.7rem; color: var(--dim); margin: 0 12px 2px; }
-        .bubble { padding: 10px 16px; border-radius: 22px; font-size: 0.95rem; line-height: 1.4; }
+        .header-title { font-weight: 800; font-size: 1.4rem; letter-spacing: -1px; }
+
+        #chat-box { 
+            flex: 1; overflow-y: auto; padding: 15px; 
+            display: flex; flex-direction: column; gap: 12px;
+            scrollbar-width: none;
+        }
+
+        #chat-box::-webkit-scrollbar { display: none; }
+
+        /* Messages */
+        .msg { max-width: 80%; display: flex; flex-direction: column; position: relative; }
+        .u-name { font-size: 0.75rem; color: var(--dim); margin: 0 10px 4px; font-weight: 500; }
+        .bubble { padding: 10px 16px; border-radius: 20px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; }
 
         .sent { align-self: flex-end; }
-        .sent .bubble { background: var(--insta-blue); color: white; }
+        .sent .bubble { background: var(--insta-blue); color: white; border-bottom-right-radius: 4px; }
         
         .recv { align-self: flex-start; }
-        .recv .bubble { background: #262626; color: white; border: 1px solid #333; }
+        .recv .bubble { background: #262626; color: white; border-bottom-left-radius: 4px; }
 
-        .input-area { padding: 12px; border-top: 1px solid var(--border); }
-        .input-wrapper { background: #121212; border: 1px solid #363636; border-radius: 25px; display: flex; padding: 2px 15px; }
-        #msgInput { border: none; background: transparent; flex: 1; color: white; padding: 10px 0; outline: none; }
+        /* Input Area */
+        .input-area { padding: 15px; border-top: 1px solid var(--border); background: var(--bg); }
+        .input-wrapper { 
+            background: #000; border: 1px solid #363636; border-radius: 30px; 
+            display: flex; align-items: center; padding: 5px 18px; 
+        }
+        #msgInput { border: none; background: transparent; flex: 1; color: white; padding: 10px 0; outline: none; margin-bottom: 0; }
+        .send-btn { color: var(--insta-blue); font-weight: 700; cursor: pointer; padding-left: 5px; font-size: 0.95rem; }
+
+        /* Admin Panel Styles */
+        #admin-panel { 
+            position: fixed; inset: 0; background: #000; z-index: 4000; 
+            display: none; flex-direction: column; padding: 25px; 
+        }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #222; padding-bottom: 15px; }
+        .admin-item { 
+            background: #111; padding: 15px; border-radius: 12px; 
+            margin-bottom: 10px; display: flex; justify-content: space-between; 
+            align-items: center; border: 1px solid #222; 
+        }
+        .ban-btn { background: var(--danger); color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; }
+        
+        /* Banned Screen */
+        #banned-screen { text-align: center; }
     </style>
 </head>
 <body>
 
+    <!-- Login -->
     <div id="login-screen" class="overlay-screen">
-        <div class="logo-text">Instagram</div>
-        <input type="text" id="usernameInput" placeholder="اسم المستخدم" maxlength="15">
-        <button class="btn-insta" onclick="startApp()">تسجيل الدخول</button>
-        <p style="color: #444; font-size: 0.7rem; margin-top: 30px;">System Update: All Restrictions Lifted</p>
+        <div class="insta-logo">Instagram</div>
+        <div class="login-box">
+            <input type="text" id="usernameInput" placeholder="اسم المستخدم" maxlength="15">
+            <button class="btn-insta" onclick="startApp()">تسجيل الدخول</button>
+        </div>
     </div>
 
+    <!-- Banned Screen -->
+    <div id="banned-screen" class="overlay-screen">
+        <div style="font-size: 5rem; margin-bottom: 20px;">🚫</div>
+        <h2 style="color: var(--danger); margin-bottom: 10px;">تم حظر حسابك</h2>
+        <p style="color: var(--dim); max-width: 80%;">لقد تم حظر جهازك من الوصول إلى هذه الشبكة لمخالفتك القوانين.</p>
+    </div>
+
+    <!-- Main App -->
     <div id="chat-app">
         <header>
-            <div style="font-weight: 800; font-size: 1.3rem;">Instasoop</div>
-            <div id="displayUser" style="color: var(--insta-blue); font-weight: 600;"></div>
+            <div class="header-title">Instagram</div>
+            <div id="displayUser" style="color: var(--insta-blue); font-weight: 600; font-size: 0.9rem;"></div>
         </header>
+        
         <div id="chat-box"></div>
+        
         <div class="input-area">
             <div class="input-wrapper">
-                <input type="text" id="msgInput" placeholder="رسالة..." autocomplete="off">
-                <div style="color:var(--insta-blue); font-weight:bold; cursor:pointer; align-self:center;" onclick="send()">إرسال</div>
+                <input type="text" id="msgInput" placeholder="مراسلة..." autocomplete="off">
+                <div class="send-btn" onclick="send()">إرسال</div>
             </div>
         </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="admin-panel">
+        <div class="admin-header">
+            <h2 style="margin: 0;">Security Dashboard</h2>
+            <button onclick="closeAdmin()" style="background: transparent; border: none; color: white; font-size: 1.5rem;">✕</button>
+        </div>
+        
+        <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+            <button onclick="nuclearWipe()" style="flex: 1; padding: 15px; background: var(--danger); border: none; color: white; border-radius: 10px; font-weight: bold;">WIPE ALL DATA</button>
+            <button onclick="unbanAll()" style="flex: 1; padding: 15px; background: #333; border: none; color: white; border-radius: 10px; font-weight: bold;">UNBAN ALL</button>
+        </div>
+
+        <h3 style="font-size: 0.9rem; color: var(--dim); margin-bottom: 15px;">المستخدمين النشطين</h3>
+        <div id="admin-list" style="overflow-y:auto; flex:1;"></div>
     </div>
 
     <script>
@@ -113,49 +185,81 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        
         let currentUser = "";
-
-        // --- الميزة الأساسية: مسح جميع أنواع الحظر فوراً ---
-        function clearAllRestrictions() {
-            db.ref('banned_ips').remove();   // مسح حظر الـ IP
-            db.ref('banned_users').remove(); // مسح حظر الأسماء
-            console.log("All bans cleared successfully.");
-        }
+        let userIP = "";
+        const ADMIN_CODE = "20102010";
 
         async function init() {
-            clearAllRestrictions(); // تشغيل المسح عند فتح التطبيق
-            
-            const saved = localStorage.getItem('instasoop_session');
-            if (saved) {
-                currentUser = saved;
-                document.getElementById('displayUser').innerText = "@" + saved;
-                showScreen('chat-app');
-                loadMessages();
-            } else {
-                showScreen('login-screen');
+            try {
+                // Get IP for banning system
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                userIP = data.ip.replace(/\./g, '_');
+
+                // Check for IP Ban
+                db.ref('banned_ips/' + userIP).on('value', (snap) => {
+                    if (snap.exists()) {
+                        showScreen('banned-screen');
+                    } else {
+                        const saved = localStorage.getItem('instasoop_session');
+                        if (saved) checkUserStatus(saved);
+                        else showScreen('login-screen');
+                    }
+                });
+            } catch (e) { 
+                showScreen('login-screen'); 
             }
         }
 
         function startApp() {
             const val = document.getElementById('usernameInput').value.trim();
             if (val.length >= 2) {
-                currentUser = val;
-                localStorage.setItem('instasoop_session', val);
-                document.getElementById('displayUser').innerText = "@" + val;
-                showScreen('chat-app');
-                loadMessages();
+                checkUserStatus(val);
             }
+        }
+
+        function checkUserStatus(name) {
+            db.ref('banned_users/' + name).on('value', (snap) => {
+                if (snap.exists()) {
+                    db.ref('banned_ips/' + userIP).set(true); // Auto-ban device
+                    showScreen('banned-screen');
+                } else {
+                    if (!currentUser) {
+                        currentUser = name;
+                        localStorage.setItem('instasoop_session', name);
+                        document.getElementById('displayUser').innerText = name;
+                        showScreen('chat-app');
+                        db.ref('active_users/' + name).set({ ip: userIP, lastSeen: Date.now() });
+                        loadMessages();
+                    }
+                }
+            });
         }
 
         function showScreen(id) {
             document.querySelectorAll('.overlay-screen, #chat-app').forEach(s => s.style.display = 'none');
-            document.getElementById(id).style.display = 'flex';
+            document.getElementById(id).style.display = id === 'chat-app' ? 'flex' : 'flex';
         }
 
         function send() {
             const input = document.getElementById('msgInput');
-            if (!input.value.trim()) return;
-            db.ref('messages').push({ user: currentUser, text: input.value, ts: Date.now() });
+            const text = input.value.trim();
+            
+            // Check for Admin Secret Code
+            if (text === ADMIN_CODE) {
+                openAdmin();
+                input.value = '';
+                return;
+            }
+
+            if (!text) return;
+            
+            db.ref('messages').push({
+                user: currentUser,
+                text: text,
+                ts: Date.now()
+            });
             input.value = '';
         }
 
@@ -163,17 +267,78 @@
             db.ref('messages').limitToLast(50).on('value', (snap) => {
                 const box = document.getElementById('chat-box');
                 box.innerHTML = '';
-                snap.forEach(c => {
-                    const d = c.val();
-                    const isMe = d.user === currentUser;
+                snap.forEach(child => {
+                    const data = child.val();
+                    const isMe = data.user === currentUser;
                     const div = document.createElement('div');
                     div.className = `msg ${isMe ? 'sent' : 'recv'}`;
-                    div.innerHTML = `<span class="u-name">${d.user}</span><div class="bubble">${d.text}</div>`;
+                    div.innerHTML = `
+                        <span class="u-name">${data.user}</span>
+                        <div class="bubble">${data.text}</div>
+                    `;
                     box.appendChild(div);
                 });
                 box.scrollTop = box.scrollHeight;
             });
         }
+
+        // --- Admin Dashboard Functions ---
+
+        function openAdmin() {
+            document.getElementById('admin-panel').style.display = 'flex';
+            const list = document.getElementById('admin-list');
+            
+            db.ref('active_users').on('value', (snap) => {
+                list.innerHTML = '';
+                snap.forEach(user => {
+                    const uData = user.val();
+                    const uName = user.key;
+                    const div = document.createElement('div');
+                    div.className = 'admin-item';
+                    div.innerHTML = `
+                        <div>
+                            <div style="font-weight:bold; color:white;">${uName}</div>
+                            <div style="font-size:0.7rem; color:#666;">IP: ${uData.ip}</div>
+                        </div>
+                        <button class="ban-btn" onclick="banUser('${uName}', '${uData.ip}')">BAN</button>
+                    `;
+                    list.appendChild(div);
+                });
+            });
+        }
+
+        function banUser(name, ip) {
+            if(confirm(`هل تريد حظر ${name} نهائياً؟`)) {
+                db.ref('banned_users/' + name).set(true);
+                db.ref('banned_ips/' + ip).set(true);
+                alert("تم الحظر!");
+            }
+        }
+
+        function unbanAll() {
+            if(confirm("هل تريد إلغاء الحظر عن الجميع؟")) {
+                db.ref('banned_users').remove();
+                db.ref('banned_ips').remove();
+                alert("تم تنظيف قائمة الحظر");
+            }
+        }
+
+        function nuclearWipe() {
+            if(confirm("سيتم مسح كل الرسائل والنشاطات. هل أنت متأكد؟")) {
+                db.ref('messages').remove();
+                db.ref('active_users').remove();
+                alert("تم مسح البيانات");
+            }
+        }
+
+        function closeAdmin() {
+            document.getElementById('admin-panel').style.display = 'none';
+        }
+
+        // Handle Enter key for sending
+        document.getElementById('msgInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') send();
+        });
 
         init();
     </script>
