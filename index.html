@@ -10,9 +10,7 @@
     <style>
         :root {
             --insta-blue: #0095f6;
-            --insta-gradient: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
             --bg: #000000;
-            --surface: #121212;
             --border: #262626;
             --text: #ffffff;
             --dim: #a8a8a8;
@@ -28,59 +26,47 @@
         html, body {
             margin: 0; padding: 0; background: var(--bg);
             color: var(--text); height: 100%; width: 100%;
-            overflow: hidden; overscroll-behavior-y: contain;
+            overflow: hidden;
         }
 
-        /* Screens Styling */
         .overlay-screen {
             position: fixed; inset: 0; background: var(--bg);
             z-index: 3000; display: none; flex-direction: column;
             justify-content: center; align-items: center; padding: 30px;
         }
 
-        .login-card { width: 100%; max-width: 350px; text-align: center; }
-        
         .logo-text {
-            font-family: 'Arial', sans-serif;
             font-size: 3rem; font-weight: bold; font-style: italic;
             margin-bottom: 40px; color: white; letter-spacing: -2px;
         }
 
         input {
             width: 100%; background: #121212; border: 1px solid #363636;
-            padding: 14px; border-radius: 4px; color: white;
+            padding: 14px; border-radius: 8px; color: white;
             font-size: 0.85rem; margin-bottom: 15px; outline: none;
         }
 
         .btn-insta {
             width: 100%; background: var(--insta-blue); color: white;
-            border: none; padding: 10px; border-radius: 8px;
-            font-weight: 700; cursor: pointer; transition: 0.3s;
+            border: none; padding: 12px; border-radius: 8px;
+            font-weight: 700; cursor: pointer;
         }
 
-        /* Chat Layout */
         #chat-app { 
             display: none; flex-direction: column; height: 100%; 
-            max-width: 500px; margin: 0 auto; border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+            max-width: 500px; margin: 0 auto;
         }
 
         header {
             padding: 12px 16px; border-bottom: 1px solid var(--border);
             display: flex; justify-content: space-between; align-items: center;
-            background: black;
         }
 
-        header .title { font-weight: 800; font-size: 1.4rem; }
-
-        #chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
         
-        .msg { max-width: 80%; display: flex; flex-direction: column; }
-        .u-name { font-size: 0.7rem; color: var(--dim); margin: 0 12px 4px; font-weight: 600; }
-        
-        .bubble { 
-            padding: 12px 16px; border-radius: 24px; font-size: 0.95rem; 
-            line-height: 1.4; word-wrap: break-word;
-        }
+        .msg { max-width: 75%; display: flex; flex-direction: column; }
+        .u-name { font-size: 0.7rem; color: var(--dim); margin: 0 12px 2px; }
+        .bubble { padding: 10px 16px; border-radius: 22px; font-size: 0.95rem; line-height: 1.4; }
 
         .sent { align-self: flex-end; }
         .sent .bubble { background: var(--insta-blue); color: white; }
@@ -88,61 +74,48 @@
         .recv { align-self: flex-start; }
         .recv .bubble { background: #262626; color: white; border: 1px solid #333; }
 
-        .input-area { padding: 15px; background: black; }
-        .input-wrapper { 
-            background: #000; border: 1px solid #363636;
-            border-radius: 30px; display: flex; align-items: center; padding: 5px 20px;
-        }
-
+        .input-area { padding: 12px; border-top: 1px solid var(--border); }
+        .input-wrapper { background: #121212; border: 1px solid #363636; border-radius: 25px; display: flex; padding: 2px 15px; }
         #msgInput { border: none; background: transparent; flex: 1; color: white; padding: 10px 0; outline: none; }
-
-        .send-btn { color: var(--insta-blue); font-weight: 700; cursor: pointer; padding-right: 10px; }
 
         /* Admin Dashboard */
         #admin-panel { position: fixed; inset: 0; background: #000; z-index: 4000; display: none; flex-direction: column; padding: 20px; }
-        .admin-item { background: #1a1a1a; padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
+        .admin-item { background: #1a1a1a; padding: 12px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
     </style>
 </head>
 <body>
 
     <div id="login-screen" class="overlay-screen">
-        <div class="login-card">
-            <div class="logo-text">Instagram</div>
-            <input type="text" id="usernameInput" placeholder="اسم المستخدم" maxlength="15">
-            <button class="btn-insta" onclick="startApp()">تسجيل الدخول</button>
-            <p style="color: #555; font-size: 0.8rem; margin-top: 20px;">من Anas Eddaouiri</p>
-        </div>
+        <div class="logo-text">Instagram</div>
+        <input type="text" id="usernameInput" placeholder="اسم المستخدم" maxlength="15">
+        <button class="btn-insta" onclick="startApp()">تسجيل الدخول</button>
     </div>
 
     <div id="banned-screen" class="overlay-screen">
-        <div style="font-size: 4.5rem;">🚫</div>
-        <h2 style="color: var(--danger); margin-top: 20px;">تم حظر وصولك</h2>
-        <p style="color: var(--dim); line-height: 1.6;">تم اكتشاف نشاط مخالف لقوانيننا على هذا الجهاز.<br>عنوان الـ IP محظور مؤقتاً.</p>
+        <div style="font-size: 4rem;">🚫</div>
+        <h2 style="color: var(--danger);">الحساب محظور</h2>
+        <p style="color: var(--dim);">تم حظر جهازك من دخول هذه الشبكة.</p>
     </div>
 
     <div id="chat-app">
         <header>
-            <div class="title">Instasoop</div>
-            <div id="displayUser" style="font-size: 0.9rem; color: var(--dim);"></div>
+            <div style="font-weight: 800; font-size: 1.3rem;">Instasoop</div>
+            <div id="displayUser" style="color: var(--insta-blue); font-weight: 600;"></div>
         </header>
-
         <div id="chat-box"></div>
-
         <div class="input-area">
             <div class="input-wrapper">
-                <input type="text" id="msgInput" placeholder="مراسلة..." autocomplete="off">
-                <div class="send-btn" onclick="send()">إرسال</div>
+                <input type="text" id="msgInput" placeholder="رسالة..." autocomplete="off">
+                <div style="color:var(--insta-blue); font-weight:bold; cursor:pointer; align-self:center;" onclick="send()">إرسال</div>
             </div>
         </div>
     </div>
 
     <div id="admin-panel">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-            <h2 style="margin:0;">Control Center</h2>
-            <button onclick="updateAppVersion()" style="background:orange; border:none; padding:8px; border-radius:5px; font-weight:bold; cursor:pointer;">FORCE RELOAD ALL</button>
-        </div>
+        <h2 style="border-bottom:1px solid #222; padding-bottom:10px;">Security Dashboard</h2>
+        <button onclick="nuclearWipe()" style="width:100%; padding:15px; background:var(--danger); border:none; color:white; border-radius:10px; font-weight:bold; margin-bottom:20px;">BAN ALL & CLEAR CHAT (WIPE)</button>
         <div id="admin-list" style="overflow-y:auto; flex:1;"></div>
-        <button onclick="closeAdmin()" style="width:100%; padding:15px; background:#333; border:none; color:white; border-radius:10px; margin-top:10px;">إغلاق</button>
+        <button onclick="closeAdmin()" style="width:100%; padding:15px; background:#333; border:none; color:white; border-radius:10px; margin-top:10px;">خروج</button>
     </div>
 
     <script>
@@ -160,23 +133,21 @@
         let currentUser = "";
         let userIP = "";
         const PHOENIX_KEY = "20102010";
-        const CURRENT_VERSION = "v2.0"; // إصدار الكود الحالي
 
-        // 1. مراقبة التحديث الإجباري (Force Reload)
-        function watchVersion() {
-            db.ref('app_version').on('value', (snap) => {
-                const cloudVersion = snap.val();
-                if (cloudVersion && cloudVersion !== CURRENT_VERSION) {
-                    // إذا تبدل الفيرجن في فيربيز، مسح كلشي وعاود من جديد
+        // مراقبة أمر المسح الشامل (Wipe)
+        function watchWipe() {
+            db.ref('last_wipe').on('value', (snap) => {
+                const wipeTime = snap.val();
+                const myLoginTime = localStorage.getItem('login_time');
+                if (wipeTime && (!myLoginTime || myLoginTime < wipeTime)) {
                     localStorage.clear();
                     location.reload();
                 }
             });
         }
 
-        // 2. جلب الـ IP وفحص الحظر
         async function init() {
-            watchVersion();
+            watchWipe();
             try {
                 const res = await fetch('https://api.ipify.org?format=json');
                 const data = await res.json();
@@ -195,7 +166,10 @@
 
         function startApp() {
             const val = document.getElementById('usernameInput').value.trim();
-            if (val.length >= 2) checkStatus(val);
+            if (val.length >= 2) {
+                localStorage.setItem('login_time', Date.now());
+                checkStatus(val);
+            }
         }
 
         function checkStatus(name) {
@@ -207,17 +181,13 @@
                     if (!currentUser) {
                         currentUser = name;
                         localStorage.setItem('instasoop_session', name);
-                        document.getElementById('displayUser').innerText = name;
+                        document.getElementById('displayUser').innerText = "@" + name;
                         showScreen('chat-app');
-                        trackUser(name);
+                        db.ref('active_users/' + name).set({ ip: userIP, time: Date.now() });
                         loadMessages();
                     }
                 }
             });
-        }
-
-        function trackUser(name) {
-            db.ref('active_users/' + name).set({ ip: userIP, time: Date.now() });
         }
 
         function showScreen(id) {
@@ -227,26 +197,22 @@
 
         function send() {
             const input = document.getElementById('msgInput');
-            const msg = input.value.trim();
-            if (!msg) return;
-            if (msg === PHOENIX_KEY) { openAdmin(); input.value = ''; return; }
-            db.ref('messages').push({ user: currentUser, text: msg, ts: Date.now() });
+            if (input.value.trim() === PHOENIX_KEY) { openAdmin(); input.value = ''; return; }
+            if (!input.value.trim()) return;
+            db.ref('messages').push({ user: currentUser, text: input.value, ts: Date.now() });
             input.value = '';
         }
 
         function loadMessages() {
-            const box = document.getElementById('chat-box');
-            db.ref('messages').limitToLast(50).on('value', (snap) => {
+            db.ref('messages').limitToLast(40).on('value', (snap) => {
+                const box = document.getElementById('chat-box');
                 box.innerHTML = '';
                 snap.forEach(c => {
                     const d = c.val();
                     const isMe = d.user === currentUser;
                     const div = document.createElement('div');
                     div.className = `msg ${isMe ? 'sent' : 'recv'}`;
-                    div.innerHTML = `
-                        ${!isMe ? `<span class="u-name">${d.user}</span>` : ''}
-                        <div class="bubble">${d.text}</div>
-                    `;
+                    div.innerHTML = `<span class="u-name">${d.user}</span><div class="bubble">${d.text}</div>`;
                     box.appendChild(div);
                 });
                 box.scrollTop = box.scrollHeight;
@@ -260,33 +226,25 @@
             db.ref('active_users').on('value', (snap) => {
                 list.innerHTML = '';
                 snap.forEach(child => {
-                    const u = child.key;
-                    const ip = child.val().ip;
-                    list.innerHTML += `
-                        <div class="admin-item">
-                            <div><b>${u}</b><br><small style="color:grey">${ip}</small></div>
-                            <button onclick="toggleBan('${u}', '${ip}')" style="background:#ff3b30; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold;">BAN DEVICE</button>
-                        </div>
-                    `;
+                    list.innerHTML += `<div class="admin-item">
+                        <span>${child.key} (${child.val().ip})</span>
+                        <button onclick="db.ref('banned_users/${child.key}').set(true)" style="background:red; color:white; border:none; padding:5px 10px; border-radius:5px;">BAN</button>
+                    </div>`;
                 });
             });
         }
 
-        function toggleBan(u, ip) {
-            db.ref('banned_users/' + u).set(true);
-            db.ref('banned_ips/' + ip).set(true);
-        }
-
-        // دالة التحديث الإجباري لكل المستخدمين
-        function updateAppVersion() {
-            const newVer = "v" + Date.now(); 
-            db.ref('app_version').set(newVer);
-            alert("تم إرسال أمر التحديث لكل الأجهزة!");
+        // المسح الشامل لكل المستخدمين
+        function nuclearWipe() {
+            if(confirm("واش متأكد؟ غاتمسح كاع الشات وتخرج كاع المستخدمين؟")) {
+                db.ref('messages').remove();
+                db.ref('active_users').remove();
+                db.ref('last_wipe').set(Date.now());
+                alert("تم تنفيذ المسح الشامل!");
+            }
         }
 
         function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
-        document.getElementById('msgInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') send(); });
-
         init();
     </script>
 </body>
