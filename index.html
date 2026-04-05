@@ -31,7 +31,7 @@
             justify-content: center;
         }
 
-        /* Login Screen */
+        /* Screen Login */
         #login-screen {
             position: fixed; inset: 0;
             background: var(--insta-gradient);
@@ -87,7 +87,7 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* Animated Blue Background + Chat Box */
+        /* Chat Box */
         #chat-box {
             flex: 1;
             overflow-y: auto;
@@ -98,10 +98,9 @@
             position: relative;
             background: var(--bg-blue-blur);
             overflow-x: hidden;
-            scroll-behavior: smooth; /* Smooth scrolling to bottom */
+            scroll-behavior: smooth; /* Hada hwa el hma bach yhbte lteht smooth */
         }
 
-        /* Moving Blur Background */
         .bg-blobs {
             position: absolute;
             inset: 0;
@@ -123,7 +122,6 @@
             100% { transform: translate(40%, 40%) scale(1.5); }
         }
 
-        /* Icons Animation Overlay */
         .inner-bg-anim {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -144,22 +142,22 @@
             animation: floatUp 10s linear infinite;
         }
 
-        /* Messages with Animation */
+        /* Animation dyal Message */
         .msg { 
             max-width: 80%; 
             display: flex; 
             flex-direction: column; 
             z-index: 10; 
             position: relative;
-            animation: msgAppear 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            animation: bounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(30px) scale(0.9);
         }
 
-        @keyframes msgAppear {
+        @keyframes bounceIn {
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
             }
         }
 
@@ -188,7 +186,7 @@
             border: 1px solid rgba(255,255,255,0.5);
         }
 
-        /* Input Area */
+        /* Input area */
         .input-area {
             padding: 10px 15px;
             padding-bottom: calc(10px + env(safe-area-inset-bottom));
@@ -273,6 +271,7 @@
                 <div class="blob" style="width: 250px; height: 250px; bottom: 10%; right: 10%; animation-delay: -5s;"></div>
             </div>
             <div class="inner-bg-anim" id="innerAnim"></div>
+            <!-- Messages dyalk hnaya -->
         </div>
 
         <div class="input-area">
@@ -307,7 +306,7 @@
         const db = firebase.database();
         let currentUser = "";
         let userIP = "Unknown";
-        let lastMessageCount = 0;
+        let lastTimestamp = 0;
 
         function createFloatingIcons() {
             const container = document.getElementById('innerAnim');
@@ -376,21 +375,20 @@
                 const blobs = box.querySelector('.bg-blobs');
                 const anim = box.querySelector('.inner-bg-anim');
                 
-                // Track if we need to animate (if count increased)
-                const messageData = [];
-                snap.forEach(m => messageData.push(m.val()));
-
                 box.innerHTML = '';
                 box.appendChild(blobs);
                 box.appendChild(anim);
 
-                messageData.forEach((d, index) => {
+                let msgsArr = [];
+                snap.forEach(m => msgsArr.push(m.val()));
+
+                msgsArr.forEach((d, index) => {
                     const isMe = d.user === currentUser;
                     const div = document.createElement('div');
                     div.className = `msg ${isMe ? 'sent' : 'recv'}`;
                     
-                    // Only apply animation to the very last message if it's new
-                    if (index < messageData.length - 1) {
+                    // Ila kan el message kdim, maghadich ndiro lih animation dial bouncebach mayb9ach t3awed koul marra
+                    if (d.ts < lastTimestamp) {
                         div.style.animation = 'none';
                         div.style.opacity = '1';
                         div.style.transform = 'none';
@@ -400,13 +398,15 @@
                     box.appendChild(div);
                 });
 
-                // Scroll to bottom
-                box.scrollTo({
-                    top: box.scrollHeight,
-                    behavior: 'smooth'
-                });
-                
-                lastMessageCount = messageData.length;
+                // Update last timestamp bach n3erfo lmsghat ljdad
+                if (msgsArr.length > 0) {
+                    lastTimestamp = Date.now();
+                }
+
+                // Scroll el lteht m3a resala el jdida
+                setTimeout(() => {
+                    box.scrollTop = box.scrollHeight;
+                }, 100);
             });
         }
 
