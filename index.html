@@ -3,19 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Instasoop | Premium Design</title>
+    <title>Instasoop | Animated Premium</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --insta-gradient: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            --insta-gradient: linear-gradient(-45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
             --blue-action: #0095f6;
-            --glass-bg: rgba(255, 255, 255, 0.9);
             --text-main: #262626;
             --text-secondary: #8e8e8e;
-            --border-color: #dbdbdb;
+            --border-color: rgba(219, 219, 219, 0.5);
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes floatIcons {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0.1; }
+            50% { opacity: 0.2; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
         }
 
         * { 
@@ -28,12 +39,38 @@
             margin: 0; padding: 0; 
             height: 100%; width: 100%; 
             overflow: hidden; 
-            background: var(--insta-gradient); 
+            background: var(--insta-gradient);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
             display: flex;
             justify-content: center;
         }
 
-        /* login screen with full background */
+        /* Animated background elements */
+        .bg-animation {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .floating-icon {
+            position: absolute;
+            bottom: -100px;
+            background: rgba(255, 255, 255, 0.2);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            animation: floatIcons 10s linear infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .floating-icon svg { fill: white; width: 25px; height: 25px; }
+
+        /* login screen */
         .overlay-screen {
             position: fixed; inset: 0;
             display: none; flex-direction: column;
@@ -43,14 +80,15 @@
         }
 
         .login-card {
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(15px);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
             padding: 40px 30px;
-            border-radius: 24px;
+            border-radius: 28px;
             width: 100%;
             max-width: 320px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
             text-align: center;
+            z-index: 10;
         }
 
         .insta-logo { 
@@ -64,14 +102,17 @@
         input[type="text"] {
             width: 100%;
             background: rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.08);
             padding: 14px 15px;
             border-radius: 12px;
             color: var(--text-main);
             margin-bottom: 15px;
             outline: none;
-            font-size: 15px;
+            font-size: 16px;
+            transition: 0.3s;
         }
+
+        input[type="text"]:focus { border-color: var(--blue-action); background: #fff; }
 
         .btn-primary {
             width: 100%;
@@ -83,7 +124,7 @@
             font-weight: 700;
             cursor: pointer;
             font-size: 15px;
-            box-shadow: 0 4px 12px rgba(0, 149, 246, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 149, 246, 0.4);
         }
 
         /* App Container */
@@ -94,7 +135,8 @@
             width: 100%;
             max-width: 500px;
             background: #ffffff;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 5;
         }
 
         header {
@@ -104,7 +146,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #fff;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
         }
 
         .header-logo {
@@ -121,40 +164,44 @@
             padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            background: #fdfdfd;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.5); /* Semi transparent for bg to show slightly */
+            scroll-behavior: smooth;
         }
 
         /* Message Bubbles */
-        .msg { max-width: 82%; display: flex; flex-direction: column; }
-        .u-name { font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 2px; padding: 0 10px; font-weight: 600; }
+        .msg { max-width: 82%; display: flex; flex-direction: column; position: relative; }
+        .u-name { font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 3px; padding: 0 12px; font-weight: 700; }
         
         .bubble { 
-            padding: 12px 16px; 
+            padding: 12px 18px; 
             border-radius: 22px; 
             font-size: 0.98rem; 
             line-height: 1.4; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
         .sent { align-self: flex-end; }
         .sent .bubble { 
             background: var(--insta-gradient); 
+            background-size: 200% 200%;
+            animation: gradientBG 5s ease infinite;
             color: white; 
             border-bottom-right-radius: 4px;
         }
-        .sent .u-name { display: none; }
         
         .recv { align-self: flex-start; }
         .recv .bubble { 
-            background: #efefef; 
+            background: #ffffff; 
             color: var(--text-main); 
             border-bottom-left-radius: 4px;
+            border: 1px solid #f0f0f0;
         }
 
-        /* Bottom Input Fixed */
+        /* Bottom Input */
         .input-container {
-            padding: 10px 16px;
-            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            padding: 12px 16px;
+            padding-bottom: calc(15px + env(safe-area-inset-bottom));
             background: #fff;
             border-top: 1px solid var(--border-color);
         }
@@ -163,9 +210,9 @@
             border: 1px solid var(--border-color);
             border-radius: 30px;
             display: flex;
-            padding: 5px 18px;
+            padding: 5px 20px;
             align-items: center;
-            background: #fff;
+            background: #fafafa;
         }
 
         #msgInput {
@@ -180,13 +227,16 @@
 
         .send-txt {
             color: var(--blue-action);
-            font-weight: 700;
+            font-weight: 800;
             cursor: pointer;
             font-size: 16px;
             padding-left: 5px;
+            transition: 0.2s;
         }
 
-        /* Ban & Admin Screens */
+        .send-txt:active { transform: scale(0.9); opacity: 0.7; }
+
+        /* Admin & Banned */
         #banned-screen {
             background: #fff;
             position: fixed; inset: 0;
@@ -202,24 +252,20 @@
 
         .admin-card {
             background: #f8f8f8;
-            margin-bottom: 10px;
-            padding: 15px;
-            border-radius: 15px;
+            margin-bottom: 12px;
+            padding: 18px;
+            border-radius: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid #eee;
         }
 
-        .timer-box {
-            font-size: 2rem;
-            font-weight: 900;
-            color: var(--blue-action);
-            margin: 20px 0;
-        }
+        .timer-box { font-size: 3rem; font-weight: 900; color: var(--blue-action); }
     </style>
 </head>
 <body>
+
+    <div class="bg-animation" id="bgAnim"></div>
 
     <!-- Login -->
     <div id="login-screen" class="overlay-screen">
@@ -232,18 +278,18 @@
 
     <!-- Banned -->
     <div id="banned-screen">
-        <div style="font-size: 5rem; margin-bottom: 10px;">🚫</div>
-        <h2 style="margin:0;">تم إيقاف حسابك</h2>
-        <p style="color: var(--text-secondary); margin: 15px 0;">حسابك محظور من الدردشة بسبب مخالفة القوانين.</p>
+        <div style="font-size: 6rem;">🚫</div>
+        <h2>حسابك مقيد</h2>
+        <p style="color: var(--text-secondary);">تم حظرك مؤقتاً لمخالفة معايير مجتمع Instasoop.</p>
         <div id="timer-display" class="timer-box">00</div>
-        <p style="font-size: 0.8rem; color: var(--text-secondary);">ثانية متبقية لفك الحظر</p>
+        <p style="color: var(--text-secondary);">انتظر حتى ينتهي الوقت</p>
     </div>
 
     <!-- Main App -->
     <div id="chat-app">
         <header>
             <div class="header-logo">Instasoop</div>
-            <div id="displayUser" style="color: var(--blue-action); font-weight: 700; font-size: 0.9rem;"></div>
+            <div id="displayUser" style="color: var(--blue-action); font-weight: 800; font-size: 0.9rem; background: rgba(0,149,246,0.1); padding: 5px 12px; border-radius: 15px;"></div>
         </header>
         
         <div id="chat-box"></div>
@@ -258,18 +304,34 @@
 
     <!-- Admin -->
     <div id="admin-panel">
-        <div style="display:flex; justify-content: space-between; align-items:center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px;">
-            <h2 style="margin:0;">الإشراف</h2>
-            <button onclick="closeAdmin()" style="background:none; border:none; font-size:1.8rem; cursor:pointer;">✕</button>
+        <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 20px;">
+            <h2 style="margin:0;">الإشراف والتحكم</h2>
+            <button onclick="closeAdmin()" style="background:#eee; border:none; width:40px; height:40px; border-radius:50%; font-size:1.2rem; cursor:pointer;">✕</button>
         </div>
-        <div style="display:flex; gap: 10px; margin-bottom: 15px;">
-            <button onclick="unbanAll()" style="flex:1; padding:12px; border-radius:10px; border:1px solid #ddd;">إلغاء حظر الجميع</button>
-            <button onclick="nuclearWipe()" style="flex:1; padding:12px; border-radius:10px; background:#ed4956; color:white; border:none;">تصفير الشات</button>
+        <div style="display:flex; gap: 10px; margin-bottom: 20px;">
+            <button onclick="unbanAll()" style="flex:1; padding:14px; border-radius:15px; border:1px solid #ddd; background:#fff; font-weight:600;">فك حظر الجميع</button>
+            <button onclick="nuclearWipe()" style="flex:1; padding:14px; border-radius:15px; background:#ed4956; color:white; border:none; font-weight:600;">مسح الشات</button>
         </div>
         <div id="admin-list" style="overflow-y:auto; flex:1;"></div>
     </div>
 
     <script>
+        // Create floating background icons
+        function createBgIcons() {
+            const container = document.getElementById('bgAnim');
+            const iconSvg = `<svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c.796 0 1.441.645 1.441 1.44s-.645 1.44-1.441 1.44c-.795 0-1.439-.645-1.439-1.44s.644-1.44 1.439-1.44z"/></svg>`;
+            for(let i=0; i<15; i++) {
+                const div = document.createElement('div');
+                div.className = 'floating-icon';
+                div.style.left = Math.random() * 100 + 'vw';
+                div.style.animationDuration = (Math.random() * 5 + 7) + 's';
+                div.style.animationDelay = (Math.random() * 5) + 's';
+                div.innerHTML = iconSvg;
+                container.appendChild(div);
+            }
+        }
+        createBgIcons();
+
         const firebaseConfig = {
             apiKey: "AIzaSyDuscs-L7y5aNwBX6zzz95XU3qGrF4ZsSk",
             authDomain: "instasoop-230e0.firebaseapp.com",
@@ -331,12 +393,8 @@
             const disp = document.getElementById('timer-display');
             const timer = setInterval(() => {
                 const diff = expiry - Date.now();
-                if (diff <= 0) { 
-                    clearInterval(timer); 
-                    location.reload(); 
-                } else {
-                    disp.innerText = Math.floor(diff/1000);
-                }
+                if (diff <= 0) { clearInterval(timer); location.reload(); }
+                else { disp.innerText = Math.floor(diff/1000); }
             }, 1000);
         }
 
@@ -380,11 +438,10 @@
                     const n = u.key;
                     const div = document.createElement('div');
                     div.className = 'admin-card';
-                    div.innerHTML = `<div><b>${n}</b></div>
+                    div.innerHTML = `<div><div style="font-weight:bold;">${n}</div><div style="font-size:0.7rem;color:#888;">${u.val().ip}</div></div>
                     <div style="display:flex; gap:5px;">
-                        <button onclick="applyBan('${n}', 60)" style="padding:5px 8px; border-radius:5px; border:1px solid #ddd;">1د</button>
-                        <button onclick="applyBan('${n}', 3600)" style="padding:5px 8px; border-radius:5px; border:1px solid #ddd;">1س</button>
-                        <button onclick="applyBan('${n}', 0)" style="padding:5px 8px; border-radius:5px; background:#ed4956; color:white; border:none;">دائم</button>
+                        <button onclick="applyBan('${n}', 60)" style="padding:8px 12px; border-radius:10px; border:1px solid #ddd; background:#fff; cursor:pointer;">1د</button>
+                        <button onclick="applyBan('${n}', 0)" style="padding:8px 12px; border-radius:10px; background:#ed4956; color:white; border:none; cursor:pointer;">طرد</button>
                     </div>`;
                     list.appendChild(div);
                 });
@@ -397,7 +454,7 @@
         }
 
         function unbanAll() { db.ref('banned_users').remove(); }
-        function nuclearWipe() { if(confirm("حذف كل الرسائل؟")) db.ref('messages').remove(); }
+        function nuclearWipe() { if(confirm("تصفية كل المحادثات؟")) db.ref('messages').remove(); }
         function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
         
         document.getElementById('msgInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') send(); });
