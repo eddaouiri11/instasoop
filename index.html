@@ -2,10 +2,11 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Instasoop | Luxury Messenger</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    
     <style>
         :root {
             --primary: #7c3aed;
@@ -14,26 +15,27 @@
             --surface: #1e293b;
             --text-main: #f8fafc;
             --text-dim: #94a3b8;
-            --glass: rgba(30, 41, 59, 0.7);
+            --glass: rgba(30, 41, 59, 0.8);
         }
 
         * { 
             box-sizing: border-box; 
-            transition: all 0.2s ease; 
+            transition: background 0.3s ease; 
             -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         body {
             margin: 0;
+            background: #0f172a;
             background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
             color: var(--text-main);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             height: 100vh;
-            height: -webkit-fill-available;
             display: flex;
             justify-content: center;
-            align-items: center;
             overflow: hidden;
+            /* Fix for mobile height */
+            height: -webkit-fill-available;
         }
 
         /* Login Screen */
@@ -51,69 +53,67 @@
 
         .login-card {
             background: var(--surface);
-            padding: 40px 20px;
-            border-radius: 24px;
+            padding: 30px 20px;
+            border-radius: 28px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             width: 100%;
-            max-width: 400px;
+            max-width: 350px;
             text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .logo-large { font-size: 3rem; margin-bottom: 10px; }
+        .logo-large { font-size: 3.5rem; margin-bottom: 10px; filter: drop-shadow(0 0 10px var(--primary)); }
 
         input {
             width: 100%;
             background: #0f172a;
             border: 2px solid #334155;
-            padding: 15px;
-            border-radius: 14px;
+            padding: 14px;
+            border-radius: 16px;
             color: white;
             font-size: 1rem;
-            margin: 20px 0;
+            margin: 15px 0;
             outline: none;
             text-align: center;
         }
 
-        input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.2); }
+        input:focus { border-color: var(--primary); }
 
         .btn-primary {
             width: 100%;
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
             border: none;
-            padding: 15px;
-            border-radius: 14px;
+            padding: 14px;
+            border-radius: 16px;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 1.1rem;
             cursor: pointer;
-            box-shadow: 0 10px 15px -3px rgba(124, 58, 237, 0.4);
+            box-shadow: 0 8px 15px rgba(124, 58, 237, 0.3);
         }
-
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(124, 58, 237, 0.5); }
 
         /* Main Chat Layout */
         #chat-app {
             width: 100%;
-            height: 100vh;
-            height: -webkit-fill-available;
+            max-width: 600px;
+            height: 100%;
             display: none;
             flex-direction: column;
-            max-width: 900px;
             background: var(--glass);
-            backdrop-filter: blur(12px);
-            border-left: 1px solid rgba(255, 255, 255, 0.05);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            position: relative;
         }
 
         header {
             padding: 15px 20px;
-            background: rgba(15, 23, 42, 0.8);
+            padding-top: max(15px, env(safe-area-inset-top));
+            background: rgba(15, 23, 42, 0.9);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 10;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
         .status-dot {
@@ -121,9 +121,8 @@
             height: 8px;
             background: #10b981;
             border-radius: 50%;
-            display: inline-block;
             margin-left: 8px;
-            box-shadow: 0 0 10px #10b981;
+            box-shadow: 0 0 8px #10b981;
         }
 
         #chat-box {
@@ -132,54 +131,54 @@
             padding: 20px 15px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            scroll-behavior: smooth;
+            gap: 12px;
+            scrollbar-width: none; /* Firefox */
         }
+
+        #chat-box::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 
         /* Message Styling */
         .message-row { 
             display: flex; 
             flex-direction: column; 
             max-width: 85%; 
-            position: relative; 
-            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+            animation: popIn 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.27); 
         }
 
-        @keyframes slideUp { 
-            from { opacity: 0; transform: translateY(20px); } 
-            to { opacity: 1; transform: translateY(0); } 
+        @keyframes popIn { 
+            from { opacity: 0; transform: scale(0.9); } 
+            to { opacity: 1; transform: scale(1); } 
         }
 
         .received { align-self: flex-start; }
         .sent { align-self: flex-end; }
 
-        .user-tag { font-size: 0.7rem; margin-bottom: 4px; color: var(--text-dim); font-weight: 600; padding: 0 8px; }
-        .sent .user-tag { text-align: left; margin-right: auto; margin-left: 8px; color: var(--primary); }
+        .user-tag { font-size: 0.75rem; margin-bottom: 4px; color: var(--text-dim); padding: 0 5px; }
+        .sent .user-tag { text-align: left; color: var(--primary); }
 
         .bubble {
-            padding: 12px 16px;
+            padding: 10px 16px;
             border-radius: 18px;
             font-size: 0.95rem;
             line-height: 1.4;
-            position: relative;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            word-break: break-word;
+            word-wrap: break-word;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        .received .bubble { background: var(--surface); border-bottom-right-radius: 4px; color: #e2e8f0; }
+        .received .bubble { background: var(--surface); border-bottom-right-radius: 4px; color: #f1f5f9; }
         .sent .bubble { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-bottom-left-radius: 4px; color: white; }
 
-        .time { font-size: 0.6rem; margin-top: 4px; opacity: 0.5; align-self: flex-end; padding: 0 5px; }
+        .time { font-size: 0.6rem; margin-top: 3px; opacity: 0.4; align-self: flex-end; }
 
         /* Input Area */
         .input-container {
-            padding: 15px;
-            background: rgba(15, 23, 42, 0.9);
+            padding: 12px 15px;
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            background: rgba(15, 23, 42, 0.95);
             display: flex;
             gap: 10px;
             align-items: center;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: max(15px, env(safe-area-inset-bottom));
         }
 
         #msgInput { 
@@ -187,72 +186,66 @@
             text-align: right; 
             background: #1e293b; 
             border: 1px solid #334155; 
-            padding: 12px 15px;
-            font-size: 0.95rem;
+            padding: 12px;
+            border-radius: 20px;
+            font-size: 1rem;
+            flex: 1;
         }
 
         .send-btn {
             background: var(--primary);
-            width: 45px;
-            height: 45px;
-            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
             border: none;
             flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(124, 58, 237, 0.3);
         }
 
-        /* Custom Scrollbar */
-        #chat-box::-webkit-scrollbar { width: 4px; }
-        #chat-box::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-
-        /* Responsive Fixes for Desktop */
+        /* Responsive Fixes */
         @media (min-width: 768px) {
             #chat-app {
+                margin: 20px;
                 height: 90vh;
-                border-radius: 30px;
-                box-shadow: 0 0 100px rgba(0,0,0,0.5);
+                border-radius: 24px;
+                border: 1px solid rgba(255,255,255,0.1);
             }
-            .bubble { font-size: 1rem; }
-            .message-row { max-width: 70%; }
         }
     </style>
 </head>
 <body>
 
-    <!-- شاشة الدخول -->
     <div id="login-screen">
         <div class="login-card">
             <div class="logo-large">🥣</div>
-            <h1 style="margin:0; font-size: 1.8rem;">Instasoop</h1>
-            <p style="color: var(--text-dim); margin-top: 5px;">مرحباً بك في عالم المحادثة الفاخرة</p>
-            <input type="text" id="usernameInput" placeholder="ادخل اسمك المستعار..." maxlength="15">
+            <h1 style="margin:0; font-size: 1.8rem; letter-spacing: -1px;">Instasoop</h1>
+            <p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 5px;">مرحباً بك في شات الرفاهية</p>
+            <input type="text" id="usernameInput" placeholder="اكتب اسمك هنا..." maxlength="12">
             <button class="btn-primary" onclick="startApp()">دخول الشات</button>
         </div>
     </div>
 
-    <!-- واجهة الشات الرئيسية -->
     <div id="chat-app">
         <header>
             <div style="display:flex; align-items:center;">
-                <span style="font-weight:bold; letter-spacing: 1px; font-size: 0.9rem;">INSTASOOP</span>
-                <span style="margin: 0 8px; opacity: 0.2;">|</span>
-                <span id="displayUser" style="color: var(--primary); font-weight: 600; font-size: 0.9rem;"></span>
+                <span style="font-weight:900; color:var(--primary); font-size: 1rem;">🥣 INSTASOOP</span>
             </div>
-            <div style="display:flex; align-items:center; font-size: 0.75rem; color: var(--text-dim);">
+            <div style="display:flex; align-items:center; font-size: 0.8rem;">
+                <span id="displayUser" style="margin-left: 10px; font-weight:600;"></span>
                 <span class="status-dot"></span>
-                <span>متصل</span>
             </div>
         </header>
 
         <div id="chat-box"></div>
 
         <div class="input-container">
-            <input type="text" id="msgInput" placeholder="اكتب رسالة..." onkeypress="if(event.key === 'Enter') send()">
+            <input type="text" id="msgInput" placeholder="اكتب رسالتك..." autocomplete="off">
             <button class="send-btn" onclick="send()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
             </button>
         </div>
     </div>
@@ -272,15 +265,15 @@
         const db = firebase.database();
         let currentUser = "";
 
-        // Focus on input when login screen appears
-        window.onload = () => {
-            document.getElementById('usernameInput').focus();
-        };
+        // Check Enter Key for Message
+        document.getElementById('msgInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') send();
+        });
 
         function startApp() {
             const name = document.getElementById('usernameInput').value.trim();
             if (name.length < 2) {
-                alert("المرجو إدخال اسم حقيقي (حرفين على الأقل)");
+                alert("المرجو إدخال اسمك (حرفين على الأقل)");
                 return;
             }
             currentUser = name;
@@ -297,9 +290,10 @@
                 db.ref('messages').push({
                     user: currentUser,
                     text: text,
-                    time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false})
+                    time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
                 });
                 input.value = '';
+                // Keep focus on mobile
                 input.focus();
             }
         }
@@ -322,9 +316,21 @@
                     `;
                     chatBox.appendChild(row);
                 });
-                chatBox.scrollTop = chatBox.scrollHeight;
+                // Smooth scroll to bottom
+                setTimeout(() => {
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }, 100);
             });
         }
+
+        // Keyboard Viewport Fix for Mobile
+        const originalHeight = window.innerHeight;
+        window.addEventListener('resize', () => {
+            if (window.innerHeight < originalHeight) {
+                // Keyboard is open
+                document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
+            }
+        });
     </script>
 </body>
 </html>
