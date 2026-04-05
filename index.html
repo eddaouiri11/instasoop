@@ -1,467 +1,319 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Instasoop | Ultra Animation</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --insta-gradient: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-            --blue-action: #0095f6;
-            --text-main: #262626;
-            --bg-blue-blur: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Instasoop | Ultra Animation</title>
 
-        * { 
-            box-sizing: border-box; 
-            -webkit-tap-highlight-color: transparent; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-        }
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
-        html, body { 
-            margin: 0; padding: 0; 
-            height: 100%; width: 100%; 
-            overflow: hidden; 
-            background: #fafafa;
-            display: flex;
-            justify-content: center;
-        }
+<link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet">
 
-        /* Screen Login */
-        #login-screen {
-            position: fixed; inset: 0;
-            background: var(--insta-gradient);
-            display: none; flex-direction: column;
-            justify-content: center; align-items: center;
-            z-index: 3000;
-        }
+<style>
+:root {
+    --insta-gradient: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
+    --blue-action:#0095f6;
+    --bg-blue-blur: linear-gradient(135deg,#e0f2fe 0%,#bae6fd 100%);
+}
 
-        .login-card {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            padding: 40px 30px;
-            border-radius: 24px;
-            width: 90%; max-width: 320px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:sans-serif;}
 
-        .insta-logo { 
-            font-size: 3.5rem; 
-            font-family: 'Grand Hotel', cursive; 
-            margin-bottom: 20px; 
-            display: block;
-        }
+html,body{
+margin:0;
+height:100%;
+overflow:hidden;
+background:#fafafa;
+display:flex;
+justify-content:center;
+}
 
-        /* App Layout */
-        #chat-app {
-            display: none;
-            flex-direction: column;
-            height: 100vh;
-            width: 100%;
-            max-width: 500px;
-            background: #fff;
-            position: relative;
-        }
+/* LOGIN */
+#login-screen{
+position:fixed;inset:0;
+background:var(--insta-gradient);
+display:none;
+justify-content:center;
+align-items:center;
+z-index:3000;
+}
 
-        header {
-            height: 60px;
-            padding: 0 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #efefef;
-            background: #fff;
-            z-index: 20;
-        }
+.login-card{
+background:#fff;
+padding:30px;
+border-radius:20px;
+width:90%;
+max-width:320px;
+text-align:center;
+}
 
-        .header-logo {
-            font-family: 'Grand Hotel', cursive;
-            font-size: 2rem;
-            background: var(--insta-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+.insta-logo{
+font-size:3rem;
+font-family:'Grand Hotel';
+margin-bottom:15px;
+}
 
-        /* Chat Box */
-        #chat-box {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            position: relative;
-            background: var(--bg-blue-blur);
-            overflow-x: hidden;
-            scroll-behavior: smooth; /* Hada hwa el hma bach yhbte lteht smooth */
-        }
+/* APP */
+#chat-app{
+display:none;
+flex-direction:column;
+height:100vh;
+width:100%;
+max-width:500px;
+background:#fff;
+}
 
-        .bg-blobs {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            overflow: hidden;
-            pointer-events: none;
-        }
+header{
+height:60px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:10px;
+border-bottom:1px solid #eee;
+}
 
-        .blob {
-            position: absolute;
-            background: rgba(0, 149, 246, 0.2);
-            filter: blur(60px);
-            border-radius: 50%;
-            animation: moveBlob 20s infinite alternate ease-in-out;
-        }
+.header-logo{
+font-family:'Grand Hotel';
+font-size:2rem;
+background:var(--insta-gradient);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
 
-        @keyframes moveBlob {
-            0% { transform: translate(-20%, -20%) scale(1); }
-            100% { transform: translate(40%, 40%) scale(1.5); }
-        }
+/* CHAT */
+#chat-box{
+flex:1;
+overflow-y:auto;
+padding:15px;
+display:flex;
+flex-direction:column;
+gap:10px;
+background:var(--bg-blue-blur);
+overflow-x:hidden;
+}
 
-        .inner-bg-anim {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 1;
-        }
+/* MSG */
+.msg{
+max-width:80%;
+display:flex;
+flex-direction:column;
+animation:fade .3s ease forwards;
+opacity:0;
+}
 
-        @keyframes floatUp {
-            0% { transform: translateY(100px) rotate(0deg); opacity: 0; }
-            20% { opacity: 0.2; }
-            80% { opacity: 0.2; }
-            100% { transform: translateY(-600px) rotate(360deg); opacity: 0; }
-        }
+@keyframes fade{
+to{opacity:1;}
+}
 
-        .floating-icon {
-            position: absolute;
-            bottom: -60px;
-            animation: floatUp 10s linear infinite;
-        }
+.sent{align-self:flex-end;}
+.recv{align-self:flex-start;}
 
-        /* Animation dyal Message */
-        .msg { 
-            max-width: 80%; 
-            display: flex; 
-            flex-direction: column; 
-            z-index: 10; 
-            position: relative;
-            animation: bounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            opacity: 0;
-            transform: translateY(30px) scale(0.9);
-        }
+.bubble{
+padding:10px 15px;
+border-radius:18px;
+}
 
-        @keyframes bounceIn {
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
+.sent .bubble{
+background:var(--insta-gradient);
+color:#fff;
+}
 
-        .u-name { font-size: 0.75rem; color: #555; margin-bottom: 2px; font-weight: 600; padding: 0 5px; }
-        
-        .bubble { 
-            padding: 10px 15px; 
-            border-radius: 18px; 
-            font-size: 0.95rem; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            backdrop-filter: blur(8px);
-        }
+.recv .bubble{
+background:#fff;
+border:1px solid #ddd;
+}
 
-        .sent { align-self: flex-end; }
-        .sent .bubble { 
-            background: var(--insta-gradient); 
-            color: white; 
-            border-bottom-right-radius: 4px; 
-        }
-        
-        .recv { align-self: flex-start; }
-        .recv .bubble { 
-            background: rgba(255, 255, 255, 0.7); 
-            color: #262626; 
-            border-bottom-left-radius: 4px; 
-            border: 1px solid rgba(255,255,255,0.5);
-        }
+/* INPUT */
+.input-area{
+padding:10px;
+border-top:1px solid #eee;
+background:#fff;
+}
 
-        /* Input area */
-        .input-area {
-            padding: 10px 15px;
-            padding-bottom: calc(10px + env(safe-area-inset-bottom));
-            border-top: 1px solid #efefef;
-            background: #fff;
-            z-index: 20;
-        }
+.input-wrap{
+display:flex;
+border:1px solid #ddd;
+border-radius:20px;
+padding:5px 10px;
+}
 
-        .input-wrap {
-            border: 1px solid #dbdbdb;
-            border-radius: 25px;
-            display: flex;
-            padding: 5px 15px;
-            align-items: center;
-        }
+#msgInput{
+flex:1;
+border:none;
+outline:none;
+}
 
-        #msgInput { flex: 1; border: none; outline: none; padding: 8px 0; font-size: 15px; background: transparent; }
-        .send-btn { color: var(--blue-action); font-weight: 700; cursor: pointer; }
+.send-btn{
+color:var(--blue-action);
+font-weight:bold;
+cursor:pointer;
+}
 
-        /* Admin Panel */
-        #admin-panel {
-            position: fixed; inset: 0; background: #fff; z-index: 6000;
-            display: none; flex-direction: column; padding: 20px;
-        }
-        .admin-user-card {
-            background: #f8f9fa; border-radius: 12px; padding: 12px; margin-bottom: 10px;
-            border: 1px solid #eee;
-        }
-        .ban-btn {
-            border: none; padding: 5px 8px; border-radius: 6px; font-size: 11px;
-            cursor: pointer; font-weight: bold; margin-left: 2px;
-        }
-        .ban-1m { background: #fee2e2; color: #dc2626; }
-        .ban-1h { background: #fef3c7; color: #d97706; }
-        .ban-1d { background: #dcfce7; color: #16a34a; }
-        .ban-p { background: #000; color: #fff; }
-
-        #banned-screen {
-            position: fixed; inset: 0; background: #fff; z-index: 5000;
-            display: none; flex-direction: column; justify-content: center; align-items: center;
-        }
-    </style>
+/* BAN */
+#banned-screen{
+position:fixed;inset:0;
+background:#fff;
+display:none;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+z-index:5000;
+}
+</style>
 </head>
+
 <body>
 
-    <svg style="width:0;height:0;position:absolute;">
-        <defs>
-            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#f09433;stop-opacity:0.8" />
-                <stop offset="100%" style="stop-color:#bc1888;stop-opacity:0.8" />
-            </linearGradient>
-        </defs>
-    </svg>
+<!-- LOGIN -->
+<div id="login-screen">
+<div class="login-card">
+<span class="insta-logo">Instasoop</span>
+<input id="usernameInput" placeholder="اسم المستخدم" style="width:100%;padding:10px;margin-bottom:10px;">
+<button onclick="startApp()" style="width:100%;padding:10px;background:#0095f6;color:#fff;border:none;">دخول</button>
+</div>
+</div>
 
-    <!-- Login -->
-    <div id="login-screen">
-        <div class="login-card">
-            <span class="insta-logo">Instasoop</span>
-            <input type="text" id="usernameInput" placeholder="اسم المستخدم" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:15px; outline:none;">
-            <button onclick="startApp()" style="width:100%; padding:12px; background:var(--blue-action); color:white; border:none; border-radius:10px; font-weight:bold;">تسجيل الدخول</button>
-        </div>
-    </div>
+<!-- BAN -->
+<div id="banned-screen">
+<h2>🚫 محظور</h2>
+<div id="timer-display"></div>
+</div>
 
-    <!-- Banned Screen -->
-    <div id="banned-screen">
-        <h1 style="font-size:4rem;">🚫</h1>
-        <h2>الحساب محظور حالياً</h2>
-        <div id="timer-display" style="font-size:3rem; font-weight:bold; color:var(--blue-action);">...</div>
-        <p style="color:#8e8e8e; margin-top:10px;">يرجى الانتظار لانتهاء مدة الحظر</p>
-    </div>
+<!-- APP -->
+<div id="chat-app">
+<header>
+<div class="header-logo">Instasoop</div>
+<div id="displayUser"></div>
+</header>
 
-    <!-- Main Chat App -->
-    <div id="chat-app">
-        <header>
-            <div class="header-logo">Instasoop</div>
-            <div id="displayUser" style="color:var(--blue-action); font-weight:bold; font-size: 0.9rem;"></div>
-        </header>
+<div id="chat-box"></div>
 
-        <div id="chat-box">
-            <div class="bg-blobs">
-                <div class="blob" style="width: 200px; height: 200px; top: 10%; left: 10%;"></div>
-                <div class="blob" style="width: 250px; height: 250px; bottom: 10%; right: 10%; animation-delay: -5s;"></div>
-            </div>
-            <div class="inner-bg-anim" id="innerAnim"></div>
-            <!-- Messages dyalk hnaya -->
-        </div>
+<div class="input-area">
+<div class="input-wrap">
+<input id="msgInput" placeholder="اكتب...">
+<div class="send-btn" onclick="send()">إرسال</div>
+</div>
+</div>
+</div>
 
-        <div class="input-area">
-            <div class="input-wrap">
-                <input type="text" id="msgInput" placeholder="مراسلة..." autocomplete="off">
-                <div class="send-btn" onclick="send()">إرسال</div>
-            </div>
-        </div>
-    </div>
+<script>
+const firebaseConfig={
+apiKey:"AIzaSy...",
+authDomain:"instasoop-230e0.firebaseapp.com",
+databaseURL:"https://instasoop-230e0-default-rtdb.firebaseio.com/"
+};
 
-    <!-- Admin Panel -->
-    <div id="admin-panel">
-        <div style="display:flex; justify-content:space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px;">
-            <h3 style="margin:0;">إدارة المستخدمين</h3>
-            <button onclick="closeAdmin()" style="border:none; background:none; font-size:1.5rem;">✕</button>
-        </div>
-        <div id="admin-list" style="overflow-y:auto; flex:1; margin-top:20px;"></div>
-        <button onclick="nuclearWipe()" style="background:#dc2626; color:white; padding:15px; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">تصفير الشات بالكامل</button>
-    </div>
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDuscs-L7y5aNwBX6zzz95XU3qGrF4ZsSk",
-            authDomain: "instasoop-230e0.firebaseapp.com",
-            projectId: "instasoop-230e0",
-            storageBucket: "instasoop-230e0.firebasestorage.app",
-            messagingSenderId: "968767111628",
-            appId: "1:968767111628:web:4b79cdd708b1a32ba69d69"
-        };
+let currentUser="";
+let lastTimestamp=0;
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        let currentUser = "";
-        let userIP = "Unknown";
-        let lastTimestamp = 0;
+/* INIT */
+function init(){
+const saved=localStorage.getItem('instasoop_session');
+if(saved) checkStatus(saved);
+else document.getElementById('login-screen').style.display='flex';
+}
 
-        function createFloatingIcons() {
-            const container = document.getElementById('innerAnim');
-            const svg = `<svg viewBox="0 0 24 24" style="width:25px; height:25px; fill:url(#grad1)"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c.796 0 1.441.645 1.441 1.44s-.645 1.44-1.441 1.44c-.795 0-1.439-.645-1.439-1.44s.644-1.44 1.439-1.44z"/></svg>`;
-            
-            setInterval(() => {
-                const icon = document.createElement('div');
-                icon.className = 'floating-icon';
-                icon.style.left = (Math.random() * 90) + '%';
-                icon.style.animationDuration = (8 + Math.random() * 5) + 's';
-                icon.innerHTML = svg;
-                container.appendChild(icon);
-                setTimeout(() => icon.remove(), 12000);
-            }, 2000);
-        }
+function startApp(){
+const n=document.getElementById('usernameInput').value.trim();
+if(n.length>=2) checkStatus(n);
+}
 
-        async function init() {
-            try {
-                const res = await fetch('https://api.ipify.org?format=json');
-                const data = await res.json();
-                userIP = data.ip;
-            } catch(e) {}
-            
-            const saved = localStorage.getItem('instasoop_session');
-            if(saved) checkStatus(saved);
-            else document.getElementById('login-screen').style.display = 'flex';
-            
-            createFloatingIcons();
-        }
+function checkStatus(name){
+db.ref('banned_users/'+name).on('value',snap=>{
+const b=snap.val();
 
-        function startApp() {
-            const n = document.getElementById('usernameInput').value.trim();
-            if(n.length >= 2) checkStatus(n);
-        }
+if(b){
+if(b.expiry && Date.now()>b.expiry){
+db.ref('banned_users/'+name).remove();
+}else{
+document.getElementById('banned-screen').style.display='flex';
+startTimer(b.expiry);
+return;
+}
+}
 
-        function checkStatus(name) {
-            db.ref('banned_users/' + name).on('value', (snap) => {
-                const b = snap.val();
-                if(b) {
-                    if(b.expiry && Date.now() > b.expiry) {
-                        db.ref('banned_users/' + name).remove();
-                    } else {
-                        document.getElementById('chat-app').style.display = 'none';
-                        document.getElementById('login-screen').style.display = 'none';
-                        document.getElementById('banned-screen').style.display = 'flex';
-                        startTimer(b.expiry);
-                        return;
-                    }
-                }
-                
-                if(!currentUser) {
-                    currentUser = name;
-                    localStorage.setItem('instasoop_session', name);
-                    document.getElementById('displayUser').innerText = "@" + name;
-                    document.getElementById('login-screen').style.display = 'none';
-                    document.getElementById('chat-app').style.display = 'flex';
-                    db.ref('active_users/' + name).set({ ip: userIP, ts: Date.now() });
-                    loadMsgs();
-                }
-            });
-        }
+if(!currentUser){
+currentUser=name;
+localStorage.setItem('instasoop_session',name);
+document.getElementById('displayUser').innerText="@"+name;
+document.getElementById('login-screen').style.display='none';
+document.getElementById('chat-app').style.display='flex';
+loadMsgs();
+}
+});
+}
 
-        function loadMsgs() {
-            db.ref('messages').limitToLast(50).on('value', (snap) => {
-                const box = document.getElementById('chat-box');
-                const blobs = box.querySelector('.bg-blobs');
-                const anim = box.querySelector('.inner-bg-anim');
-                
-                box.innerHTML = '';
-                box.appendChild(blobs);
-                box.appendChild(anim);
+/* LOAD MSG بدون scroll */
+function loadMsgs(){
+db.ref('messages').limitToLast(50).on('value',snap=>{
+const box=document.getElementById('chat-box');
+box.innerHTML="";
 
-                let msgsArr = [];
-                snap.forEach(m => msgsArr.push(m.val()));
+let arr=[];
+snap.forEach(m=>arr.push(m.val()));
 
-                msgsArr.forEach((d, index) => {
-                    const isMe = d.user === currentUser;
-                    const div = document.createElement('div');
-                    div.className = `msg ${isMe ? 'sent' : 'recv'}`;
-                    
-                    // Ila kan el message kdim, maghadich ndiro lih animation dial bouncebach mayb9ach t3awed koul marra
-                    if (d.ts < lastTimestamp) {
-                        div.style.animation = 'none';
-                        div.style.opacity = '1';
-                        div.style.transform = 'none';
-                    }
+arr.forEach(d=>{
+const div=document.createElement('div');
+div.className="msg "+(d.user===currentUser?'sent':'recv');
+div.innerHTML=`<div class="bubble">${d.text}</div>`;
+box.appendChild(div);
+});
 
-                    div.innerHTML = `<span class="u-name">${d.user}</span><div class="bubble">${d.text}</div>`;
-                    box.appendChild(div);
-                });
+});
+}
 
-                // Update last timestamp bach n3erfo lmsghat ljdad
-                if (msgsArr.length > 0) {
-                    lastTimestamp = Date.now();
-                }
+/* SEND */
+function send(){
+const i=document.getElementById('msgInput');
+const t=i.value.trim();
+if(!t) return;
 
-                // Scroll el lteht m3a resala el jdida
-                setTimeout(() => {
-                    box.scrollTop = box.scrollHeight;
-                }, 100);
-            });
-        }
+db.ref('messages').push({
+user:currentUser,
+text:t,
+ts:Date.now()
+});
 
-        function send() {
-            const i = document.getElementById('msgInput');
-            const t = i.value.trim();
-            if(t === "20102010") { openAdmin(); i.value = ""; return; }
-            if(!t) return;
-            db.ref('messages').push({ user: currentUser, text: t, ts: Date.now() });
-            i.value = "";
-        }
+i.value="";
+}
 
-        function openAdmin() {
-            document.getElementById('admin-panel').style.display = 'flex';
-            const list = document.getElementById('admin-list');
-            db.ref('active_users').on('value', snap => {
-                list.innerHTML = "";
-                snap.forEach(u => {
-                    const n = u.key;
-                    const ip = u.val().ip || 'Unknown';
-                    list.innerHTML += `
-                        <div class="admin-user-card">
-                            <div style="font-weight:bold; margin-bottom:5px;">@${n} <span style="font-size:0.7rem; color:#888;">(${ip})</span></div>
-                            <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                                <button class="ban-btn ban-1m" onclick="applyBan('${n}', 60)">1د</button>
-                                <button class="ban-btn ban-1h" onclick="applyBan('${n}', 3600)">1س</button>
-                                <button class="ban-btn ban-1d" onclick="applyBan('${n}', 86400)">1ي</button>
-                                <button class="ban-btn ban-p" onclick="applyBan('${n}', 0)">مؤبد</button>
-                            </div>
-                        </div>`;
-                });
-            });
-        }
+/* BAN TIMER بدون reload */
+function startTimer(expiry){
+if(!expiry){
+document.getElementById('timer-display').innerText="∞";
+return;
+}
 
-        function applyBan(n, s) {
-            const expiry = s === 0 ? null : Date.now() + (s * 1000);
-            db.ref('banned_users/' + n).set({ expiry: expiry });
-        }
+const itv=setInterval(()=>{
+const diff=expiry-Date.now();
 
-        function nuclearWipe() { if(confirm("هل أنت متأكد من مسح جميع الرسائل؟")) db.ref('messages').remove(); }
-        function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
-        
-        function startTimer(expiry) {
-            if(!expiry) { document.getElementById('timer-display').innerText = "∞"; return; }
-            const itv = setInterval(() => {
-                const diff = expiry - Date.now();
-                if(diff <= 0) { clearInterval(itv); location.reload(); }
-                const mins = Math.floor(diff / 60000);
-                const secs = Math.floor((diff % 60000) / 1000);
-                document.getElementById('timer-display').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-            }, 1000);
-        }
+if(diff<=0){
+clearInterval(itv);
 
-        document.getElementById('msgInput').addEventListener('keypress', e => { if(e.key === 'Enter') send(); });
-        init();
-    </script>
+/* بدل reload */
+document.getElementById('banned-screen').style.display='none';
+document.getElementById('login-screen').style.display='flex';
+
+localStorage.removeItem('instasoop_session');
+currentUser="";
+}
+
+const m=Math.floor(diff/60000);
+const s=Math.floor((diff%60000)/1000);
+document.getElementById('timer-display').innerText=m+":"+s;
+
+},1000);
+}
+
+document.getElementById('msgInput').addEventListener('keypress',e=>{
+if(e.key==='Enter') send();
+});
+
+init();
+</script>
+
 </body>
 </html>
