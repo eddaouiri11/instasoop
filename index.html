@@ -76,13 +76,14 @@
 
     <div id="banned-screen" class="overlay-screen">
         <div style="font-size: 5rem;">🚫</div>
-        <h2 style="color: var(--danger);">تم الحظر</h2>
-        <p style="color: var(--dim); text-align: center;">حسابك أو جهازك محظور من دخول الدردشة.</p>
+        <h2 style="color: var(--danger);">تم حظر الحساب</h2>
+        <p style="color: var(--dim); text-align: center;">هذا الحساب محظور حالياً من استخدام الدردشة.</p>
+        <button class="btn-insta" style="background:#333; margin-top:20px;" onclick="location.reload()">الرجوع للرئيسية</button>
     </div>
 
     <div id="chat-app">
         <header>
-            <div style="font-weight: 800; font-size: 1.4rem;">Instasoop</div>
+            <div style="font-weight: 800; font-size: 1.4rem;">Instagram</div>
             <div id="displayUser" style="color: var(--insta-blue); font-weight: 600;"></div>
         </header>
         <div id="chat-box"></div>
@@ -122,22 +123,17 @@
         let userIP = "";
         const ADMIN_CODE = "20102010";
 
+        // Getting IP only for display purposes in admin, not for banning
         async function init() {
             try {
                 const res = await fetch('https://api.ipify.org?format=json');
                 const data = await res.json();
                 userIP = data.ip.replace(/\./g, '_');
+            } catch (e) { userIP = "Unknown"; }
 
-                // Check IP Ban first
-                db.ref('banned_ips/' + userIP).on('value', (snap) => {
-                    if (snap.exists()) showScreen('banned-screen');
-                    else {
-                        const saved = localStorage.getItem('instasoop_session');
-                        if (saved) checkUserStatus(saved);
-                        else showScreen('login-screen');
-                    }
-                });
-            } catch (e) { showScreen('login-screen'); }
+            const saved = localStorage.getItem('instasoop_session');
+            if (saved) checkUserStatus(saved);
+            else showScreen('login-screen');
         }
 
         function startApp() {
@@ -146,18 +142,20 @@
         }
 
         function checkUserStatus(name) {
-            db.ref('banned_users/' + name).once('value', (snap) => {
+            // Listen for ban status changes in real-time
+            db.ref('banned_users/' + name).on('value', (snap) => {
                 if (snap.exists()) {
-                    // If banned user tries to login, ban their current IP too
-                    db.ref('banned_ips/' + userIP).set(true);
                     showScreen('banned-screen');
+                    localStorage.removeItem('instasoop_session');
                 } else {
-                    currentUser = name;
-                    localStorage.setItem('instasoop_session', name);
-                    document.getElementById('displayUser').innerText = "@" + name;
-                    showScreen('chat-app');
-                    db.ref('active_users/' + name).set({ ip: userIP, ts: Date.now() });
-                    loadMessages();
+                    if (!currentUser) { // Only set up once
+                        currentUser = name;
+                        localStorage.setItem('instasoop_session', name);
+                        document.getElementById('displayUser').innerText = "@" + name;
+                        showScreen('chat-app');
+                        db.ref('active_users/' + name).set({ ip: userIP, ts: Date.now() });
+                        loadMessages();
+                    }
                 }
             });
         }
@@ -202,26 +200,23 @@
                     const ip = u.val().ip;
                     const div = document.createElement('div');
                     div.className = 'admin-item';
-                    div.innerHTML = `<div><b>${name}</b><br><small>${ip}</small></div>
-                    <button class="ban-btn" onclick="banUser('${name}', '${ip}')" style="background:var(--danger); color:white; border:none; padding:8px; border-radius:5px;">BAN</button>`;
+                    div.innerHTML = `<div><b>${name}</b><br><small>IP: ${ip}</small></div>
+                    <button onclick="banUser('${name}')" style="background:var(--danger); color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">BAN</button>`;
                     list.appendChild(div);
                 });
             });
         }
 
-        function banUser(name, ip) {
-            if(confirm(`حظر ${name}؟`)) {
+        function banUser(name) {
+            if(confirm(`حظر حساب ${name}؟`)) {
                 db.ref('banned_users/' + name).set(true);
-                // We don't ban IP immediately to avoid banning the whole house
-                // It will auto-ban if they try to log back in
-                alert("تم حظر الإسم بنجاح");
+                alert("تم حظر المستخدم: " + name);
             }
         }
 
         function unbanAll() {
-            if(confirm("إلغاء حظر الجميع؟")) {
+            if(confirm("إلغاء حظر جميع الحسابات؟")) {
                 db.ref('banned_users').remove();
-                db.ref('banned_ips').remove();
             }
         }
 
