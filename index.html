@@ -14,7 +14,6 @@
             --border: #262626;
             --text: #ffffff;
             --dim: #a8a8a8;
-            --danger: #ff3b30;
         }
 
         * { 
@@ -77,10 +76,6 @@
         .input-area { padding: 12px; border-top: 1px solid var(--border); }
         .input-wrapper { background: #121212; border: 1px solid #363636; border-radius: 25px; display: flex; padding: 2px 15px; }
         #msgInput { border: none; background: transparent; flex: 1; color: white; padding: 10px 0; outline: none; }
-
-        /* Admin Dashboard */
-        #admin-panel { position: fixed; inset: 0; background: #000; z-index: 4000; display: none; flex-direction: column; padding: 20px; }
-        .admin-item { background: #1a1a1a; padding: 12px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
     </style>
 </head>
 <body>
@@ -89,12 +84,7 @@
         <div class="logo-text">Instagram</div>
         <input type="text" id="usernameInput" placeholder="اسم المستخدم" maxlength="15">
         <button class="btn-insta" onclick="startApp()">تسجيل الدخول</button>
-    </div>
-
-    <div id="banned-screen" class="overlay-screen">
-        <div style="font-size: 4rem;">🚫</div>
-        <h2 style="color: var(--danger);">الحساب محظور</h2>
-        <p style="color: var(--dim);">تم حظر جهازك من دخول هذه الشبكة.</p>
+        <p style="color: #444; font-size: 0.7rem; margin-top: 30px;">System Update: All Restrictions Lifted</p>
     </div>
 
     <div id="chat-app">
@@ -111,13 +101,6 @@
         </div>
     </div>
 
-    <div id="admin-panel">
-        <h2 style="border-bottom:1px solid #222; padding-bottom:10px;">Security Dashboard</h2>
-        <button onclick="nuclearWipe()" style="width:100%; padding:15px; background:var(--danger); border:none; color:white; border-radius:10px; font-weight:bold; margin-bottom:20px;">BAN ALL & CLEAR CHAT (WIPE)</button>
-        <div id="admin-list" style="overflow-y:auto; flex:1;"></div>
-        <button onclick="closeAdmin()" style="width:100%; padding:15px; background:#333; border:none; color:white; border-radius:10px; margin-top:10px;">خروج</button>
-    </div>
-
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDuscs-L7y5aNwBX6zzz95XU3qGrF4ZsSk",
@@ -131,63 +114,37 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         let currentUser = "";
-        let userIP = "";
-        const PHOENIX_KEY = "20102010";
 
-        // مراقبة أمر المسح الشامل (Wipe)
-        function watchWipe() {
-            db.ref('last_wipe').on('value', (snap) => {
-                const wipeTime = snap.val();
-                const myLoginTime = localStorage.getItem('login_time');
-                if (wipeTime && (!myLoginTime || myLoginTime < wipeTime)) {
-                    localStorage.clear();
-                    location.reload();
-                }
-            });
+        // --- الميزة الأساسية: مسح جميع أنواع الحظر فوراً ---
+        function clearAllRestrictions() {
+            db.ref('banned_ips').remove();   // مسح حظر الـ IP
+            db.ref('banned_users').remove(); // مسح حظر الأسماء
+            console.log("All bans cleared successfully.");
         }
 
         async function init() {
-            watchWipe();
-            try {
-                const res = await fetch('https://api.ipify.org?format=json');
-                const data = await res.json();
-                userIP = data.ip.replace(/\./g, '_');
-                
-                db.ref('banned_ips/' + userIP).on('value', (snap) => {
-                    if (snap.exists()) showScreen('banned-screen');
-                    else {
-                        const saved = localStorage.getItem('instasoop_session');
-                        if (saved) checkStatus(saved);
-                        else showScreen('login-screen');
-                    }
-                });
-            } catch (e) { showScreen('login-screen'); }
+            clearAllRestrictions(); // تشغيل المسح عند فتح التطبيق
+            
+            const saved = localStorage.getItem('instasoop_session');
+            if (saved) {
+                currentUser = saved;
+                document.getElementById('displayUser').innerText = "@" + saved;
+                showScreen('chat-app');
+                loadMessages();
+            } else {
+                showScreen('login-screen');
+            }
         }
 
         function startApp() {
             const val = document.getElementById('usernameInput').value.trim();
             if (val.length >= 2) {
-                localStorage.setItem('login_time', Date.now());
-                checkStatus(val);
+                currentUser = val;
+                localStorage.setItem('instasoop_session', val);
+                document.getElementById('displayUser').innerText = "@" + val;
+                showScreen('chat-app');
+                loadMessages();
             }
-        }
-
-        function checkStatus(name) {
-            db.ref('banned_users/' + name).on('value', (snap) => {
-                if (snap.exists()) {
-                    db.ref('banned_ips/' + userIP).set(true);
-                    showScreen('banned-screen');
-                } else {
-                    if (!currentUser) {
-                        currentUser = name;
-                        localStorage.setItem('instasoop_session', name);
-                        document.getElementById('displayUser').innerText = "@" + name;
-                        showScreen('chat-app');
-                        db.ref('active_users/' + name).set({ ip: userIP, time: Date.now() });
-                        loadMessages();
-                    }
-                }
-            });
         }
 
         function showScreen(id) {
@@ -197,14 +154,13 @@
 
         function send() {
             const input = document.getElementById('msgInput');
-            if (input.value.trim() === PHOENIX_KEY) { openAdmin(); input.value = ''; return; }
             if (!input.value.trim()) return;
             db.ref('messages').push({ user: currentUser, text: input.value, ts: Date.now() });
             input.value = '';
         }
 
         function loadMessages() {
-            db.ref('messages').limitToLast(40).on('value', (snap) => {
+            db.ref('messages').limitToLast(50).on('value', (snap) => {
                 const box = document.getElementById('chat-box');
                 box.innerHTML = '';
                 snap.forEach(c => {
@@ -219,32 +175,6 @@
             });
         }
 
-        // Admin Actions
-        function openAdmin() {
-            document.getElementById('admin-panel').style.display = 'flex';
-            const list = document.getElementById('admin-list');
-            db.ref('active_users').on('value', (snap) => {
-                list.innerHTML = '';
-                snap.forEach(child => {
-                    list.innerHTML += `<div class="admin-item">
-                        <span>${child.key} (${child.val().ip})</span>
-                        <button onclick="db.ref('banned_users/${child.key}').set(true)" style="background:red; color:white; border:none; padding:5px 10px; border-radius:5px;">BAN</button>
-                    </div>`;
-                });
-            });
-        }
-
-        // المسح الشامل لكل المستخدمين
-        function nuclearWipe() {
-            if(confirm("واش متأكد؟ غاتمسح كاع الشات وتخرج كاع المستخدمين؟")) {
-                db.ref('messages').remove();
-                db.ref('active_users').remove();
-                db.ref('last_wipe').set(Date.now());
-                alert("تم تنفيذ المسح الشامل!");
-            }
-        }
-
-        function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
         init();
     </script>
 </body>
