@@ -98,6 +98,7 @@
             position: relative;
             background: var(--bg-blue-blur);
             overflow-x: hidden;
+            scroll-behavior: smooth; /* Smooth scrolling to bottom */
         }
 
         /* Moving Blur Background */
@@ -143,8 +144,25 @@
             animation: floatUp 10s linear infinite;
         }
 
-        /* Messages */
-        .msg { max-width: 80%; display: flex; flex-direction: column; z-index: 10; position: relative; }
+        /* Messages with Animation */
+        .msg { 
+            max-width: 80%; 
+            display: flex; 
+            flex-direction: column; 
+            z-index: 10; 
+            position: relative;
+            animation: msgAppear 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes msgAppear {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .u-name { font-size: 0.75rem; color: #555; margin-bottom: 2px; font-weight: 600; padding: 0 5px; }
         
         .bubble { 
@@ -190,7 +208,7 @@
         #msgInput { flex: 1; border: none; outline: none; padding: 8px 0; font-size: 15px; background: transparent; }
         .send-btn { color: var(--blue-action); font-weight: 700; cursor: pointer; }
 
-        /* Admin Panel Custom Styles */
+        /* Admin Panel */
         #admin-panel {
             position: fixed; inset: 0; background: #fff; z-index: 6000;
             display: none; flex-direction: column; padding: 20px;
@@ -250,13 +268,11 @@
         </header>
 
         <div id="chat-box">
-            <!-- Animated Background Layers -->
             <div class="bg-blobs">
                 <div class="blob" style="width: 200px; height: 200px; top: 10%; left: 10%;"></div>
                 <div class="blob" style="width: 250px; height: 250px; bottom: 10%; right: 10%; animation-delay: -5s;"></div>
             </div>
             <div class="inner-bg-anim" id="innerAnim"></div>
-            <!-- Messages injected here -->
         </div>
 
         <div class="input-area">
@@ -291,6 +307,7 @@
         const db = firebase.database();
         let currentUser = "";
         let userIP = "Unknown";
+        let lastMessageCount = 0;
 
         function createFloatingIcons() {
             const container = document.getElementById('innerAnim');
@@ -356,22 +373,40 @@
         function loadMsgs() {
             db.ref('messages').limitToLast(50).on('value', (snap) => {
                 const box = document.getElementById('chat-box');
-                // Clear old messages but keep animation layers
                 const blobs = box.querySelector('.bg-blobs');
                 const anim = box.querySelector('.inner-bg-anim');
+                
+                // Track if we need to animate (if count increased)
+                const messageData = [];
+                snap.forEach(m => messageData.push(m.val()));
+
                 box.innerHTML = '';
                 box.appendChild(blobs);
                 box.appendChild(anim);
 
-                snap.forEach(m => {
-                    const d = m.val();
+                messageData.forEach((d, index) => {
                     const isMe = d.user === currentUser;
                     const div = document.createElement('div');
                     div.className = `msg ${isMe ? 'sent' : 'recv'}`;
+                    
+                    // Only apply animation to the very last message if it's new
+                    if (index < messageData.length - 1) {
+                        div.style.animation = 'none';
+                        div.style.opacity = '1';
+                        div.style.transform = 'none';
+                    }
+
                     div.innerHTML = `<span class="u-name">${d.user}</span><div class="bubble">${d.text}</div>`;
                     box.appendChild(div);
                 });
-                box.scrollTop = box.scrollHeight;
+
+                // Scroll to bottom
+                box.scrollTo({
+                    top: box.scrollHeight,
+                    behavior: 'smooth'
+                });
+                
+                lastMessageCount = messageData.length;
             });
         }
 
