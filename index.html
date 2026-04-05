@@ -3,128 +3,268 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Instasoop</title>
+    <title>Instasoop | Premium Design</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --insta-blue: #0095f6;
-            --insta-gradient: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
-            --msg-gradient: linear-gradient(to right, #0095f6, #0074cc);
-            --bg: #ffffff;
-            --border: #dbdbdb;
-            --text: #262626;
-            --dim: #8e8e8e;
-            --danger: #ed4956;
+            --insta-gradient: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            --blue-action: #0095f6;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --text-main: #262626;
+            --text-secondary: #8e8e8e;
+            --border-color: #dbdbdb;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+        }
 
-        html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); height: 100%; width: 100%; overflow: hidden; position: fixed; }
+        html, body { 
+            margin: 0; padding: 0; 
+            height: 100%; width: 100%; 
+            overflow: hidden; 
+            background: var(--insta-gradient); 
+            display: flex;
+            justify-content: center;
+        }
 
-        /* Screens */
+        /* login screen with full background */
         .overlay-screen {
-            position: fixed; inset: 0; background: var(--bg);
-            z-index: 3000; display: none; flex-direction: column;
-            justify-content: center; align-items: center; padding: 20px;
+            position: fixed; inset: 0;
+            display: none; flex-direction: column;
+            justify-content: center; align-items: center;
+            padding: 20px;
+            z-index: 3000;
         }
 
-        .insta-logo { font-size: 3.5rem; color: var(--text); font-family: 'Grand Hotel', cursive; margin-bottom: 20px; }
+        .login-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(15px);
+            padding: 40px 30px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 320px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .insta-logo { 
+            font-size: 3.8rem; 
+            color: var(--text-main); 
+            font-family: 'Grand Hotel', cursive; 
+            margin-bottom: 25px; 
+            display: block;
+        }
 
         input[type="text"] {
-            width: 100%; max-width: 300px; background: #fafafa; border: 1px solid var(--border);
-            padding: 14px; border-radius: 8px; color: var(--text); margin-bottom: 12px; outline: none; font-size: 14px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 14px 15px;
+            border-radius: 12px;
+            color: var(--text-main);
+            margin-bottom: 15px;
+            outline: none;
+            font-size: 15px;
         }
 
-        .btn-insta {
-            width: 100%; max-width: 300px; background: var(--insta-blue); color: white;
-            border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px;
+        .btn-primary {
+            width: 100%;
+            background: var(--blue-action);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 15px;
+            box-shadow: 0 4px 12px rgba(0, 149, 246, 0.3);
         }
 
-        /* App Structure */
-        #chat-app { display: none; flex-direction: column; height: 100vh; max-width: 500px; margin: 0 auto; position: relative; background: #fff; }
+        /* App Container */
+        #chat-app {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+            max-width: 500px;
+            background: #ffffff;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
 
         header {
-            padding: 10px 16px; border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center; height: 50px;
-        }
-
-        header .logo-text { font-family: 'Grand Hotel', cursive; font-size: 1.8rem; }
-
-        #chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 6px; }
-        
-        /* Messages Styling */
-        .msg { max-width: 80%; display: flex; flex-direction: column; }
-        .u-name { font-size: 0.65rem; color: var(--dim); margin-bottom: 2px; padding: 0 10px; }
-        .bubble { padding: 10px 16px; border-radius: 22px; font-size: 0.95rem; line-height: 1.3; }
-
-        .sent { align-self: flex-end; }
-        .sent .bubble { background: var(--msg-gradient); color: white; border-bottom-right-radius: 4px; }
-        .sent .u-name { text-align: left; display: none; }
-        
-        .recv { align-self: flex-start; }
-        .recv .bubble { background: #f1f1f1; color: var(--text); border-bottom-left-radius: 4px; }
-
-        /* Input Area Fix */
-        .input-area { 
-            padding: 10px 16px 25px 16px; /* Added bottom padding for mobile home bar */
-            border-top: 1px solid var(--border);
+            padding: 0 16px;
+            height: 60px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             background: #fff;
         }
-        .input-wrapper { 
-            border: 1px solid var(--border); border-radius: 30px; 
-            display: flex; padding: 4px 16px; align-items: center; gap: 10px;
-        }
-        #msgInput { border: none; background: transparent; flex: 1; color: var(--text); padding: 10px 0; outline: none; margin:0; font-size: 15px; }
-        .send-btn { color: var(--insta-blue); font-weight: 700; cursor: pointer; font-size: 15px; padding: 5px; }
 
-        /* Admin */
-        #admin-panel { position: fixed; inset: 0; background: #fff; z-index: 4000; display: none; flex-direction: column; padding: 20px; }
-        .admin-item { border-bottom: 1px solid #eee; padding: 15px 0; display: flex; justify-content: space-between; align-items: center; }
-        .ban-btns button { padding: 6px 10px; margin-right: 4px; border: 1px solid var(--border); border-radius: 5px; background: #fff; font-size: 12px; }
+        .header-logo {
+            font-family: 'Grand Hotel', cursive;
+            font-size: 2.2rem;
+            background: var(--insta-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #fdfdfd;
+        }
+
+        /* Message Bubbles */
+        .msg { max-width: 82%; display: flex; flex-direction: column; }
+        .u-name { font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 2px; padding: 0 10px; font-weight: 600; }
+        
+        .bubble { 
+            padding: 12px 16px; 
+            border-radius: 22px; 
+            font-size: 0.98rem; 
+            line-height: 1.4; 
+        }
+
+        .sent { align-self: flex-end; }
+        .sent .bubble { 
+            background: var(--insta-gradient); 
+            color: white; 
+            border-bottom-right-radius: 4px;
+        }
+        .sent .u-name { display: none; }
+        
+        .recv { align-self: flex-start; }
+        .recv .bubble { 
+            background: #efefef; 
+            color: var(--text-main); 
+            border-bottom-left-radius: 4px;
+        }
+
+        /* Bottom Input Fixed */
+        .input-container {
+            padding: 10px 16px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            background: #fff;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .input-bar {
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            display: flex;
+            padding: 5px 18px;
+            align-items: center;
+            background: #fff;
+        }
+
+        #msgInput {
+            border: none;
+            background: transparent;
+            flex: 1;
+            color: var(--text-main);
+            padding: 10px 0;
+            outline: none;
+            font-size: 16px;
+        }
+
+        .send-txt {
+            color: var(--blue-action);
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 16px;
+            padding-left: 5px;
+        }
+
+        /* Ban & Admin Screens */
+        #banned-screen {
+            background: #fff;
+            position: fixed; inset: 0;
+            z-index: 5000; display: none; flex-direction: column;
+            justify-content: center; align-items: center; padding: 40px; text-align: center;
+        }
+
+        #admin-panel {
+            position: fixed; inset: 0;
+            background: #fff; z-index: 6000;
+            display: none; flex-direction: column; padding: 20px;
+        }
+
+        .admin-card {
+            background: #f8f8f8;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #eee;
+        }
+
+        .timer-box {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--blue-action);
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
 
+    <!-- Login -->
     <div id="login-screen" class="overlay-screen">
-        <div class="insta-logo">Instasoop</div>
-        <input type="text" id="usernameInput" placeholder="اسم المستخدم" maxlength="15">
-        <button class="btn-insta" onclick="startApp()">تسجيل الدخول</button>
+        <div class="login-card">
+            <span class="insta-logo">Instasoop</span>
+            <input type="text" id="usernameInput" placeholder="اسم المستخدم" maxlength="15">
+            <button class="btn-primary" onclick="startApp()">تسجيل الدخول</button>
+        </div>
     </div>
 
-    <div id="banned-screen" class="overlay-screen">
-        <div style="font-size: 5rem;">🚫</div>
-        <h2 style="color: var(--danger); margin: 10px 0;">تم حظر حسابك</h2>
-        <p id="ban-msg" style="color: var(--dim); text-align: center;">حسابك محظور حالياً من استخدام الدردشة.</p>
-        <div id="timer-display" style="font-weight: 800; color: var(--insta-blue); margin-top: 15px; font-size: 1.2rem;"></div>
+    <!-- Banned -->
+    <div id="banned-screen">
+        <div style="font-size: 5rem; margin-bottom: 10px;">🚫</div>
+        <h2 style="margin:0;">تم إيقاف حسابك</h2>
+        <p style="color: var(--text-secondary); margin: 15px 0;">حسابك محظور من الدردشة بسبب مخالفة القوانين.</p>
+        <div id="timer-display" class="timer-box">00</div>
+        <p style="font-size: 0.8rem; color: var(--text-secondary);">ثانية متبقية لفك الحظر</p>
     </div>
 
+    <!-- Main App -->
     <div id="chat-app">
         <header>
-            <div class="logo-text">Instasoop</div>
-            <div id="displayUser" style="color: var(--insta-blue); font-weight: 600; font-size: 0.9rem;"></div>
+            <div class="header-logo">Instasoop</div>
+            <div id="displayUser" style="color: var(--blue-action); font-weight: 700; font-size: 0.9rem;"></div>
         </header>
         
         <div id="chat-box"></div>
         
-        <div class="input-area">
-            <div class="input-wrapper">
+        <div class="input-container">
+            <div class="input-bar">
                 <input type="text" id="msgInput" placeholder="مراسلة..." autocomplete="off">
-                <div class="send-btn" onclick="send()">إرسال</div>
+                <div class="send-txt" onclick="send()">إرسال</div>
             </div>
         </div>
     </div>
 
+    <!-- Admin -->
     <div id="admin-panel">
-        <div style="display:flex; justify-content: space-between; align-items:center; border-bottom: 2px solid #eee; padding-bottom: 10px;">
-            <h2 style="margin:0;">التحكم في الأعضاء</h2>
-            <button onclick="closeAdmin()" style="background:none; border:none; font-size:1.5rem;">✕</button>
+        <div style="display:flex; justify-content: space-between; align-items:center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px;">
+            <h2 style="margin:0;">الإشراف</h2>
+            <button onclick="closeAdmin()" style="background:none; border:none; font-size:1.8rem; cursor:pointer;">✕</button>
         </div>
-        <div style="margin: 15px 0; display: flex; gap: 8px;">
-            <button onclick="unbanAll()" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ddd;">فك حظر الجميع</button>
-            <button onclick="nuclearWipe()" style="flex:1; padding:10px; border-radius:8px; background:var(--danger); color:white; border:none;">مسح المحادثة</button>
+        <div style="display:flex; gap: 10px; margin-bottom: 15px;">
+            <button onclick="unbanAll()" style="flex:1; padding:12px; border-radius:10px; border:1px solid #ddd;">إلغاء حظر الجميع</button>
+            <button onclick="nuclearWipe()" style="flex:1; padding:12px; border-radius:10px; background:#ed4956; color:white; border:none;">تصفير الشات</button>
         </div>
         <div id="admin-list" style="overflow-y:auto; flex:1;"></div>
     </div>
@@ -142,7 +282,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         let currentUser = "";
-        let userIP = "";
+        let userIP = "Unknown";
         const ADMIN_CODE = "20102010";
 
         async function init() {
@@ -150,7 +290,7 @@
                 const res = await fetch('https://api.ipify.org?format=json');
                 const data = await res.json();
                 userIP = data.ip;
-            } catch (e) { userIP = "Unknown"; }
+            } catch (e) {}
 
             const saved = localStorage.getItem('instasoop_session');
             if (saved) checkUserStatus(saved);
@@ -179,7 +319,7 @@
                 if (!currentUser) {
                     currentUser = name;
                     localStorage.setItem('instasoop_session', name);
-                    document.getElementById('displayUser').innerText = "@" + name;
+                    document.getElementById('displayUser').innerText = "@" + name.toLowerCase();
                     showScreen('chat-app');
                     db.ref('active_users/' + name).set({ ip: userIP, ts: Date.now() });
                     loadMessages();
@@ -191,17 +331,19 @@
             const disp = document.getElementById('timer-display');
             const timer = setInterval(() => {
                 const diff = expiry - Date.now();
-                if (diff <= 0) { clearInterval(timer); location.reload(); }
-                else {
-                    const s = Math.floor(diff/1000);
-                    disp.innerText = s + " ثانية متبقية";
+                if (diff <= 0) { 
+                    clearInterval(timer); 
+                    location.reload(); 
+                } else {
+                    disp.innerText = Math.floor(diff/1000);
                 }
             }, 1000);
         }
 
         function showScreen(id) {
-            document.querySelectorAll('.overlay-screen, #chat-app').forEach(s => s.style.display = 'none');
-            document.getElementById(id).style.display = 'flex';
+            document.querySelectorAll('.overlay-screen, #chat-app, #banned-screen').forEach(s => s.style.display = 'none');
+            const el = document.getElementById(id);
+            if(el) el.style.display = 'flex';
         }
 
         function send() {
@@ -237,12 +379,12 @@
                 snap.forEach(u => {
                     const n = u.key;
                     const div = document.createElement('div');
-                    div.className = 'admin-item';
+                    div.className = 'admin-card';
                     div.innerHTML = `<div><b>${n}</b></div>
-                    <div class="ban-btns">
-                        <button onclick="applyBan('${n}', 30)">30s</button>
-                        <button onclick="applyBan('${n}', 3600)">1h</button>
-                        <button onclick="applyBan('${n}', 0)" style="color:red">دائم</button>
+                    <div style="display:flex; gap:5px;">
+                        <button onclick="applyBan('${n}', 60)" style="padding:5px 8px; border-radius:5px; border:1px solid #ddd;">1د</button>
+                        <button onclick="applyBan('${n}', 3600)" style="padding:5px 8px; border-radius:5px; border:1px solid #ddd;">1س</button>
+                        <button onclick="applyBan('${n}', 0)" style="padding:5px 8px; border-radius:5px; background:#ed4956; color:white; border:none;">دائم</button>
                     </div>`;
                     list.appendChild(div);
                 });
@@ -250,12 +392,12 @@
         }
 
         function applyBan(name, sec) {
-            const exp = sec === 0 ? null : Date.now() + (sec*1000);
+            const exp = sec === 0 ? null : Date.now() + (sec * 1000);
             db.ref('banned_users/' + name).set({ banned: true, expiry: exp });
         }
 
         function unbanAll() { db.ref('banned_users').remove(); }
-        function nuclearWipe() { db.ref('messages').remove(); }
+        function nuclearWipe() { if(confirm("حذف كل الرسائل؟")) db.ref('messages').remove(); }
         function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
         
         document.getElementById('msgInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') send(); });
