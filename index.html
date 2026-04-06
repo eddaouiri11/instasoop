@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Instasoop | Luxy Pro Edition (Secure)</title>
+    <title>Instasoop | Luxy Pro Edition (Secure & Private)</title>
     
     <!-- Firebase Legacy SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
@@ -23,6 +23,7 @@
             --accent-gold: #d4af37;
             --msg-sent: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
             --msg-recv: rgba(212, 175, 55, 0.05);
+            --msg-private: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(0,0,0,0.5) 100%);
             --danger-glow: 0 0 15px rgba(255, 75, 43, 0.4);
         }
 
@@ -217,7 +218,7 @@
         }
 
         /* Messages */
-        .msg { max-width: 75%; position: relative; animation: fadeIn 0.4s ease forwards; }
+        .msg { max-width: 75%; position: relative; animation: fadeIn 0.4s ease forwards; cursor: pointer; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .sent { align-self: flex-end; }
@@ -238,6 +239,7 @@
             line-height: 1.6;
             backdrop-filter: blur(10px);
             word-wrap: break-word;
+            position: relative;
         }
 
         .sent .luxy-bubble {
@@ -254,10 +256,48 @@
             color: #f0f0f0;
         }
 
+        /* Private Message Style */
+        .private-msg .luxy-bubble {
+            border: 1px solid var(--accent-gold) !important;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.15);
+        }
+
+        .private-tag {
+            font-size: 9px;
+            background: var(--luxy-gold);
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 800;
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            text-transform: uppercase;
+        }
+
+        .encrypted-placeholder {
+            font-style: italic;
+            opacity: 0.6;
+            color: var(--accent-gold);
+        }
+
         /* Input Area */
         .luxy-footer {
             padding: 20px 25px calc(25px + env(safe-area-inset-bottom));
             background: linear-gradient(transparent, #000);
+        }
+
+        .private-indicator {
+            display: none;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid var(--accent-gold);
+            padding: 8px 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: var(--accent-gold);
+            justify-content: space-between;
+            align-items: center;
         }
 
         .luxy-input-container {
@@ -359,6 +399,10 @@
         <main id="chat-box"></main>
 
         <footer class="luxy-footer">
+            <div id="privateIndicator" class="private-indicator">
+                <span>تكلم خاص مع: <strong id="targetUserLabel"></strong></span>
+                <span onclick="clearPrivateTarget()" style="cursor:pointer; font-weight:bold;">✕</span>
+            </div>
             <div class="luxy-input-container">
                 <input type="text" id="msgInput" placeholder="اكتب رسالة فخمة..." autocomplete="off">
                 <button id="sendBtn" class="luxy-send" onclick="send()">إرسال</button>
@@ -388,7 +432,7 @@
 
     <script>
         // Security Configuration
-        const SEC_KEY = "luxy_ultra_secret_1337"; // مفتاح تشفير الترافيك الداخلي
+        const SEC_KEY = "luxy_ultra_secret_1337"; 
 
         const firebaseConfig = {
             apiKey: "AIzaSyDuscs-L7y5aNwBX6zzz95XU3qGrF4ZsSk",
@@ -402,6 +446,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         let currentUser = localStorage.getItem('luxy_user') || "";
+        let selectedTarget = null; // للمحادثات الخاصة
 
         // Traffic Security: Encrypt/Decrypt Functions
         function encryptData(text) {
@@ -437,6 +482,21 @@
             const t = document.getElementById('toast');
             t.innerText = m; t.style.display = 'block';
             setTimeout(() => t.style.display='none', 3000);
+        }
+
+        function setPrivateTarget(user) {
+            if(user === currentUser) return;
+            selectedTarget = user;
+            document.getElementById('privateIndicator').style.display = 'flex';
+            document.getElementById('targetUserLabel').innerText = user;
+            document.getElementById('msgInput').placeholder = `اكتب رسالة سرية لـ ${user}...`;
+            showToast(`أنت الآن تراسل ${user} سراً`);
+        }
+
+        function clearPrivateTarget() {
+            selectedTarget = null;
+            document.getElementById('privateIndicator').style.display = 'none';
+            document.getElementById('msgInput').placeholder = "اكتب رسالة فخمة...";
         }
 
         function startApp() {
@@ -476,15 +536,26 @@
                 snap.forEach(child => {
                     const m = child.val();
                     const isMe = m.user === currentUser;
+                    const isPrivate = m.target ? true : false;
+                    const canRead = !isPrivate || isMe || m.target === currentUser;
                     
-                    // DECRYPTION HAPPENS HERE ON THE CLIENT SIDE
-                    const originalText = decryptData(m.text);
+                    let displayContent = "";
+                    if (canRead) {
+                        displayContent = decryptData(m.text);
+                    } else {
+                        displayContent = `<span class="encrypted-placeholder">رسالة مشفرة</span>`;
+                    }
                     
                     const d = document.createElement('div');
-                    d.className = `msg ${isMe ? 'sent' : 'recv'}`;
+                    d.className = `msg ${isMe ? 'sent' : 'recv'} ${isPrivate ? 'private-msg' : ''}`;
+                    d.onclick = () => setPrivateTarget(m.user);
+                    
                     d.innerHTML = `
                         ${!isMe ? `<div class="msg-sender">${m.user}</div>` : ''}
-                        <div class="luxy-bubble">${originalText}</div>
+                        <div class="luxy-bubble">
+                            ${isPrivate && canRead ? `<span class="private-tag">سرية</span>` : ''}
+                            ${displayContent}
+                        </div>
                     `;
                     box.appendChild(d);
                 });
@@ -498,17 +569,23 @@
             if(!txt) return;
             if(txt === "20102010") return openAdmin();
 
-            // ENCRYPTION HAPPENS HERE BEFORE SENDING TO SERVER
             const encryptedText = encryptData(txt);
-
-            db.ref('messages').push({
+            const payload = {
                 user: currentUser,
                 text: encryptedText,
                 ts: Date.now()
-            });
+            };
+
+            // إضافة المستلم إذا كان هناك اختيار خاص
+            if (selectedTarget) {
+                payload.target = selectedTarget;
+            }
+
+            db.ref('messages').push(payload);
             
             input.value = "";
             document.getElementById('sendBtn').style.display = 'none';
+            // لا نمسح الـ Target تلقائياً لنسمح بمحادثة مستمرة، إلا لو أراد المستخدم
         }
 
         document.getElementById('msgInput').oninput = function() {
