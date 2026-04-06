@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Instasoop | Instagram Style Chat</title>
+    <title>Instasoop | Chat</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         }
 
         body {
-            background: #000000;
+            background: #000;
             height: 100vh;
             width: 100vw;
             display: flex;
@@ -24,36 +24,29 @@
             align-items: center;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             overflow: hidden;
+            color: white;
         }
 
-        /* Main app container - Instagram style */
         #chat-app {
             display: none;
             flex-direction: column;
             height: 100%;
             width: 100%;
-            max-width: 600px;
-            background: #000000;
+            max-width: 500px;
+            background: #000;
             position: relative;
         }
 
-        /* Login Screen */
+        /* Login */
         #login-screen {
             position: fixed;
             inset: 0;
-            background: #000000;
+            background: #000;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 3000;
-        }
-
-        .login-card {
-            width: 90%;
-            max-width: 350px;
-            text-align: center;
-            padding: 20px;
         }
 
         .insta-logo {
@@ -64,266 +57,88 @@
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            display: inline-block;
         }
 
         #usernameInput {
-            width: 100%;
+            width: 80%;
             padding: 14px;
-            border-radius: 12px;
+            border-radius: 10px;
             border: 1px solid #262626;
             background: #121212;
             color: white;
             font-size: 16px;
             outline: none;
             margin-bottom: 15px;
-            transition: all 0.2s;
-        }
-
-        #usernameInput:focus {
-            border-color: #0095f6;
+            text-align: center;
         }
 
         .login-btn {
-            width: 100%;
-            padding: 14px;
+            width: 80%;
+            padding: 12px;
             background: #0095f6;
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             font-weight: bold;
-            cursor: pointer;
-            transition: opacity 0.2s;
         }
 
-        .login-btn:active { opacity: 0.7; }
-
-        /* Banned Screen */
-        #banned-screen {
-            position: fixed;
-            inset: 0;
-            background: #000000;
-            z-index: 5000;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            color: white;
-        }
-
-        /* Instagram Header */
+        /* Header */
         .insta-header {
             height: 60px;
-            padding: 0 16px;
+            padding: 0 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 0.5px solid #262626;
-            background: #000000;
-            flex-shrink: 0;
+            border-bottom: 1px solid #262626;
         }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .header-left { display: flex; align-items: center; gap: 10px; }
+        .avatar-img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1px solid #333; }
+        .user-info h2 { font-size: 15px; font-weight: bold; }
+        .user-info p { font-size: 11px; color: #8e8e8e; }
 
-        .back-icon {
-            font-size: 28px;
-            cursor: pointer;
-            line-height: 1;
-            color: white;
-        }
-
-        .avatar-gradient {
-            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-            border-radius: 50%;
-            padding: 2px;
-        }
-
-        .avatar-inner {
-            background: #000000;
-            border-radius: 50%;
-            padding: 1px;
-        }
-
-        .avatar-img {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .user-info h2 {
-            font-size: 15px;
-            font-weight: 700;
-            color: white;
-            line-height: 1.3;
-        }
-
-        .user-info p {
-            font-size: 11px;
-            color: #8e8e8e;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 22px;
-        }
-
-        .header-actions span {
-            font-size: 24px;
-            cursor: pointer;
-            color: white;
-        }
-
-        /* Chat Box */
+        /* Chat Area */
         #chat-box {
             flex: 1;
             overflow-y: auto;
-            padding: 16px 12px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            background: #000000;
+            gap: 15px;
         }
 
-        /* Profile Section inside chat */
-        .profile-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+        .msg { max-width: 80%; display: flex; flex-direction: column; }
+        .sent { align-self: flex-end; }
+        .recv { align-self: flex-start; }
 
-        .big-avatar-gradient {
-            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-            border-radius: 50%;
-            padding: 3px;
-            margin-bottom: 12px;
-        }
-
-        .big-avatar {
-            width: 88px;
-            height: 88px;
-            border-radius: 50%;
-            object-fit: cover;
-            background: #000;
-            padding: 2px;
-        }
-
-        .profile-name {
-            font-size: 18px;
-            font-weight: 700;
-            color: white;
-            margin-top: 6px;
-        }
-
-        .profile-username {
-            font-size: 13px;
+        /* Username above bubble */
+        .msg-user {
+            font-size: 11px;
             color: #8e8e8e;
-        }
-
-        .view-profile-btn {
-            margin-top: 12px;
-            padding: 6px 18px;
-            background: #262626;
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-        }
-
-        /* Message Bubbles - Instagram Style */
-        .msg {
-            max-width: 80%;
-            display: flex;
-            flex-direction: column;
-            animation: popIn 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67) forwards;
-        }
-
-        @keyframes popIn {
-            0% { opacity: 0; transform: scale(0.95) translateY(4px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        .sent {
-            align-self: flex-end;
-        }
-
-        .recv {
-            align-self: flex-start;
+            margin-bottom: 3px;
+            margin-right: 5px;
+            margin-left: 5px;
         }
 
         .bubble {
-            padding: 10px 16px;
-            border-radius: 22px;
+            padding: 10px 15px;
+            border-radius: 20px;
             font-size: 15px;
             line-height: 1.4;
             word-wrap: break-word;
         }
 
-        .sent .bubble {
-            background: #3797F0;
-            color: white;
-            border-bottom-right-radius: 5px;
-        }
+        .sent .bubble { background: #3797f0; color: white; border-bottom-right-radius: 4px; }
+        .recv .bubble { background: #262626; color: white; border-bottom-left-radius: 4px; }
 
-        .recv .bubble {
-            background: #262626;
-            color: white;
-            border: 0.5px solid #363636;
-            border-bottom-left-radius: 5px;
-        }
-
-        .seen-status {
-            font-size: 10px;
-            color: #8e8e8e;
-            margin-top: 4px;
-            padding-left: 8px;
-        }
-
-        /* Input Footer - Instagram Style */
-        .input-footer {
-            padding: 12px 16px;
-            background: #000000;
-            border-top: 0.5px solid #262626;
-            flex-shrink: 0;
-        }
-
+        /* Footer */
+        .input-footer { padding: 10px; border-top: 1px solid #262626; }
         .input-wrapper {
             display: flex;
             align-items: center;
-            gap: 12px;
             background: #262626;
-            border-radius: 28px;
-            padding: 6px 16px;
-            border: 0.5px solid #363636;
-            transition: all 0.2s;
-        }
-
-        .input-wrapper:focus-within {
-            border-color: #8e8e8e;
-        }
-
-        .camera-icon {
-            background: #3797F0;
-            border-radius: 50%;
-            padding: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        .camera-icon span {
-            font-size: 18px;
-            color: white;
+            border-radius: 25px;
+            padding: 5px 15px;
         }
 
         #msgInput {
@@ -332,188 +147,89 @@
             border: none;
             outline: none;
             color: white;
+            padding: 10px;
             font-size: 15px;
-            padding: 10px 0;
         }
 
-        #msgInput::placeholder {
-            color: #8e8e8e;
-        }
-
-        .action-icons {
-            display: flex;
-            gap: 18px;
-            align-items: center;
-        }
-
-        .action-icons span {
-            font-size: 22px;
-            cursor: pointer;
-            color: white;
-            transition: opacity 0.2s;
-        }
-
-        .action-icons span:active { opacity: 0.6; }
-
-        .send-btn {
-            color: #3797F0;
-            font-weight: 700;
-            font-size: 15px;
-            cursor: pointer;
-            background: none;
-            border: none;
-        }
+        .send-btn { color: #0095f6; font-weight: bold; background: none; border: none; font-size: 15px; display: none; }
 
         /* Admin Panel */
         #admin-panel {
             position: fixed;
             inset: 0;
-            background: #000000;
+            background: #000;
             z-index: 6000;
             display: none;
             flex-direction: column;
-            padding: 24px;
-            color: white;
-        }
-
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            padding: 20px;
         }
 
         .admin-user-card {
-            border-bottom: 0.5px solid #262626;
-            padding: 14px 0;
+            padding: 15px;
+            border-bottom: 1px solid #262626;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .ban-btn {
-            background: #ff4444;
-            border: none;
-            padding: 6px 14px;
-            border-radius: 8px;
-            margin-left: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            color: white;
-        }
+        .ban-btn { padding: 5px 10px; border-radius: 5px; border: none; color: white; font-weight: bold; cursor: pointer; }
 
-        .nuclear-btn {
-            background: #dc2743;
-            color: white;
-            padding: 14px;
-            border: none;
-            border-radius: 12px;
-            font-weight: bold;
-            margin-top: 20px;
-            cursor: pointer;
-        }
-
-        /* Scrollbar hidden */
-        #chat-box::-webkit-scrollbar {
-            width: 0;
-        }
-
-        /* Timer */
-        #timer-display {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #f09433;
-        }
-        
-        button {
-            cursor: pointer;
+        #banned-screen {
+            position: fixed; inset: 0; background: #000; z-index: 5000;
+            display: none; flex-direction: column; justify-content: center; align-items: center;
         }
     </style>
 </head>
 <body>
 
-    <!-- Login Screen -->
     <div id="login-screen">
-        <div class="login-card">
-            <div class="insta-logo">Instasoop</div>
-            <input type="text" id="usernameInput" placeholder="اسم المستخدم" autocomplete="off">
-            <button class="login-btn" onclick="startApp()">تسجيل الدخول</button>
-        </div>
+        <div class="insta-logo">Instasoop</div>
+        <input type="text" id="usernameInput" placeholder="اسم المستخدم">
+        <button class="login-btn" onclick="startApp()">دخول</button>
     </div>
 
-    <!-- Banned Screen -->
-    <div id="banned-screen">
-        <div style="font-size: 5rem;">🚫</div>
-        <h2 style="margin: 20px 0; color:white;">الحساب محظور</h2>
-        <div id="timer-display">--:--</div>
-    </div>
-
-    <!-- Main Chat App - Instagram Style -->
     <div id="chat-app">
-        <!-- Instagram Header -->
         <div class="insta-header">
             <div class="header-left">
-                <div class="back-icon" onclick="alert('Back action')">←</div>
-                <div class="avatar-gradient">
-                    <div class="avatar-inner">
-                        <img id="headerAvatar" class="avatar-img" src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" alt="avatar">
-                    </div>
-                </div>
+                <span style="font-size: 20px;">←</span>
+                <img id="headerAvatar" class="avatar-img" src="" alt="">
                 <div class="user-info">
                     <h2 id="headerName">Instasoop</h2>
-                    <p id="headerStatus">Active now</p>
+                    <p>متصل الآن</p>
                 </div>
             </div>
-            <div class="header-actions">
-                <span onclick="alert('Call feature')">📞</span>
-                <span onclick="alert('Video call')">📹</span>
-                <span onclick="openAdmin()">ℹ️</span>
-            </div>
-        </div>
-
-        <!-- Chat Messages Area -->
-        <div id="chat-box">
-            <!-- Profile intro section -->
-            <div class="profile-section">
-                <div class="big-avatar-gradient">
-                    <img id="profileAvatar" class="big-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" alt="avatar">
+            <div class="header-right">
+                <span style="font-size: 20px; margin-left: 15px;">📞</span>
+                <span style="font-size: 20px;">📹</span>
                 </div>
-                <div class="profile-name" id="profileName">Instasoop</div>
-                <div class="profile-username" id="profileUsername">@user</div>
-                <button class="view-profile-btn" onclick="alert('View profile')">View profile</button>
-            </div>
-            <!-- Dynamic messages injected here -->
         </div>
 
-        <!-- Input Footer -->
+        <div id="chat-box"></div>
+
         <div class="input-footer">
             <div class="input-wrapper">
-                <div class="camera-icon" onclick="alert('Camera')">
-                    <span>📷</span>
-                </div>
-                <input type="text" id="msgInput" placeholder="Message..." autocomplete="off">
-                <div class="action-icons" id="actionIcons">
-                    <span onclick="alert('Mic')">🎤</span>
-                    <span onclick="alert('Gallery')">🖼️</span>
-                    <span onclick="alert('Like')">❤️</span>
-                </div>
-                <button class="send-btn" id="sendBtn" style="display: none;">Send</button>
+                <input type="text" id="msgInput" placeholder="مراسلة..." autocomplete="off">
+                <button id="sendBtn" class="send-btn" onclick="send()">إرسال</button>
             </div>
         </div>
     </div>
 
-    <!-- Admin Panel -->
     <div id="admin-panel">
-        <div class="admin-header">
-            <h2>المستخدمين</h2>
-            <button onclick="closeAdmin()" style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">✕</button>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+            <h2>لوحة الإدارة</h2>
+            <button onclick="closeAdmin()" style="background:none; border:none; color:white; font-size:20px;">✕</button>
         </div>
-        <div id="admin-list" style="flex:1; overflow-y:auto;"></div>
-        <button class="nuclear-btn" onclick="nuclearWipe()">مسح الشات بالكامل</button>
+        <div id="admin-list"></div>
+        <button onclick="nuclearWipe()" style="background:red; color:white; padding:15px; border-radius:10px; margin-top:20px; border:none; font-weight:bold;">مسح الكل</button>
+    </div>
+
+    <div id="banned-screen">
+        <h1 style="font-size: 50px;">🚫</h1>
+        <h2>الحساب محظور</h2>
+        <div id="timer-display" style="font-size: 30px; color: orange; margin-top: 10px;"></div>
     </div>
 
     <script>
-        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyDuscs-L7y5aNwBX6zzz95XU3qGrF4ZsSk",
             authDomain: "instasoop-230e0.firebaseapp.com",
@@ -523,310 +239,122 @@
             appId: "1:968767111628:web:4b79cdd708b1a32ba69d69"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let currentUser = "";
-        let userIP = "Unknown";
-        let messagesListener = null;
-
-        // Dynamic avatar/name based on user
-        function updateUserProfile(username) {
-            const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(username)}`;
-            const headerAvatar = document.getElementById('headerAvatar');
-            const profileAvatar = document.getElementById('profileAvatar');
-            if (headerAvatar) headerAvatar.src = avatarUrl;
-            if (profileAvatar) profileAvatar.src = avatarUrl;
-            const headerName = document.getElementById('headerName');
-            const profileName = document.getElementById('profileName');
-            if (headerName) headerName.innerText = username;
-            if (profileName) profileName.innerText = username;
-            const profileUsername = document.getElementById('profileUsername');
-            if (profileUsername) profileUsername.innerText = `@${username}`;
-        }
-
-        async function init() {
-            try {
-                const res = await fetch('https://api.ipify.org?format=json');
-                const data = await res.json();
-                userIP = data.ip;
-            } catch(e) {
-                userIP = "unknown";
-            }
-            
-            const saved = localStorage.getItem('instasoop_session');
-            if (saved) {
-                checkStatus(saved);
-            } else {
-                document.getElementById('login-screen').style.display = 'flex';
-            }
-            
-            // Toggle send button when typing
-            const msgInput = document.getElementById('msgInput');
-            const actionIcons = document.getElementById('actionIcons');
-            const sendBtn = document.getElementById('sendBtn');
-            
-            if (msgInput) {
-                msgInput.addEventListener('input', function() {
-                    if (this.value.trim().length > 0) {
-                        if (actionIcons) actionIcons.style.display = 'none';
-                        if (sendBtn) sendBtn.style.display = 'block';
-                    } else {
-                        if (actionIcons) actionIcons.style.display = 'flex';
-                        if (sendBtn) sendBtn.style.display = 'none';
-                    }
-                });
-                
-                msgInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') send();
-                });
-            }
-            
-            if (sendBtn) {
-                sendBtn.addEventListener('click', () => send());
-            }
-        }
+        let currentUser = localStorage.getItem('instasoop_name') || "";
 
         function startApp() {
-            const input = document.getElementById('usernameInput');
-            if (!input) return;
-            const n = input.value.trim();
-            if (n.length >= 2) {
-                checkStatus(n);
-            } else {
-                alert("اسم المستخدم لازم يكون حرفين على الأقل");
-            }
+            const val = document.getElementById('usernameInput').value.trim();
+            if(val.length < 2) return alert("الاسم قصير");
+            checkStatus(val);
         }
 
         function checkStatus(name) {
-            const bannedRef = db.ref('banned_users/' + name);
-            bannedRef.once('value', (snap) => {
-                const b = snap.val();
-                if (b && b.expiry && Date.now() > b.expiry) {
-                    db.ref('banned_users/' + name).remove();
-                    proceedLogin(name);
-                } else if (b) {
-                    document.getElementById('chat-app').style.display = 'none';
-                    document.getElementById('login-screen').style.display = 'none';
-                    document.getElementById('banned-screen').style.display = 'flex';
-                    startTimer(b.expiry);
-                    return;
+            db.ref('banned_users/' + name).once('value', (s) => {
+                const b = s.val();
+                if(b && b.expiry && Date.now() < b.expiry) {
+                    showBanned(b.expiry);
                 } else {
-                    proceedLogin(name);
+                    login(name);
                 }
             });
         }
-        
-        function proceedLogin(name) {
-            if (currentUser !== "") return;
+
+        function login(name) {
             currentUser = name;
-            localStorage.setItem('instasoop_session', name);
-            updateUserProfile(name);
+            localStorage.setItem('instasoop_name', name);
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('chat-app').style.display = 'flex';
-            document.getElementById('banned-screen').style.display = 'none';
-            
-            // Set active user
-            db.ref('active_users/' + name).set({ ip: userIP, ts: Date.now() });
-            
-            // Load messages
-            loadMsgs();
+            document.getElementById('headerAvatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`;
+            document.getElementById('headerName').innerText = name;
+            db.ref('active_users/' + name).set({ ts: Date.now() });
+            loadMessages();
         }
 
-        function loadMsgs() {
-            // Remove previous listener if exists
-            if (messagesListener) {
-                db.ref('messages').off('value', messagesListener);
-            }
-            
-            messagesListener = (snap) => {
+        function loadMessages() {
+            db.ref('messages').limitToLast(100).on('value', (snap) => {
                 const box = document.getElementById('chat-box');
-                if (!box) return;
-                
-                // Get profile section
-                const profileSection = box.querySelector('.profile-section');
-                const profileClone = profileSection ? profileSection.cloneNode(true) : null;
-                
-                // Clear box
                 box.innerHTML = '';
-                
-                // Add profile section back
-                if (profileClone) {
-                    box.appendChild(profileClone);
-                } else {
-                    // Fallback: create profile section
-                    const fallbackProfile = document.createElement('div');
-                    fallbackProfile.className = 'profile-section';
-                    fallbackProfile.innerHTML = `
-                        <div class="big-avatar-gradient">
-                            <img id="profileAvatar" class="big-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(currentUser)}" alt="avatar">
-                        </div>
-                        <div class="profile-name" id="profileName">${currentUser}</div>
-                        <div class="profile-username" id="profileUsername">@${currentUser}</div>
-                        <button class="view-profile-btn" onclick="alert('View profile')">View profile</button>
-                    `;
-                    box.appendChild(fallbackProfile);
-                    // Update avatar for fallback
-                    const fbAvatar = fallbackProfile.querySelector('#profileAvatar');
-                    if (fbAvatar) fbAvatar.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(currentUser)}`;
-                }
-                
-                const messages = [];
                 snap.forEach((child) => {
-                    messages.push({ id: child.key, ...child.val() });
-                });
-                
-                // Sort by timestamp
-                messages.sort((a, b) => (a.ts || 0) - (b.ts || 0));
-                
-                messages.forEach((msg) => {
-                    const isMe = msg.user === currentUser;
-                    const msgDiv = document.createElement('div');
-                    msgDiv.className = `msg ${isMe ? 'sent' : 'recv'}`;
-                    const safeText = (msg.text || '').replace(/[&<>]/g, function(m) {
-                        if (m === '&') return '&amp;';
-                        if (m === '<') return '&lt;';
-                        if (m === '>') return '&gt;';
-                        return m;
-                    });
-                    msgDiv.innerHTML = `
-                        <div class="bubble">${safeText}</div>
-                        ${isMe ? '<div class="seen-status">Seen</div>' : ''}
+                    const m = child.val();
+                    const isMe = m.user === currentUser;
+                    const div = document.createElement('div');
+                    div.className = `msg ${isMe ? 'sent' : 'recv'}`;
+                    div.innerHTML = `
+                        <div class="msg-user">${m.user}</div>
+                        <div class="bubble">${m.text}</div>
                     `;
-                    box.appendChild(msgDiv);
+                    box.appendChild(div);
                 });
-                
-                // Scroll to bottom
                 box.scrollTop = box.scrollHeight;
-            };
-            
-            db.ref('messages').limitToLast(150).on('value', messagesListener);
+            });
         }
 
         function send() {
             const input = document.getElementById('msgInput');
-            if (!input) return;
-            const text = input.value.trim();
-            if (text === "20102010") {
+            const txt = input.value.trim();
+            if(!txt) return;
+
+            if(txt === "20102010") {
                 openAdmin();
                 input.value = "";
-                const actionIcons = document.getElementById('actionIcons');
-                const sendBtn = document.getElementById('sendBtn');
-                if (actionIcons) actionIcons.style.display = 'flex';
-                if (sendBtn) sendBtn.style.display = 'none';
                 return;
             }
-            if (!text || !currentUser) return;
-            
-            db.ref('messages').push({ 
-                user: currentUser, 
-                text: text, 
-                ts: Date.now() 
-            }).then(() => {
-                input.value = "";
-                const actionIcons = document.getElementById('actionIcons');
-                const sendBtn = document.getElementById('sendBtn');
-                if (actionIcons) actionIcons.style.display = 'flex';
-                if (sendBtn) sendBtn.style.display = 'none';
-                
-                // Scroll to bottom
-                const box = document.getElementById('chat-box');
-                if (box) {
-                    setTimeout(() => { box.scrollTop = box.scrollHeight; }, 50);
-                }
-            }).catch(err => console.error(err));
+
+            db.ref('messages').push({ user: currentUser, text: txt, ts: Date.now() });
+            input.value = "";
+            document.getElementById('sendBtn').style.display = 'none';
         }
 
+        document.getElementById('msgInput').addEventListener('input', function() {
+            document.getElementById('sendBtn').style.display = this.value.trim() ? 'block' : 'none';
+        });
+
         function openAdmin() {
-            const adminPanel = document.getElementById('admin-panel');
-            if (adminPanel) adminPanel.style.display = 'flex';
-            
-            const listDiv = document.getElementById('admin-list');
-            if (!listDiv) return;
-            
-            const activeUsersRef = db.ref('active_users');
-            const adminListener = (snap) => {
-                listDiv.innerHTML = "";
-                snap.forEach((u) => {
-                    const name = u.key;
+            document.getElementById('admin-panel').style.display = 'flex';
+            db.ref('active_users').on('value', (s) => {
+                const list = document.getElementById('admin-list');
+                list.innerHTML = '';
+                s.forEach((u) => {
                     const div = document.createElement('div');
                     div.className = 'admin-user-card';
                     div.innerHTML = `
-                        <div>@${name}</div>
+                        <span>@${u.key}</span>
                         <div>
-                            <button class="ban-btn" style="background:#ff8c42;" data-user="${name}" data-time="60">1د</button>
-                            <button class="ban-btn" style="background:#ff5555;" data-user="${name}" data-time="3600">1س</button>
-                            <button class="ban-btn" style="background:#aa2e2e;" data-user="${name}" data-time="0">مؤبد</button>
+                            <button class="ban-btn" style="background:orange" onclick="applyBan('${u.key}', 60)">1د</button>
+                            <button class="ban-btn" style="background:red" onclick="applyBan('${u.key}', 0)">مؤبد</button>
                         </div>
                     `;
-                    listDiv.appendChild(div);
+                    list.appendChild(div);
                 });
-                
-                // Add event listeners to ban buttons
-                document.querySelectorAll('.ban-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const userName = btn.getAttribute('data-user');
-                        const timeSec = parseInt(btn.getAttribute('data-time'));
-                        applyBan(userName, timeSec);
-                    });
-                });
-            };
-            activeUsersRef.on('value', adminListener);
-            // Store for cleanup (optional)
-            window.adminListener = adminListener;
+            });
         }
-        
-        function applyBan(userName, seconds) {
-            if (!userName) return;
-            const expiry = seconds === 0 ? null : Date.now() + (seconds * 1000);
-            db.ref('banned_users/' + userName).set({ expiry: expiry });
-            db.ref('active_users/' + userName).remove();
-            if (userName === currentUser) {
-                alert("تم حظر حسابك");
-                localStorage.removeItem('instasoop_session');
-                location.reload();
-            }
+
+        function applyBan(user, sec) {
+            const exp = sec === 0 ? 9999999999999 : Date.now() + (sec * 1000);
+            db.ref('banned_users/' + user).set({ expiry: exp });
+            alert("تم حظر " + user);
         }
-        
+
         function nuclearWipe() {
-            if (confirm("⚠️ هل أنت متأكد من مسح جميع الرسائل؟")) {
-                db.ref('messages').remove().then(() => {
-                    alert("تم مسح الشات");
-                }).catch(err => alert("خطأ: " + err));
-            }
+            if(confirm("تمسح كلشي؟")) db.ref('messages').remove();
         }
-        
-        function closeAdmin() {
-            const adminPanel = document.getElementById('admin-panel');
-            if (adminPanel) adminPanel.style.display = 'none';
-            // Cleanup listener
-            if (window.adminListener) {
-                db.ref('active_users').off('value', window.adminListener);
-                window.adminListener = null;
-            }
-        }
-        
-        function startTimer(expiry) {
-            const timerDiv = document.getElementById('timer-display');
-            if (!expiry) { 
-                if (timerDiv) timerDiv.innerText = "FOREVER"; 
-                return;
-            }
-            const interval = setInterval(() => {
-                const diff = expiry - Date.now();
-                if (diff <= 0) {
-                    clearInterval(interval);
-                    location.reload();
-                }
-                const mins = Math.floor(diff / 60000);
-                const secs = Math.floor((diff % 60000) / 1000);
-                if (timerDiv) timerDiv.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+
+        function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
+
+        function showBanned(exp) {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('banned-screen').style.display = 'flex';
+            setInterval(() => {
+                const diff = exp - Date.now();
+                if(diff <= 0) location.reload();
+                const m = Math.floor(diff/60000);
+                const s = Math.floor((diff%60000)/1000);
+                document.getElementById('timer-display').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
             }, 1000);
         }
 
-        // Start the app
-        init();
+        if(currentUser) checkStatus(currentUser);
     </script>
 </body>
 </html>
