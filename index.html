@@ -48,12 +48,64 @@
             to { background-position: 200% center; }
         }
 
+        /* Splash Screen */
+        #splash-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--luxy-dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .splash-logo {
+            font-family: 'Cinzel', serif;
+            font-size: 4rem;
+            background: var(--luxy-gold);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shine 3s linear infinite, pulse 2s ease-in-out infinite;
+            background-size: 200% auto;
+            letter-spacing: 8px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+
+        .loader-bar {
+            width: 150px;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+            margin-top: 30px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+
+        .loader-progress {
+            position: absolute;
+            height: 100%;
+            width: 50%;
+            background: var(--luxy-gold);
+            animation: loading 1.5s infinite ease-in-out;
+        }
+
+        @keyframes loading {
+            0% { left: -50%; }
+            100% { left: 100%; }
+        }
+
         /* Login UI */
         #login-screen {
             position: fixed;
             inset: 0;
             background: var(--luxy-dark);
-            display: flex;
+            display: none; /*Hidden by default to show splash*/
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -266,6 +318,14 @@
 </head>
 <body>
 
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <div class="splash-logo">LUXY</div>
+        <div class="loader-bar">
+            <div class="loader-progress"></div>
+        </div>
+    </div>
+
     <div id="toast"></div>
 
     <!-- Login -->
@@ -334,6 +394,21 @@
         const db = firebase.database();
         let currentUser = localStorage.getItem('luxy_user') || "";
 
+        // Splash Timer logic
+        window.onload = () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.transition = 'opacity 0.8s ease';
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    if (!currentUser) {
+                        document.getElementById('login-screen').style.display = 'flex';
+                    }
+                }, 800);
+            }, 2500); // Show splash for 2.5 seconds
+        };
+
         function showToast(m) {
             const t = document.getElementById('toast');
             t.innerText = m; t.style.display = 'block';
@@ -368,7 +443,6 @@
             
             db.ref('active_users/' + name).set({ ts: Date.now() });
 
-            // Real-time Database Listener - Automatic Updates
             db.ref('messages').limitToLast(100).on('value', (snap) => {
                 const box = document.getElementById('chat-box');
                 const scroll = box.scrollHeight - box.scrollTop <= box.clientHeight + 100;
@@ -409,7 +483,6 @@
 
         document.getElementById('msgInput').onkeypress = (e) => { if(e.key==='Enter') send(); };
 
-        // Admin Functions
         function openAdmin() {
             document.getElementById('admin-panel').style.display = 'flex';
             db.ref('active_users').on('value', (s) => {
