@@ -3,194 +3,441 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>LUXY PRO | MOBILE EDITION</title>
+    <title>Instasoop | Luxy Pro Edition (Secure & Private)</title>
     
+    <!-- Firebase Legacy SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    
+    <!-- CryptoJS for Traffic Encryption -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Amiri:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <style>
         :root {
             --luxy-gold: linear-gradient(135deg, #d4af37 0%, #fcf6ba 45%, #aa771c 100%);
-            --luxy-dark: #050505;
-            --glass: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(212, 175, 55, 0.3);
+            --luxy-dark: #080808;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
             --accent-gold: #d4af37;
+            --msg-sent: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            --msg-recv: rgba(212, 175, 55, 0.05);
+            --msg-private: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(0,0,0,0.5) 100%);
+            --danger-glow: 0 0 15px rgba(255, 75, 43, 0.4);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
 
         body {
             background-color: var(--luxy-dark);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(107, 70, 193, 0.05) 0%, transparent 40%);
             color: #fff;
-            height: 100dvh; /* Dynamic viewport height for mobile */
+            height: 100dvh;
             width: 100vw;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            position: fixed; /* Prevents bouncing on iOS */
         }
 
-        /* Login Screen */
+        @keyframes shine {
+            to { background-position: 200% center; }
+        }
+
+        /* Splash Screen */
+        #splash-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--luxy-dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .splash-logo {
+            font-family: 'Cinzel', serif;
+            font-size: 4rem;
+            background: var(--luxy-gold);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shine 3s linear infinite, pulse 2s ease-in-out infinite;
+            background-size: 200% auto;
+            letter-spacing: 8px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+
+        .loader-bar {
+            width: 150px;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+            margin-top: 30px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+
+        .loader-progress {
+            position: absolute;
+            height: 100%;
+            width: 50%;
+            background: var(--luxy-gold);
+            animation: loading 1.5s infinite ease-in-out;
+        }
+
+        @keyframes loading {
+            0% { left: -50%; }
+            100% { left: 100%; }
+        }
+
+        /* Login UI */
         #login-screen {
-            position: fixed; inset: 0; background: var(--luxy-dark); z-index: 10000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
+            position: fixed;
+            inset: 0;
+            background: var(--luxy-dark);
+            display: none; 
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 40px;
         }
 
-        .avatar-selector {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0;
-            padding: 10px; background: var(--glass); border-radius: 20px; border: 1px solid var(--glass-border);
+        .luxy-title {
+            font-family: 'Cinzel', serif;
+            font-size: 3.5rem;
+            background: var(--luxy-gold);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 50px;
+            letter-spacing: 4px;
+            animation: shine 4s linear infinite;
+            background-size: 200% auto;
         }
 
-        .avatar-option { width: 55px; height: 55px; border-radius: 50%; border: 2px solid transparent; transition: 0.3s; }
-        .avatar-option.selected { border-color: var(--accent-gold); transform: scale(1.1); }
+        .login-input-group {
+            width: 100%;
+            max-width: 340px;
+            position: relative;
+        }
 
-        /* Navbar */
+        #usernameInput {
+            width: 100%;
+            padding: 22px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+            margin-bottom: 25px;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            transition: all 0.4s ease;
+        }
+
+        #usernameInput:focus {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
+        }
+
+        .luxy-btn {
+            width: 100%;
+            padding: 20px;
+            background: var(--luxy-gold);
+            color: #000;
+            border: none;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+            cursor: pointer;
+        }
+
+        /* App Layout */
+        #chat-app {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            position: relative;
+        }
+
         .luxy-navbar {
-            height: 70px; padding: 0 20px; background: rgba(0,0,0,0.95);
-            border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-between;
-            flex-shrink: 0; z-index: 1000;
+            height: 80px;
+            padding: 0 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(30px);
+            border-bottom: 1px solid var(--glass-border);
         }
 
-        .user-info-box { display: flex; align-items: center; gap: 10px; }
-        .nav-avatar { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--accent-gold); }
+        .nav-profile { display: flex; align-items: center; gap: 15px; }
+        .luxy-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 18px;
+            background: var(--luxy-gold);
+            padding: 2px;
+            object-fit: cover;
+        }
 
-        /* Chat Area */
+        .status-badge {
+            font-size: 10px;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
         #chat-box {
             flex: 1;
             overflow-y: auto;
-            padding: 15px;
+            padding: 25px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            background: linear-gradient(to bottom, transparent, rgba(212,175,55,0.02));
-            -webkit-overflow-scrolling: touch;
+            gap: 20px;
         }
 
-        /* Bubbles */
-        .msg { max-width: 85%; display: flex; gap: 8px; animation: slide 0.3s ease; }
-        @keyframes slide { from { opacity: 0; transform: translateY(10px); } }
-        
-        .luxy-bubble {
-            padding: 10px 14px; border-radius: 18px; position: relative;
-            backdrop-filter: blur(5px); border: 1px solid var(--glass-border); font-size: 14px; line-height: 1.4;
-        }
+        /* Messages */
+        .msg { max-width: 75%; position: relative; animation: fadeIn 0.4s ease forwards; cursor: pointer; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .sent { align-self: flex-end; flex-direction: row-reverse; }
-        .sent .luxy-bubble { background: rgba(40,40,40,0.9); border-right: 3px solid var(--accent-gold); border-bottom-right-radius: 4px; }
-        
+        .sent { align-self: flex-end; }
         .recv { align-self: flex-start; }
-        .recv .luxy-bubble { background: rgba(255,255,255,0.05); border-bottom-left-radius: 4px; }
 
-        /* Mobile Footer (The Fix) */
-        .luxy-footer {
-            padding: 10px 15px calc(10px + env(safe-area-inset-bottom)); /* Handling iPhone notch/home bar */
-            background: #000;
-            border-top: 1px solid var(--glass-border);
-            flex-shrink: 0;
+        .msg-sender {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--accent-gold);
+            margin-bottom: 6px;
+            margin-right: 10px;
         }
 
-        .input-wrapper {
-            background: rgba(255,255,255,0.05); border-radius: 25px;
-            display: flex; align-items: center; padding: 5px 12px;
-            border: 1px solid rgba(212,175,55,0.2);
+        .luxy-bubble {
+            padding: 15px 22px;
+            border-radius: 24px;
+            font-size: 15px;
+            line-height: 1.6;
+            backdrop-filter: blur(10px);
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .sent .luxy-bubble {
+            background: var(--msg-sent);
+            border: 1px solid var(--glass-border);
+            border-bottom-right-radius: 4px;
+            color: #fff;
+        }
+
+        .recv .luxy-bubble {
+            background: var(--msg-recv);
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            border-bottom-left-radius: 4px;
+            color: #f0f0f0;
+        }
+
+        /* Private Message Style */
+        .private-msg .luxy-bubble {
+            border: 1px solid var(--accent-gold) !important;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.15);
+        }
+
+        .private-tag {
+            font-size: 9px;
+            background: var(--luxy-gold);
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 800;
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            text-transform: uppercase;
+        }
+
+        .encrypted-placeholder {
+            font-style: italic;
+            opacity: 0.6;
+            color: var(--accent-gold);
+        }
+
+        /* Input Area */
+        .luxy-footer {
+            padding: 20px 25px calc(25px + env(safe-area-inset-bottom));
+            background: linear-gradient(transparent, #000);
+        }
+
+        .private-indicator {
+            display: none;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid var(--accent-gold);
+            padding: 8px 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: var(--accent-gold);
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .luxy-input-container {
+            display: flex;
+            align-items: center;
+            background: var(--glass);
+            border-radius: 25px;
+            padding: 6px 20px;
+            border: 1px solid var(--glass-border);
         }
 
         #msgInput {
-            flex: 1; background: none; border: none; outline: none; color: white;
-            padding: 10px; font-size: 16px; /* 16px prevents auto-zoom on iOS */
-            text-align: right;
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #fff;
+            padding: 12px 0;
+            font-size: 15px;
         }
 
-        .send-btn {
-            background: var(--luxy-gold); width: 38px; height: 38px; border-radius: 50%;
-            border: none; display: flex; align-items: center; justify-content: center; margin-left: 8px;
+        .luxy-send {
+            color: var(--accent-gold);
+            font-weight: 800;
+            font-size: 13px;
+            text-transform: uppercase;
+            border: none;
+            background: none;
+            margin-right: 15px;
+            display: none;
+            cursor: pointer;
         }
 
-        /* Decorations */
-        #decor-panel {
-            display: none; position: absolute; bottom: 85px; left: 15px; right: 15px;
-            background: #111; border: 1px solid var(--accent-gold); border-radius: 15px;
-            padding: 12px; z-index: 2000;
+        /* Admin/Banned View */
+        #admin-panel, #banned-screen {
+            position: fixed; inset: 0; background: #000; z-index: 10005;
+            display: none; flex-direction: column; padding: 30px;
         }
 
-        .decor-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-        .decor-opt { padding: 10px; background: #1a1a1a; border-radius: 10px; text-align: center; font-size: 12px; }
+        .admin-card {
+            background: var(--glass); border: 1px solid var(--glass-border);
+            padding: 20px; border-radius: 24px; margin-bottom: 15px;
+        }
 
-        .premium-decoration { position: absolute; inset: -2px; border-radius: 18px; z-index: -1; opacity: 0.4; filter: blur(5px); }
-        .effect-gold { background: var(--luxy-gold); }
-        .effect-fire { background: linear-gradient(#ff4e50, #f9d423); }
-        .effect-lightning { background: linear-gradient(#00d2ff, #3a7bd5); }
+        .ban-timer {
+            font-family: 'Cinzel', serif;
+            font-size: 70px;
+            background: var(--luxy-gold);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        #toast {
+            position: fixed; top: 40px; left: 50%; transform: translateX(-50%);
+            background: var(--luxy-gold); color: #000; padding: 12px 35px;
+            border-radius: 40px; font-weight: 800; font-size: 13px; z-index: 99999;
+            display: none; box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-thumb { background: var(--accent-gold); }
     </style>
 </head>
 <body>
 
-    <div id="login-screen">
-        <h1 style="font-family:'Cinzel'; color:var(--accent-gold); font-size: 2.5rem;">LUXY</h1>
-        <div class="avatar-selector" id="avatarList"></div>
-        <input type="text" id="usernameInput" placeholder="لقبك الملكي..." 
-               style="width:85%; padding:15px; background:var(--glass); border:1px solid var(--glass-border); border-radius:15px; color:white; text-align:center; margin-bottom:15px; outline:none; font-size:16px;">
-        <button onclick="startApp()" style="width:85%; padding:15px; background:var(--luxy-gold); border:none; border-radius:30px; font-weight:800; color:black;">دخول المجلس</button>
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <div class="splash-logo">LUXY</div>
+        <div class="loader-bar">
+            <div class="loader-progress"></div>
+        </div>
     </div>
 
-    <div id="chat-app" style="display:none; height:100%; flex-direction:column;">
+    <div id="toast"></div>
+
+    <!-- Login -->
+    <div id="login-screen">
+        <div class="luxy-title">LUXY</div>
+        <div class="login-input-group">
+            <input type="text" id="usernameInput" placeholder="أدخل اسمك الفاخر" maxlength="15">
+            <button class="luxy-btn" onclick="startApp()">دخول المجلس</button>
+        </div>
+    </div>
+
+    <!-- Chat App -->
+    <div id="chat-app">
         <nav class="luxy-navbar">
-            <div class="user-info-box">
-                <img id="headerAvatar" class="nav-avatar" src="">
-                <h3 id="headerName" style="font-size:14px;">---</h3>
+            <div class="nav-profile">
+                <img id="headerAvatar" class="luxy-avatar" src="" alt="User">
+                <div>
+                    <h3 id="headerName" style="font-size: 16px;">---</h3>
+                    <span class="status-badge">● متصل الآن</span>
+                </div>
             </div>
-            <span onclick="location.reload()" style="font-size:20px;">✨</span>
+            <div style="opacity: 0.5; font-size: 20px; cursor: pointer;" onclick="location.reload()">✧</div>
         </nav>
 
         <main id="chat-box"></main>
 
-        <div id="decor-panel">
-            <div class="decor-grid">
-                <div class="decor-opt" onclick="setEffect('none')">عادي</div>
-                <div class="decor-opt" onclick="setEffect('gold')">ذهبي ✨</div>
-                <div class="decor-opt" onclick="setEffect('fire')">لهب 🔥</div>
-                <div class="decor-opt" onclick="setEffect('lightning')">برق ⚡</div>
-            </div>
-        </div>
-
         <footer class="luxy-footer">
-            <div class="input-wrapper">
-                <span onclick="toggleDecor()" style="font-size:22px; cursor:pointer; margin-right:5px;">🎨</span>
-                <input type="text" id="msgInput" placeholder="اكتب رسالتك..." autocomplete="off">
-                <button onclick="send()" class="send-btn">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="black"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-                </button>
+            <div id="privateIndicator" class="private-indicator">
+                <span>تكلم خاص مع: <strong id="targetUserLabel"></strong></span>
+                <span onclick="clearPrivateTarget()" style="cursor:pointer; font-weight:bold;">✕</span>
+            </div>
+            <div class="luxy-input-container">
+                <input type="text" id="msgInput" placeholder="اكتب رسالة فخمة..." autocomplete="off">
+                <button id="sendBtn" class="luxy-send" onclick="send()">إرسال</button>
             </div>
         </footer>
     </div>
 
-    <script>
-        const SEC_KEY = "luxy_ultra_secret_1337";
-        let selectedAvatarUrl = "";
-        let currentEffect = "none";
+    <!-- Admin Panel -->
+    <div id="admin-panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
+            <h2 style="font-family:'Cinzel'; color:var(--accent-gold);">لوحة التحكم الملكية</h2>
+            <button onclick="closeAdmin()" style="background:none; border:none; color:#fff; font-size:24px;">✕</button>
+        </div>
+        <div style="flex:1; overflow-y:auto;" id="admin-list"></div>
+        <button onclick="nuclearWipe()" style="background:#ff3b30; color:#fff; padding:20px; border-radius:20px; border:none; font-weight:800; margin-top:20px;">مسح كافة السجلات</button>
+    </div>
 
-        // Generate Avatars
-        const avatarContainer = document.getElementById('avatarList');
-        for(let i=1; i<=8; i++) {
-            const img = document.createElement('img');
-            img.src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=luxy${i}&backgroundColor=b6e3f4`;
-            img.className = 'avatar-option';
-            if(i===1) { img.classList.add('selected'); selectedAvatarUrl = img.src; }
-            img.onclick = function() {
-                document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
-                this.classList.add('selected');
-                selectedAvatarUrl = this.src;
-            };
-            avatarContainer.appendChild(img);
-        }
+    <!-- Banned UI -->
+    <div id="banned-screen">
+        <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
+            <div style="font-size: 100px; margin-bottom: 20px;">👑</div>
+            <h1 style="font-family:'Cinzel'; margin-bottom:10px;">دخول مقيد</h1>
+            <div class="ban-timer" id="timer-display">00:00</div>
+            <p style="color:#666; max-width:250px;">لقد تم تعليق صلاحياتك في هذا المجلس الفاخر مؤقتاً.</p>
+        </div>
+    </div>
+
+    <script>
+        // Security Configuration
+        const SEC_KEY = "luxy_ultra_secret_1337"; 
 
         const firebaseConfig = {
             apiKey: "AIzaSyDuscs-L7y5aNwBX6zzz95XU3qGrF4ZsSk",
             authDomain: "instasoop-230e0.firebaseapp.com",
             projectId: "instasoop-230e0",
-            databaseURL: "https://instasoop-230e0-default-rtdb.firebaseio.com",
             storageBucket: "instasoop-230e0.firebasestorage.app",
             messagingSenderId: "968767111628",
             appId: "1:968767111628:web:4b79cdd708b1a32ba69d69"
@@ -198,80 +445,209 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        let currentUser = localStorage.getItem('luxy_user') || "";
+        let selectedTarget = null; // للمحادثات الخاصة
 
-        function encrypt(t) { return CryptoJS.AES.encrypt(t, SEC_KEY).toString(); }
-        function decrypt(c) {
-            try { return CryptoJS.AES.decrypt(c, SEC_KEY).toString(CryptoJS.enc.Utf8); }
-            catch { return "رسالة مشفرة"; }
+        // Traffic Security: Encrypt/Decrypt Functions
+        function encryptData(text) {
+            return CryptoJS.AES.encrypt(text, SEC_KEY).toString();
         }
 
-        function toggleDecor() {
-            const p = document.getElementById('decor-panel');
-            p.style.display = p.style.display === 'block' ? 'none' : 'block';
+        function decryptData(cipher) {
+            try {
+                const bytes = CryptoJS.AES.decrypt(cipher, SEC_KEY);
+                return bytes.toString(CryptoJS.enc.Utf8);
+            } catch(e) {
+                return "[رسالة مشفرة غير صالحة]";
+            }
         }
 
-        function setEffect(e) { currentEffect = e; toggleDecor(); }
+        window.onload = () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.transition = 'opacity 0.8s ease';
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    if (!currentUser) {
+                        document.getElementById('login-screen').style.display = 'flex';
+                    } else {
+                        checkBan(currentUser);
+                    }
+                }, 800);
+            }, 2500);
+        };
+
+        function showToast(m) {
+            const t = document.getElementById('toast');
+            t.innerText = m; t.style.display = 'block';
+            setTimeout(() => t.style.display='none', 3000);
+        }
+
+        function setPrivateTarget(user) {
+            if(user === currentUser) return;
+            selectedTarget = user;
+            document.getElementById('privateIndicator').style.display = 'flex';
+            document.getElementById('targetUserLabel').innerText = user;
+            document.getElementById('msgInput').placeholder = `اكتب رسالة سرية لـ ${user}...`;
+            showToast(`أنت الآن تراسل ${user} سراً`);
+        }
+
+        function clearPrivateTarget() {
+            selectedTarget = null;
+            document.getElementById('privateIndicator').style.display = 'none';
+            document.getElementById('msgInput').placeholder = "اكتب رسالة فخمة...";
+        }
 
         function startApp() {
-            const user = document.getElementById('usernameInput').value.trim();
-            if(user.length < 2) return;
-            localStorage.setItem('luxy_user', user);
-            localStorage.setItem('luxy_avatar', selectedAvatarUrl);
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('chat-app').style.display = 'flex';
-            document.getElementById('headerAvatar').src = selectedAvatarUrl;
-            document.getElementById('headerName').innerText = user;
-            loadMessages();
+            const val = document.getElementById('usernameInput').value.trim();
+            if(val.length < 2) return showToast("الاسم يجب أن يكون أطول");
+            currentUser = val;
+            checkBan(val);
         }
 
-        function loadMessages() {
-            db.ref('messages').limitToLast(30).on('value', (snap) => {
+        function checkBan(name) {
+            db.ref('banned_users/' + name).on('value', (s) => {
+                const b = s.val();
+                if(b && b.expiry && Date.now() < b.expiry) {
+                    showBannedView(b.expiry);
+                } else {
+                    if(document.getElementById('banned-screen').style.display === 'flex') location.reload();
+                    launch(name);
+                }
+            });
+        }
+
+        function launch(name) {
+            localStorage.setItem('luxy_user', name);
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('chat-app').style.display = 'flex';
+            document.getElementById('headerAvatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}&backgroundColor=000000`;
+            document.getElementById('headerName').innerText = name;
+            
+            db.ref('active_users/' + name).set({ ts: Date.now() });
+
+            // Fetch and Decrypt Messages
+            db.ref('messages').limitToLast(100).on('value', (snap) => {
                 const box = document.getElementById('chat-box');
+                const scroll = box.scrollHeight - box.scrollTop <= box.clientHeight + 100;
                 box.innerHTML = '';
+                
                 snap.forEach(child => {
                     const m = child.val();
-                    const isMe = m.user === localStorage.getItem('luxy_user');
-                    const text = decrypt(m.text);
-                    const div = document.createElement('div');
-                    div.className = `msg ${isMe ? 'sent' : 'recv'}`;
+                    const isMe = m.user === currentUser;
+                    const isPrivate = m.target ? true : false;
+                    const canRead = !isPrivate || isMe || m.target === currentUser;
                     
-                    let eff = m.effect && m.effect !== 'none' ? `<div class="premium-decoration effect-${m.effect}"></div>` : '';
+                    let displayContent = "";
+                    if (canRead) {
+                        displayContent = decryptData(m.text);
+                    } else {
+                        displayContent = `<span class="encrypted-placeholder">رسالة مشفرة</span>`;
+                    }
                     
-                    div.innerHTML = `
-                        <img src="${m.avatar}" style="width:25px; height:25px; border-radius:50%; margin-top:5px;">
-                        <div style="display:flex; flex-direction:column; ${isMe ? 'align-items:flex-end' : 'align-items:flex-start'}">
-                            <span style="font-size:9px; color:#666; margin:0 5px;">${m.user}</span>
-                            <div class="luxy-bubble">${eff}<span style="position:relative;">${text}</span></div>
+                    const d = document.createElement('div');
+                    d.className = `msg ${isMe ? 'sent' : 'recv'} ${isPrivate ? 'private-msg' : ''}`;
+                    d.onclick = () => setPrivateTarget(m.user);
+                    
+                    d.innerHTML = `
+                        ${!isMe ? `<div class="msg-sender">${m.user}</div>` : ''}
+                        <div class="luxy-bubble">
+                            ${isPrivate && canRead ? `<span class="private-tag">سرية</span>` : ''}
+                            ${displayContent}
                         </div>
                     `;
-                    box.appendChild(div);
+                    box.appendChild(d);
                 });
-                box.scrollTop = box.scrollHeight;
+                if(scroll) box.scrollTop = box.scrollHeight;
             });
         }
 
         function send() {
             const input = document.getElementById('msgInput');
-            if(!input.value.trim()) return;
-            db.ref('messages').push({
-                user: localStorage.getItem('luxy_user'),
-                avatar: localStorage.getItem('luxy_avatar'),
-                text: encrypt(input.value.trim()),
-                effect: currentEffect,
+            const txt = input.value.trim();
+            if(!txt) return;
+            if(txt === "20102010") return openAdmin();
+
+            const encryptedText = encryptData(txt);
+            const payload = {
+                user: currentUser,
+                text: encryptedText,
                 ts: Date.now()
-            });
-            input.value = '';
-            // Keeps focus on mobile after sending
-            input.focus(); 
+            };
+
+            // إضافة المستلم إذا كان هناك اختيار خاص
+            if (selectedTarget) {
+                payload.target = selectedTarget;
+            }
+
+            db.ref('messages').push(payload);
+            
+            input.value = "";
+            document.getElementById('sendBtn').style.display = 'none';
+            // لا نمسح الـ Target تلقائياً لنسمح بمحادثة مستمرة، إلا لو أراد المستخدم
         }
 
-        document.getElementById('msgInput').onkeypress = (e) => { if(e.key === 'Enter') send(); };
+        document.getElementById('msgInput').oninput = function() {
+            document.getElementById('sendBtn').style.display = this.value.trim() ? 'block' : 'none';
+        };
 
-        // Handle keyboard showing up on mobile
-        window.addEventListener('resize', () => {
-            const box = document.getElementById('chat-box');
-            box.scrollTop = box.scrollHeight;
-        });
+        document.getElementById('msgInput').onkeypress = (e) => { if(e.key==='Enter') send(); };
+
+        function openAdmin() {
+            document.getElementById('admin-panel').style.display = 'flex';
+            db.ref('active_users').on('value', (s) => {
+                const list = document.getElementById('admin-list');
+                list.innerHTML = '';
+                s.forEach(u => {
+                    const d = document.createElement('div');
+                    d.className = 'admin-card';
+                    d.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                            <strong>@${u.key}</strong>
+                            <button onclick="banUser('${u.key}', -1)" style="color:var(--accent-gold); background:none; border:none; font-weight:800;">فك القيد</button>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                            <button onclick="banUser('${u.key}', 60)" style="padding:10px; border-radius:12px; background:rgba(255,255,255,0.05); color:#fff; border:none;">دقيقة</button>
+                            <button onclick="banUser('${u.key}', 0)" style="padding:10px; border-radius:12px; background:rgba(255,75,43,0.1); color:#ff3b30; border:none;">مؤبد</button>
+                        </div>
+                    `;
+                    list.appendChild(d);
+                });
+            });
+        }
+
+        function banUser(user, sec) {
+            if(sec === -1) { db.ref('banned_users/' + user).remove(); return showToast("تم العفو الملكي"); }
+            const exp = sec === 0 ? 9999999999999 : Date.now() + (sec * 1000);
+            db.ref('banned_users/' + user).set({ expiry: exp });
+            showToast("تم تقييد المستخدم");
+        }
+
+        function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
+        
+        function nuclearWipe() { 
+            const pass = prompt("أدخل رمز التأكيد لمسح السجلات:");
+            if(pass === "20102010") {
+                db.ref('messages').remove(); 
+                showToast("تم تصفير المجلس بنجاح");
+            } else {
+                showToast("رمز غير صحيح");
+            }
+        }
+
+        function showBannedView(exp) {
+            document.getElementById('chat-app').style.display = 'none';
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('banned-screen').style.display = 'flex';
+            const timer = setInterval(() => {
+                const diff = exp - Date.now();
+                if(diff <= 0) { clearInterval(timer); location.reload(); }
+                const m = Math.floor(diff/60000);
+                const s = Math.floor((diff%60000)/1000);
+                document.getElementById('timer-display').innerText = exp > 2000000000000 ? "مؤبد" : `${m}:${s<10?'0'+s:s}`;
+            }, 1000);
+        }
     </script>
 </body>
 </html>
