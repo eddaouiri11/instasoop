@@ -3,25 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Instasoop | Luxy Pro</title>
+    <title>Instasoop | Luxy Pro Edition</title>
     
     <!-- Firebase Legacy SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --luxy-gold: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-            --luxy-purple: #6b46c1;
-            --luxy-dark: #050505;
-            --glass: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --accent: #d4af37;
-            --msg-sent: linear-gradient(135deg, #8e2de2, #4a00e0);
-            --msg-recv: rgba(255, 255, 255, 0.08);
-            --danger: #ff4b2b;
+            --luxy-gold: linear-gradient(135deg, #d4af37 0%, #fcf6ba 45%, #aa771c 100%);
+            --luxy-dark: #080808;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --accent-gold: #d4af37;
+            --msg-sent: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            --msg-recv: rgba(212, 175, 55, 0.05);
+            --danger-glow: 0 0 15px rgba(255, 75, 43, 0.4);
         }
 
         * {
@@ -29,14 +28,15 @@
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
-            font-family: 'Plus Jakarta Sans', 'Reem Kufi', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
         body {
             background-color: var(--luxy-dark);
-            background-image: radial-gradient(circle at top right, #1a0b2e, transparent),
-                              radial-gradient(circle at bottom left, #0d0d0d, transparent);
-            color: white;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(107, 70, 193, 0.05) 0%, transparent 40%);
+            color: #fff;
             height: 100dvh;
             width: 100vw;
             overflow: hidden;
@@ -44,14 +44,11 @@
             flex-direction: column;
         }
 
-        /* Luxury Animations */
-        @keyframes gold-shine {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        @keyframes shine {
+            to { background-position: 200% center; }
         }
 
-        /* Login Screen */
+        /* Login UI */
         #login-screen {
             position: fixed;
             inset: 0;
@@ -61,60 +58,64 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            padding: 30px;
+            padding: 40px;
         }
 
-        .luxy-logo {
+        .luxy-title {
+            font-family: 'Cinzel', serif;
             font-size: 3.5rem;
-            font-weight: 800;
-            margin-bottom: 40px;
             background: var(--luxy-gold);
-            background-size: 200% auto;
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            animation: gold-shine 5s linear infinite;
-            letter-spacing: -2px;
+            margin-bottom: 50px;
+            letter-spacing: 4px;
+            animation: shine 4s linear infinite;
+            background-size: 200% auto;
         }
 
-        .login-card {
+        .login-input-group {
             width: 100%;
-            max-width: 320px;
+            max-width: 340px;
             position: relative;
         }
 
         #usernameInput {
             width: 100%;
-            padding: 18px;
+            padding: 22px;
             background: var(--glass);
             border: 1px solid var(--glass-border);
-            border-radius: 20px;
+            border-radius: 24px;
             color: white;
             font-size: 16px;
             outline: none;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             text-align: center;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            backdrop-filter: blur(20px);
+            transition: all 0.4s ease;
         }
 
-        .login-btn {
+        #usernameInput:focus {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
+        }
+
+        .luxy-btn {
             width: 100%;
-            padding: 18px;
+            padding: 20px;
             background: var(--luxy-gold);
-            background-size: 200% auto;
             color: #000;
             border: none;
-            border-radius: 200px;
+            border-radius: 50px;
             font-weight: 800;
-            font-size: 15px;
+            font-size: 14px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
             cursor: pointer;
-            box-shadow: 0 5px 20px rgba(212, 175, 55, 0.3);
         }
 
-        /* Main Chat Layout */
+        /* App Layout */
         #chat-app {
             display: none;
             flex-direction: column;
@@ -122,88 +123,94 @@
             position: relative;
         }
 
-        .luxy-header {
-            height: 75px;
-            padding: 0 20px;
+        .luxy-navbar {
+            height: 80px;
+            padding: 0 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(25px);
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(30px);
             border-bottom: 1px solid var(--glass-border);
-            z-index: 100;
         }
 
-        .header-left { display: flex; align-items: center; gap: 15px; }
-        .avatar-img { 
-            width: 44px; 
-            height: 44px; 
-            border-radius: 15px; 
+        .nav-profile { display: flex; align-items: center; gap: 15px; }
+        .luxy-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 18px;
             background: var(--luxy-gold);
-            padding: 1.5px;
+            padding: 2px;
+            object-fit: cover;
         }
-        .user-info h2 { font-size: 16px; font-weight: 700; color: #fff; }
-        .user-info p { font-size: 11px; color: var(--accent); font-weight: 500; }
+
+        .status-badge {
+            font-size: 10px;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
 
         #chat-box {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
+            padding: 25px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            background: transparent;
+            gap: 20px;
         }
 
-        .msg { max-width: 80%; display: flex; flex-direction: column; position: relative; }
+        /* Messages */
+        .msg { max-width: 75%; position: relative; animation: fadeIn 0.4s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
         .sent { align-self: flex-end; }
         .recv { align-self: flex-start; }
 
-        .msg-user {
+        .msg-sender {
             font-size: 11px;
-            color: var(--accent);
-            margin: 0 12px 5px;
-            font-weight: 600;
-            text-transform: lowercase;
+            font-weight: 800;
+            color: var(--accent-gold);
+            margin-bottom: 6px;
+            margin-right: 10px;
         }
 
-        .bubble {
-            padding: 14px 20px;
-            border-radius: 22px;
-            font-size: 14.5px;
-            line-height: 1.5;
-            word-wrap: break-word;
-            backdrop-filter: blur(5px);
+        .luxy-bubble {
+            padding: 15px 22px;
+            border-radius: 24px;
+            font-size: 15px;
+            line-height: 1.6;
+            backdrop-filter: blur(10px);
         }
 
-        .sent .bubble { 
+        .sent .luxy-bubble {
             background: var(--msg-sent);
-            color: white; 
-            border-bottom-right-radius: 4px;
-            box-shadow: 0 8px 20px rgba(74, 0, 224, 0.2);
-        }
-        
-        .recv .bubble { 
-            background: var(--msg-recv); 
-            color: #eee; 
-            border-bottom-left-radius: 4px;
             border: 1px solid var(--glass-border);
+            border-bottom-right-radius: 4px;
+            color: #fff;
         }
 
-        /* Footer Input */
-        .input-footer { 
-            padding: 15px 20px calc(20px + env(safe-area-inset-bottom)); 
-            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+        .recv .luxy-bubble {
+            background: var(--msg-recv);
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            border-bottom-left-radius: 4px;
+            color: #f0f0f0;
         }
 
-        .input-wrapper {
+        /* Input Area */
+        .luxy-footer {
+            padding: 20px 25px calc(25px + env(safe-area-inset-bottom));
+            background: linear-gradient(transparent, #000);
+        }
+
+        .luxy-input-container {
             display: flex;
             align-items: center;
-            background: rgba(255,255,255,0.05);
-            border-radius: 20px;
-            padding: 5px 18px;
+            background: var(--glass);
+            border-radius: 25px;
+            padding: 6px 20px;
             border: 1px solid var(--glass-border);
-            backdrop-filter: blur(15px);
         }
 
         #msgInput {
@@ -211,74 +218,50 @@
             background: transparent;
             border: none;
             outline: none;
-            color: white;
+            color: #fff;
             padding: 12px 0;
             font-size: 15px;
         }
 
-        .send-btn { 
-            color: var(--accent); 
-            font-weight: 800; 
-            background: none; 
-            border: none; 
-            font-size: 14px; 
-            margin-right: 10px;
-            display: none;
+        .luxy-send {
+            color: var(--accent-gold);
+            font-weight: 800;
+            font-size: 13px;
             text-transform: uppercase;
+            border: none;
+            background: none;
+            margin-right: 15px;
+            display: none;
         }
 
-        /* Admin UI - Luxy Style */
-        #admin-panel {
-            position: fixed; inset: 0; background: rgba(5,5,5,0.98); z-index: 10001;
-            display: none; flex-direction: column; padding: 25px;
-            backdrop-filter: blur(30px);
+        /* Admin/Banned View */
+        #admin-panel, #banned-screen {
+            position: fixed; inset: 0; background: #000; z-index: 10005;
+            display: none; flex-direction: column; padding: 30px;
         }
 
         .admin-card {
-            background: var(--glass); 
-            padding: 20px; 
-            border-radius: 24px;
-            margin-bottom: 15px; 
-            border: 1px solid var(--glass-border);
-        }
-        .admin-card-top strong { color: var(--accent); font-size: 18px; }
-        .ban-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px; }
-        .ban-btn { 
-            padding: 12px; 
-            border-radius: 12px; 
-            border: 1px solid var(--glass-border); 
-            font-size: 12px; 
-            font-weight: 700;
-            background: rgba(255,255,255,0.05);
-            color: white;
+            background: var(--glass); border: 1px solid var(--glass-border);
+            padding: 20px; border-radius: 24px; margin-bottom: 15px;
         }
 
-        /* Banned Screen */
-        #banned-screen {
-            position: fixed; inset: 0; background: var(--luxy-dark); z-index: 11000;
-            display: none; flex-direction: column; justify-content: center; align-items: center;
-            text-align: center; padding: 40px;
-        }
-        .timer-display { 
-            font-size: 60px; 
-            font-weight: 800; 
+        .ban-timer {
+            font-family: 'Cinzel', serif;
+            font-size: 70px;
             background: var(--luxy-gold);
             -webkit-background-clip: text;
-            background-clip: text;
             color: transparent;
-            margin: 20px 0; 
         }
 
         #toast {
-            position: fixed; top: 30px; left: 50%; transform: translateX(-50%);
-            background: var(--luxy-gold); color: #000; padding: 12px 30px; border-radius: 50px;
-            font-size: 14px; font-weight: 800; z-index: 20000; display: none;
-            box-shadow: 0 10px 40px rgba(212,175,55,0.4);
+            position: fixed; top: 40px; left: 50%; transform: translateX(-50%);
+            background: var(--luxy-gold); color: #000; padding: 12px 35px;
+            border-radius: 40px; font-weight: 800; font-size: 13px; z-index: 99999;
+            display: none; box-shadow: 0 15px 40px rgba(0,0,0,0.5);
         }
 
-        /* Custom Scrollbar */
-        #chat-box::-webkit-scrollbar { width: 4px; }
-        #chat-box::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-thumb { background: var(--accent-gold); }
     </style>
 </head>
 <body>
@@ -287,57 +270,53 @@
 
     <!-- Login -->
     <div id="login-screen">
-        <div class="luxy-logo">Instasoop</div>
-        <div class="login-card">
-            <input type="text" id="usernameInput" placeholder="اكتب اسمك الفخم" maxlength="15">
-            <button class="login-btn" onclick="startApp()">تأكيد الهوية</button>
+        <div class="luxy-title">LUXY</div>
+        <div class="login-input-group">
+            <input type="text" id="usernameInput" placeholder="أدخل اسمك الفاخر" maxlength="15">
+            <button class="luxy-btn" onclick="startApp()">دخول المجلس</button>
         </div>
     </div>
 
-    <!-- Main Chat -->
+    <!-- Chat App -->
     <div id="chat-app">
-        <div class="luxy-header">
-            <div class="header-left">
-                <img id="headerAvatar" class="avatar-img" src="" alt="">
-                <div class="user-info">
-                    <h2 id="headerName">...</h2>
-                    <p>المجلس الفاخر</p>
+        <nav class="luxy-navbar">
+            <div class="nav-profile">
+                <img id="headerAvatar" class="luxy-avatar" src="" alt="User">
+                <div>
+                    <h3 id="headerName" style="font-size: 16px;">---</h3>
+                    <span class="status-badge">● متصل الآن</span>
                 </div>
             </div>
-            <div class="header-right">
-                <div style="background:var(--glass); padding:10px; border-radius:12px; border:1px solid var(--glass-border);">
-                    <span style="font-size: 20px;">💎</span>
-                </div>
-            </div>
-        </div>
+            <div style="opacity: 0.5; font-size: 20px;">✧</div>
+        </nav>
 
-        <div id="chat-box"></div>
+        <main id="chat-box"></main>
 
-        <div class="input-footer">
-            <div class="input-wrapper">
-                <input type="text" id="msgInput" placeholder="أرسل رسالة راقية..." autocomplete="off">
-                <button id="sendBtn" class="send-btn" onclick="send()">إرسال</button>
+        <footer class="luxy-footer">
+            <div class="luxy-input-container">
+                <input type="text" id="msgInput" placeholder="اكتب رسالة فخمة..." autocomplete="off">
+                <button id="sendBtn" class="luxy-send" onclick="send()">إرسال</button>
             </div>
-        </div>
+        </footer>
     </div>
 
     <!-- Admin Panel -->
     <div id="admin-panel">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-            <h1 style="font-weight:800; background:var(--luxy-gold); -webkit-background-clip:text; color:transparent;">التحكم الملكي</h1>
-            <button onclick="closeAdmin()" style="background:var(--glass); border:none; color:white; padding:10px 15px; border-radius:15px; font-size:20px;">✕</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
+            <h2 style="font-family:'Cinzel'; color:var(--accent-gold);">لوحة التحكم الملكية</h2>
+            <button onclick="closeAdmin()" style="background:none; border:none; color:#fff; font-size:24px;">✕</button>
         </div>
-        <div class="admin-list-container" style="flex:1; overflow-y:auto;" id="admin-list"></div>
-        <button onclick="nuclearWipe()" style="background:var(--danger); color:white; padding:20px; border-radius:20px; border:none; font-weight:bold; margin-top:15px; box-shadow: 0 10px 20px rgba(255,75,43,0.3);">تطهير المجلس (حذف الكل)</button>
+        <div style="flex:1; overflow-y:auto;" id="admin-list"></div>
+        <button onclick="nuclearWipe()" style="background:#ff3b30; color:#fff; padding:20px; border-radius:20px; border:none; font-weight:800; margin-top:20px;">مسح كافة السجلات</button>
     </div>
 
-    <!-- Banned Screen -->
+    <!-- Banned UI -->
     <div id="banned-screen">
-        <div style="padding:40px; background:var(--glass); border:1px solid var(--glass-border); border-radius:40px; backdrop-filter:blur(20px);">
-            <span style="font-size: 80px;">🔒</span>
-            <h2 style="margin-top:20px; font-weight:800; letter-spacing:1px;">حساب مقيد</h2>
-            <div class="timer-display" id="timer-display">00:00</div>
-            <p style="color:var(--text-grey); font-size:15px; line-height:1.6;">لقد تم تقييد وصولك بسبب مخالفة القوانين الفاخرة.</p>
+        <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
+            <div style="font-size: 100px; margin-bottom: 20px;">👑</div>
+            <h1 style="font-family:'Cinzel'; margin-bottom:10px;">دخول مقيد</h1>
+            <div class="ban-timer" id="timer-display">00:00</div>
+            <p style="color:#666; max-width:250px;">لقد تم تعليق صلاحياتك في هذا المجلس الفاخر مؤقتاً.</p>
         </div>
     </div>
 
@@ -353,58 +332,59 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let currentUser = localStorage.getItem('instasoop_name') || "";
+        let currentUser = localStorage.getItem('luxy_user') || "";
 
         function showToast(m) {
             const t = document.getElementById('toast');
             t.innerText = m; t.style.display = 'block';
-            setTimeout(() => t.style.display='none', 2500);
+            setTimeout(() => t.style.display='none', 3000);
         }
 
         function startApp() {
             const val = document.getElementById('usernameInput').value.trim();
-            if(val.length < 2) return showToast("الاسم قصير جداً");
+            if(val.length < 2) return showToast("الاسم يجب أن يكون أطول");
             currentUser = val;
-            checkBanStatus(val);
+            checkBan(val);
         }
 
-        function checkBanStatus(name) {
+        function checkBan(name) {
             db.ref('banned_users/' + name).on('value', (s) => {
                 const b = s.val();
                 if(b && b.expiry && Date.now() < b.expiry) {
-                    showBanned(b.expiry);
+                    showBannedView(b.expiry);
                 } else {
                     if(document.getElementById('banned-screen').style.display === 'flex') location.reload();
-                    initChat(name);
+                    launch(name);
                 }
             });
         }
 
-        function initChat(name) {
-            localStorage.setItem('instasoop_name', name);
+        function launch(name) {
+            localStorage.setItem('luxy_user', name);
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('chat-app').style.display = 'flex';
-            document.getElementById('headerAvatar').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${name}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
+            document.getElementById('headerAvatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}&backgroundColor=000000`;
             document.getElementById('headerName').innerText = name;
             
             db.ref('active_users/' + name).set({ ts: Date.now() });
-            
-            db.ref('messages').limitToLast(60).on('value', (snap) => {
+
+            // Real-time Database Listener - Automatic Updates
+            db.ref('messages').limitToLast(100).on('value', (snap) => {
                 const box = document.getElementById('chat-box');
-                const isAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 100;
+                const scroll = box.scrollHeight - box.scrollTop <= box.clientHeight + 100;
                 box.innerHTML = '';
-                snap.forEach(c => {
-                    const m = c.val();
+                snap.forEach(child => {
+                    const m = child.val();
                     const isMe = m.user === currentUser;
                     const d = document.createElement('div');
                     d.className = `msg ${isMe ? 'sent' : 'recv'}`;
                     d.innerHTML = `
-                        ${!isMe ? `<div class="msg-user">${m.user}</div>` : ''}
-                        <div class="bubble">${m.text}</div>
+                        ${!isMe ? `<div class="msg-sender">${m.user}</div>` : ''}
+                        <div class="luxy-bubble">${m.text}</div>
                     `;
                     box.appendChild(d);
                 });
-                if(isAtBottom) box.scrollTop = box.scrollHeight;
+                if(scroll) box.scrollTop = box.scrollHeight;
             });
         }
 
@@ -413,7 +393,12 @@
             const txt = input.value.trim();
             if(!txt) return;
             if(txt === "20102010") return openAdmin();
-            db.ref('messages').push({ user: currentUser, text: txt, ts: Date.now() });
+
+            db.ref('messages').push({
+                user: currentUser,
+                text: txt,
+                ts: Date.now()
+            });
             input.value = "";
             document.getElementById('sendBtn').style.display = 'none';
         }
@@ -424,6 +409,7 @@
 
         document.getElementById('msgInput').onkeypress = (e) => { if(e.key==='Enter') send(); };
 
+        // Admin Functions
         function openAdmin() {
             document.getElementById('admin-panel').style.display = 'flex';
             db.ref('active_users').on('value', (s) => {
@@ -433,15 +419,13 @@
                     const d = document.createElement('div');
                     d.className = 'admin-card';
                     d.innerHTML = `
-                        <div class="admin-card-top" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
                             <strong>@${u.key}</strong>
-                            <button onclick="ban('${u.key}', -1)" style="color:var(--success); background:var(--glass); border:1px solid var(--glass-border); padding:8px 15px; border-radius:12px; font-weight:bold;">فك الحظر</button>
+                            <button onclick="banUser('${u.key}', -1)" style="color:var(--accent-gold); background:none; border:none; font-weight:800;">فك القيد</button>
                         </div>
-                        <div class="ban-actions">
-                            <button class="ban-btn" onclick="ban('${u.key}', 30)">30 ثانية</button>
-                            <button class="ban-btn" onclick="ban('${u.key}', 3600)">1 ساعة</button>
-                            <button class="ban-btn" style="color:var(--danger)" onclick="ban('${u.key}', 0)">حظر دائم</button>
-                            <button class="ban-btn" onclick="kick('${u.key}')">طرد سريع</button>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                            <button onclick="banUser('${u.key}', 60)" style="padding:10px; border-radius:12px; background:rgba(255,255,255,0.05); color:#fff; border:none;">دقيقة</button>
+                            <button onclick="banUser('${u.key}', 0)" style="padding:10px; border-radius:12px; background:rgba(255,75,43,0.1); color:#ff3b30; border:none;">مؤبد</button>
                         </div>
                     `;
                     list.appendChild(d);
@@ -449,18 +433,17 @@
             });
         }
 
-        function ban(user, sec) {
-            if(sec === -1) { db.ref('banned_users/' + user).remove(); return showToast("تم فك الحظر الملكي"); }
+        function banUser(user, sec) {
+            if(sec === -1) { db.ref('banned_users/' + user).remove(); return showToast("تم العفو الملكي"); }
             const exp = sec === 0 ? 9999999999999 : Date.now() + (sec * 1000);
             db.ref('banned_users/' + user).set({ expiry: exp });
-            showToast("تم التقييد بنجاح");
+            showToast("تم تقييد المستخدم");
         }
 
-        function kick(user) { db.ref('active_users/' + user).remove(); showToast("تم الطرد"); }
-        function nuclearWipe() { if(confirm("هل أنت متأكد من تصفير المجلس؟")) db.ref('messages').remove(); }
         function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
+        function nuclearWipe() { if(confirm("تصفير المجلس؟")) db.ref('messages').remove(); }
 
-        function showBanned(exp) {
+        function showBannedView(exp) {
             document.getElementById('chat-app').style.display = 'none';
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('banned-screen').style.display = 'flex';
@@ -473,7 +456,7 @@
             }, 1000);
         }
 
-        if(currentUser) checkBanStatus(currentUser);
+        if(currentUser) checkBan(currentUser);
     </script>
 </body>
 </html>
