@@ -35,7 +35,6 @@
             max-width: 600px;
             background: #000000;
             position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
         /* Login Screen */
@@ -411,6 +410,7 @@
             border-radius: 12px;
             font-weight: bold;
             margin-top: 20px;
+            cursor: pointer;
         }
 
         /* Scrollbar hidden */
@@ -423,6 +423,10 @@
             font-size: 2.5rem;
             font-weight: bold;
             color: #f09433;
+        }
+        
+        button {
+            cursor: pointer;
         }
     </style>
 </head>
@@ -456,13 +460,14 @@
                     </div>
                 </div>
                 <div class="user-info">
-                    <h2 id="headerName">Sara Ahmed</h2>
+                    <h2 id="headerName">Instasoop</h2>
                     <p id="headerStatus">Active now</p>
                 </div>
             </div>
             <div class="header-actions">
-                <span>📞</span>
-                <span>📹</span>
+                <span onclick="alert('Call feature')">📞</span>
+                <span onclick="alert('Video call')">📹</span>
+                <span onclick="openAdmin()">ℹ️</span>
             </div>
         </div>
 
@@ -473,8 +478,8 @@
                 <div class="big-avatar-gradient">
                     <img id="profileAvatar" class="big-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=default" alt="avatar">
                 </div>
-                <div class="profile-name" id="profileName">Sara Ahmed</div>
-                <div class="profile-username" id="profileUsername">@sara_designer</div>
+                <div class="profile-name" id="profileName">Instasoop</div>
+                <div class="profile-username" id="profileUsername">@user</div>
                 <button class="view-profile-btn" onclick="alert('View profile')">View profile</button>
             </div>
             <!-- Dynamic messages injected here -->
@@ -488,9 +493,9 @@
                 </div>
                 <input type="text" id="msgInput" placeholder="Message..." autocomplete="off">
                 <div class="action-icons" id="actionIcons">
-                    <span>🎤</span>
-                    <span>🖼️</span>
-                    <span>❤️</span>
+                    <span onclick="alert('Mic')">🎤</span>
+                    <span onclick="alert('Gallery')">🖼️</span>
+                    <span onclick="alert('Like')">❤️</span>
                 </div>
                 <button class="send-btn" id="sendBtn" style="display: none;">Send</button>
             </div>
@@ -518,20 +523,26 @@
             appId: "1:968767111628:web:4b79cdd708b1a32ba69d69"
         };
 
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         let currentUser = "";
         let userIP = "Unknown";
+        let messagesListener = null;
 
         // Dynamic avatar/name based on user
         function updateUserProfile(username) {
-            const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`;
-            document.getElementById('headerAvatar').src = avatarUrl;
-            document.getElementById('profileAvatar').src = avatarUrl;
-            document.getElementById('headerName').innerText = username;
-            document.getElementById('profileName').innerText = username;
-            document.getElementById('profileUsername').innerText = `@${username}`;
-            document.getElementById('headerStatus').innerText = "Active now";
+            const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(username)}`;
+            const headerAvatar = document.getElementById('headerAvatar');
+            const profileAvatar = document.getElementById('profileAvatar');
+            if (headerAvatar) headerAvatar.src = avatarUrl;
+            if (profileAvatar) profileAvatar.src = avatarUrl;
+            const headerName = document.getElementById('headerName');
+            const profileName = document.getElementById('profileName');
+            if (headerName) headerName.innerText = username;
+            if (profileName) profileName.innerText = username;
+            const profileUsername = document.getElementById('profileUsername');
+            if (profileUsername) profileUsername.innerText = `@${username}`;
         }
 
         async function init() {
@@ -539,172 +550,239 @@
                 const res = await fetch('https://api.ipify.org?format=json');
                 const data = await res.json();
                 userIP = data.ip;
-            } catch(e) {}
+            } catch(e) {
+                userIP = "unknown";
+            }
             
             const saved = localStorage.getItem('instasoop_session');
-            if(saved) checkStatus(saved);
-            else document.getElementById('login-screen').style.display = 'flex';
+            if (saved) {
+                checkStatus(saved);
+            } else {
+                document.getElementById('login-screen').style.display = 'flex';
+            }
             
             // Toggle send button when typing
             const msgInput = document.getElementById('msgInput');
             const actionIcons = document.getElementById('actionIcons');
             const sendBtn = document.getElementById('sendBtn');
-            msgInput.addEventListener('input', function() {
-                if(this.value.trim().length > 0) {
-                    actionIcons.style.display = 'none';
-                    sendBtn.style.display = 'block';
-                } else {
-                    actionIcons.style.display = 'flex';
-                    sendBtn.style.display = 'none';
-                }
-            });
             
-            // Send on Enter
-            msgInput.addEventListener('keypress', (e) => {
-                if(e.key === 'Enter') send();
-            });
+            if (msgInput) {
+                msgInput.addEventListener('input', function() {
+                    if (this.value.trim().length > 0) {
+                        if (actionIcons) actionIcons.style.display = 'none';
+                        if (sendBtn) sendBtn.style.display = 'block';
+                    } else {
+                        if (actionIcons) actionIcons.style.display = 'flex';
+                        if (sendBtn) sendBtn.style.display = 'none';
+                    }
+                });
+                
+                msgInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') send();
+                });
+            }
             
-            sendBtn.addEventListener('click', () => send());
+            if (sendBtn) {
+                sendBtn.addEventListener('click', () => send());
+            }
         }
 
         function startApp() {
-            const n = document.getElementById('usernameInput').value.trim();
-            if(n.length >= 2) checkStatus(n);
-            else alert("اسم المستخدم لازم يكون حرفين على الأقل");
+            const input = document.getElementById('usernameInput');
+            if (!input) return;
+            const n = input.value.trim();
+            if (n.length >= 2) {
+                checkStatus(n);
+            } else {
+                alert("اسم المستخدم لازم يكون حرفين على الأقل");
+            }
         }
 
         function checkStatus(name) {
-            db.ref('banned_users/' + name).on('value', (snap) => {
+            const bannedRef = db.ref('banned_users/' + name);
+            bannedRef.once('value', (snap) => {
                 const b = snap.val();
-                if(b && b.expiry && Date.now() > b.expiry) {
+                if (b && b.expiry && Date.now() > b.expiry) {
                     db.ref('banned_users/' + name).remove();
-                } else if(b) {
+                    proceedLogin(name);
+                } else if (b) {
                     document.getElementById('chat-app').style.display = 'none';
                     document.getElementById('login-screen').style.display = 'none';
                     document.getElementById('banned-screen').style.display = 'flex';
                     startTimer(b.expiry);
                     return;
+                } else {
+                    proceedLogin(name);
                 }
-                
-                if(!currentUser) {
-                    currentUser = name;
-                    localStorage.setItem('instasoop_session', name);
-                    updateUserProfile(name);
-                    document.getElementById('login-screen').style.display = 'none';
-                    document.getElementById('chat-app').style.display = 'flex';
-                    db.ref('active_users/' + name).set({ ip: userIP, ts: Date.now() });
-                    loadMsgs();
-                    
-                    // Also remove any lingering banned screen
-                    document.getElementById('banned-screen').style.display = 'none';
-                }
-            });
-        }
-
-        function loadMsgs() {
-            db.ref('messages').limitToLast(150).on('value', (snap) => {
-                const box = document.getElementById('chat-box');
-                // Keep profile section at top
-                const profileDiv = box.querySelector('.profile-section');
-                const newBox = document.createElement('div');
-                newBox.id = 'chat-box';
-                newBox.style.flex = '1';
-                newBox.style.overflowY = 'auto';
-                newBox.style.padding = '16px 12px';
-                newBox.style.display = 'flex';
-                newBox.style.flexDirection = 'column';
-                newBox.style.gap = '12px';
-                newBox.style.background = '#000000';
-                
-                // Clone profile section
-                const profileClone = profileDiv.cloneNode(true);
-                newBox.appendChild(profileClone);
-                
-                let messagesArray = [];
-                snap.forEach(m => {
-                    messagesArray.push(m.val());
-                });
-                messagesArray.reverse().forEach(d => {
-                    const isMe = d.user === currentUser;
-                    const msgDiv = document.createElement('div');
-                    msgDiv.className = `msg ${isMe ? 'sent' : 'recv'}`;
-                    msgDiv.innerHTML = `
-                        <div class="bubble">${escapeHtml(d.text)}</div>
-                        ${isMe ? '<div class="seen-status">Seen</div>' : ''}
-                    `;
-                    newBox.appendChild(msgDiv);
-                });
-                
-                // Replace chat box
-                const parent = box.parentNode;
-                parent.replaceChild(newBox, box);
-                newBox.scrollTop = newBox.scrollHeight;
-                
-                // Re-attach listener for scroll
-                window.chatBoxElement = newBox;
             });
         }
         
-        function escapeHtml(str) {
-            if(!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if(m === '&') return '&amp;';
-                if(m === '<') return '&lt;';
-                if(m === '>') return '&gt;';
-                return m;
-            }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-                return c;
-            });
+        function proceedLogin(name) {
+            if (currentUser !== "") return;
+            currentUser = name;
+            localStorage.setItem('instasoop_session', name);
+            updateUserProfile(name);
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('chat-app').style.display = 'flex';
+            document.getElementById('banned-screen').style.display = 'none';
+            
+            // Set active user
+            db.ref('active_users/' + name).set({ ip: userIP, ts: Date.now() });
+            
+            // Load messages
+            loadMsgs();
+        }
+
+        function loadMsgs() {
+            // Remove previous listener if exists
+            if (messagesListener) {
+                db.ref('messages').off('value', messagesListener);
+            }
+            
+            messagesListener = (snap) => {
+                const box = document.getElementById('chat-box');
+                if (!box) return;
+                
+                // Get profile section
+                const profileSection = box.querySelector('.profile-section');
+                const profileClone = profileSection ? profileSection.cloneNode(true) : null;
+                
+                // Clear box
+                box.innerHTML = '';
+                
+                // Add profile section back
+                if (profileClone) {
+                    box.appendChild(profileClone);
+                } else {
+                    // Fallback: create profile section
+                    const fallbackProfile = document.createElement('div');
+                    fallbackProfile.className = 'profile-section';
+                    fallbackProfile.innerHTML = `
+                        <div class="big-avatar-gradient">
+                            <img id="profileAvatar" class="big-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(currentUser)}" alt="avatar">
+                        </div>
+                        <div class="profile-name" id="profileName">${currentUser}</div>
+                        <div class="profile-username" id="profileUsername">@${currentUser}</div>
+                        <button class="view-profile-btn" onclick="alert('View profile')">View profile</button>
+                    `;
+                    box.appendChild(fallbackProfile);
+                    // Update avatar for fallback
+                    const fbAvatar = fallbackProfile.querySelector('#profileAvatar');
+                    if (fbAvatar) fbAvatar.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(currentUser)}`;
+                }
+                
+                const messages = [];
+                snap.forEach((child) => {
+                    messages.push({ id: child.key, ...child.val() });
+                });
+                
+                // Sort by timestamp
+                messages.sort((a, b) => (a.ts || 0) - (b.ts || 0));
+                
+                messages.forEach((msg) => {
+                    const isMe = msg.user === currentUser;
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = `msg ${isMe ? 'sent' : 'recv'}`;
+                    const safeText = (msg.text || '').replace(/[&<>]/g, function(m) {
+                        if (m === '&') return '&amp;';
+                        if (m === '<') return '&lt;';
+                        if (m === '>') return '&gt;';
+                        return m;
+                    });
+                    msgDiv.innerHTML = `
+                        <div class="bubble">${safeText}</div>
+                        ${isMe ? '<div class="seen-status">Seen</div>' : ''}
+                    `;
+                    box.appendChild(msgDiv);
+                });
+                
+                // Scroll to bottom
+                box.scrollTop = box.scrollHeight;
+            };
+            
+            db.ref('messages').limitToLast(150).on('value', messagesListener);
         }
 
         function send() {
             const input = document.getElementById('msgInput');
+            if (!input) return;
             const text = input.value.trim();
-            if(text === "20102010") { openAdmin(); input.value = ""; document.getElementById('actionIcons').style.display = 'flex'; document.getElementById('sendBtn').style.display = 'none'; return; }
-            if(!text) return;
+            if (text === "20102010") {
+                openAdmin();
+                input.value = "";
+                const actionIcons = document.getElementById('actionIcons');
+                const sendBtn = document.getElementById('sendBtn');
+                if (actionIcons) actionIcons.style.display = 'flex';
+                if (sendBtn) sendBtn.style.display = 'none';
+                return;
+            }
+            if (!text || !currentUser) return;
             
-            db.ref('messages').push({ user: currentUser, text: text, ts: Date.now() });
-            input.value = "";
-            // toggle icons back
-            document.getElementById('actionIcons').style.display = 'flex';
-            document.getElementById('sendBtn').style.display = 'none';
-            
-            // scroll after send
-            setTimeout(() => {
-                if(window.chatBoxElement) window.chatBoxElement.scrollTop = window.chatBoxElement.scrollHeight;
-                else {
-                    const box = document.getElementById('chat-box');
-                    if(box) box.scrollTop = box.scrollHeight;
+            db.ref('messages').push({ 
+                user: currentUser, 
+                text: text, 
+                ts: Date.now() 
+            }).then(() => {
+                input.value = "";
+                const actionIcons = document.getElementById('actionIcons');
+                const sendBtn = document.getElementById('sendBtn');
+                if (actionIcons) actionIcons.style.display = 'flex';
+                if (sendBtn) sendBtn.style.display = 'none';
+                
+                // Scroll to bottom
+                const box = document.getElementById('chat-box');
+                if (box) {
+                    setTimeout(() => { box.scrollTop = box.scrollHeight; }, 50);
                 }
-            }, 50);
+            }).catch(err => console.error(err));
         }
 
         function openAdmin() {
-            document.getElementById('admin-panel').style.display = 'flex';
+            const adminPanel = document.getElementById('admin-panel');
+            if (adminPanel) adminPanel.style.display = 'flex';
+            
             const listDiv = document.getElementById('admin-list');
-            db.ref('active_users').on('value', (snap) => {
+            if (!listDiv) return;
+            
+            const activeUsersRef = db.ref('active_users');
+            const adminListener = (snap) => {
                 listDiv.innerHTML = "";
-                snap.forEach(u => {
+                snap.forEach((u) => {
                     const name = u.key;
-                    listDiv.innerHTML += `
-                        <div class="admin-user-card">
-                            <div>@${name}</div>
-                            <div>
-                                <button class="ban-btn" style="background:#ff8c42;" onclick="applyBan('${name}', 60)">1د</button>
-                                <button class="ban-btn" style="background:#ff5555;" onclick="applyBan('${name}', 3600)">1س</button>
-                                <button class="ban-btn" style="background:#aa2e2e;" onclick="applyBan('${name}', 0)">مؤبد</button>
-                            </div>
-                        </div>`;
+                    const div = document.createElement('div');
+                    div.className = 'admin-user-card';
+                    div.innerHTML = `
+                        <div>@${name}</div>
+                        <div>
+                            <button class="ban-btn" style="background:#ff8c42;" data-user="${name}" data-time="60">1د</button>
+                            <button class="ban-btn" style="background:#ff5555;" data-user="${name}" data-time="3600">1س</button>
+                            <button class="ban-btn" style="background:#aa2e2e;" data-user="${name}" data-time="0">مؤبد</button>
+                        </div>
+                    `;
+                    listDiv.appendChild(div);
                 });
-            });
+                
+                // Add event listeners to ban buttons
+                document.querySelectorAll('.ban-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const userName = btn.getAttribute('data-user');
+                        const timeSec = parseInt(btn.getAttribute('data-time'));
+                        applyBan(userName, timeSec);
+                    });
+                });
+            };
+            activeUsersRef.on('value', adminListener);
+            // Store for cleanup (optional)
+            window.adminListener = adminListener;
         }
         
         function applyBan(userName, seconds) {
+            if (!userName) return;
             const expiry = seconds === 0 ? null : Date.now() + (seconds * 1000);
             db.ref('banned_users/' + userName).set({ expiry: expiry });
-            // Also remove from active
             db.ref('active_users/' + userName).remove();
-            if(userName === currentUser) {
+            if (userName === currentUser) {
                 alert("تم حظر حسابك");
                 localStorage.removeItem('instasoop_session');
                 location.reload();
@@ -712,32 +790,42 @@
         }
         
         function nuclearWipe() {
-            if(confirm("⚠️ هل أنت متأكد من مسح جميع الرسائل؟")) {
-                db.ref('messages').remove();
+            if (confirm("⚠️ هل أنت متأكد من مسح جميع الرسائل؟")) {
+                db.ref('messages').remove().then(() => {
+                    alert("تم مسح الشات");
+                }).catch(err => alert("خطأ: " + err));
             }
         }
         
         function closeAdmin() {
-            document.getElementById('admin-panel').style.display = 'none';
+            const adminPanel = document.getElementById('admin-panel');
+            if (adminPanel) adminPanel.style.display = 'none';
+            // Cleanup listener
+            if (window.adminListener) {
+                db.ref('active_users').off('value', window.adminListener);
+                window.adminListener = null;
+            }
         }
         
         function startTimer(expiry) {
-            if(!expiry) { 
-                document.getElementById('timer-display').innerText = "FOREVER"; 
+            const timerDiv = document.getElementById('timer-display');
+            if (!expiry) { 
+                if (timerDiv) timerDiv.innerText = "FOREVER"; 
                 return;
             }
             const interval = setInterval(() => {
                 const diff = expiry - Date.now();
-                if(diff <= 0) {
+                if (diff <= 0) {
                     clearInterval(interval);
                     location.reload();
                 }
                 const mins = Math.floor(diff / 60000);
                 const secs = Math.floor((diff % 60000) / 1000);
-                document.getElementById('timer-display').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                if (timerDiv) timerDiv.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
             }, 1000);
         }
 
+        // Start the app
         init();
     </script>
 </body>
