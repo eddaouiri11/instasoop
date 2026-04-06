@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Instasoop | Luxy Pro Edition</title>
+    <title>Instasoop | Luxy Pro Edition (Secure)</title>
     
     <!-- Firebase Legacy SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    
+    <!-- CryptoJS for Traffic Encryption -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     
@@ -105,7 +108,7 @@
             position: fixed;
             inset: 0;
             background: var(--luxy-dark);
-            display: none; /*Hidden by default to show splash*/
+            display: none; 
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -234,6 +237,7 @@
             font-size: 15px;
             line-height: 1.6;
             backdrop-filter: blur(10px);
+            word-wrap: break-word;
         }
 
         .sent .luxy-bubble {
@@ -284,6 +288,7 @@
             background: none;
             margin-right: 15px;
             display: none;
+            cursor: pointer;
         }
 
         /* Admin/Banned View */
@@ -310,6 +315,7 @@
             background: var(--luxy-gold); color: #000; padding: 12px 35px;
             border-radius: 40px; font-weight: 800; font-size: 13px; z-index: 99999;
             display: none; box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            text-align: center;
         }
 
         ::-webkit-scrollbar { width: 3px; }
@@ -347,7 +353,7 @@
                     <span class="status-badge">● متصل الآن</span>
                 </div>
             </div>
-            <div style="opacity: 0.5; font-size: 20px;">✧</div>
+            <div style="opacity: 0.5; font-size: 20px; cursor: pointer;" onclick="location.reload()">✧</div>
         </nav>
 
         <main id="chat-box"></main>
@@ -381,6 +387,9 @@
     </div>
 
     <script>
+        // Security Configuration
+        const SEC_KEY = "luxy_ultra_secret_1337"; // مفتاح تشفير الترافيك الداخلي
+
         const firebaseConfig = {
             apiKey: "AIzaSyDuscs-L7y5aNwBX6zzz95XU3qGrF4ZsSk",
             authDomain: "instasoop-230e0.firebaseapp.com",
@@ -394,7 +403,20 @@
         const db = firebase.database();
         let currentUser = localStorage.getItem('luxy_user') || "";
 
-        // Splash Timer logic
+        // Traffic Security: Encrypt/Decrypt Functions
+        function encryptData(text) {
+            return CryptoJS.AES.encrypt(text, SEC_KEY).toString();
+        }
+
+        function decryptData(cipher) {
+            try {
+                const bytes = CryptoJS.AES.decrypt(cipher, SEC_KEY);
+                return bytes.toString(CryptoJS.enc.Utf8);
+            } catch(e) {
+                return "[رسالة مشفرة غير صالحة]";
+            }
+        }
+
         window.onload = () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
@@ -404,9 +426,11 @@
                     splash.style.display = 'none';
                     if (!currentUser) {
                         document.getElementById('login-screen').style.display = 'flex';
+                    } else {
+                        checkBan(currentUser);
                     }
                 }, 800);
-            }, 2500); // Show splash for 2.5 seconds
+            }, 2500);
         };
 
         function showToast(m) {
@@ -443,18 +467,24 @@
             
             db.ref('active_users/' + name).set({ ts: Date.now() });
 
+            // Fetch and Decrypt Messages
             db.ref('messages').limitToLast(100).on('value', (snap) => {
                 const box = document.getElementById('chat-box');
                 const scroll = box.scrollHeight - box.scrollTop <= box.clientHeight + 100;
                 box.innerHTML = '';
+                
                 snap.forEach(child => {
                     const m = child.val();
                     const isMe = m.user === currentUser;
+                    
+                    // DECRYPTION HAPPENS HERE ON THE CLIENT SIDE
+                    const originalText = decryptData(m.text);
+                    
                     const d = document.createElement('div');
                     d.className = `msg ${isMe ? 'sent' : 'recv'}`;
                     d.innerHTML = `
                         ${!isMe ? `<div class="msg-sender">${m.user}</div>` : ''}
-                        <div class="luxy-bubble">${m.text}</div>
+                        <div class="luxy-bubble">${originalText}</div>
                     `;
                     box.appendChild(d);
                 });
@@ -468,11 +498,15 @@
             if(!txt) return;
             if(txt === "20102010") return openAdmin();
 
+            // ENCRYPTION HAPPENS HERE BEFORE SENDING TO SERVER
+            const encryptedText = encryptData(txt);
+
             db.ref('messages').push({
                 user: currentUser,
-                text: txt,
+                text: encryptedText,
                 ts: Date.now()
             });
+            
             input.value = "";
             document.getElementById('sendBtn').style.display = 'none';
         }
@@ -514,7 +548,16 @@
         }
 
         function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
-        function nuclearWipe() { if(confirm("تصفير المجلس؟")) db.ref('messages').remove(); }
+        
+        function nuclearWipe() { 
+            const pass = prompt("أدخل رمز التأكيد لمسح السجلات:");
+            if(pass === "20102010") {
+                db.ref('messages').remove(); 
+                showToast("تم تصفير المجلس بنجاح");
+            } else {
+                showToast("رمز غير صحيح");
+            }
+        }
 
         function showBannedView(exp) {
             document.getElementById('chat-app').style.display = 'none';
@@ -528,8 +571,6 @@
                 document.getElementById('timer-display').innerText = exp > 2000000000000 ? "مؤبد" : `${m}:${s<10?'0'+s:s}`;
             }, 1000);
         }
-
-        if(currentUser) checkBan(currentUser);
     </script>
 </body>
 </html>
