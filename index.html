@@ -2,651 +2,759 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Instasoop | Luxy Pro Edition (Secure & Private)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Instasoop | Luxy Pro Edition</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Firebase Legacy SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     
-    <!-- CryptoJS for Traffic Encryption -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
             --luxy-gold: linear-gradient(135deg, #d4af37 0%, #fcf6ba 45%, #aa771c 100%);
-            --luxy-dark: #080808;
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --accent-gold: #d4af37;
-            --msg-sent: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
-            --msg-recv: rgba(212, 175, 55, 0.05);
-            --msg-private: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(0,0,0,0.5) 100%);
-            --danger-glow: 0 0 15px rgba(255, 75, 43, 0.4);
+            --luxy-dark: #090a0f;
+            --luxy-card: rgba(18, 20, 29, 0.75);
+            --luxy-border: rgba(212, 175, 55, 0.18);
+            --gold-accent: #d4af37;
         }
 
         * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
             font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
+
+        .cinzel { font-family: 'Cinzel', serif; }
 
         body {
             background-color: var(--luxy-dark);
             background-image: 
-                radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(107, 70, 193, 0.05) 0%, transparent 40%);
-            color: #fff;
+                radial-gradient(circle at 15% 15%, rgba(212, 175, 55, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(138, 43, 226, 0.06) 0%, transparent 40%);
+            color: #f1f5f9;
             height: 100dvh;
-            width: 100vw;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
         }
 
-        @keyframes shine {
-            to { background-position: 200% center; }
-        }
-
-        /* Splash Screen */
-        #splash-screen {
-            position: fixed;
-            inset: 0;
-            background: var(--luxy-dark);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-        }
-
-        .splash-logo {
-            font-family: 'Cinzel', serif;
-            font-size: 4rem;
-            background: var(--luxy-gold);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            animation: shine 3s linear infinite, pulse 2s ease-in-out infinite;
-            background-size: 200% auto;
-            letter-spacing: 8px;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 1; }
-        }
-
-        .loader-bar {
-            width: 150px;
-            height: 2px;
-            background: rgba(255,255,255,0.1);
-            margin-top: 30px;
-            position: relative;
-            overflow: hidden;
-            border-radius: 10px;
-        }
-
-        .loader-progress {
-            position: absolute;
-            height: 100%;
-            width: 50%;
-            background: var(--luxy-gold);
-            animation: loading 1.5s infinite ease-in-out;
-        }
-
-        @keyframes loading {
-            0% { left: -50%; }
-            100% { left: 100%; }
-        }
-
-        /* Login UI */
-        #login-screen {
-            position: fixed;
-            inset: 0;
-            background: var(--luxy-dark);
-            display: none; 
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            padding: 40px;
-        }
-
-        .luxy-title {
-            font-family: 'Cinzel', serif;
-            font-size: 3.5rem;
-            background: var(--luxy-gold);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            margin-bottom: 50px;
-            letter-spacing: 4px;
-            animation: shine 4s linear infinite;
-            background-size: 200% auto;
-        }
-
-        .login-input-group {
-            width: 100%;
-            max-width: 340px;
-            position: relative;
-        }
-
-        #usernameInput {
-            width: 100%;
-            padding: 22px;
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            color: white;
-            font-size: 16px;
-            outline: none;
-            margin-bottom: 25px;
-            text-align: center;
+        /* Glassmorphism Styles */
+        .glass-panel {
+            background: var(--luxy-card);
             backdrop-filter: blur(20px);
-            transition: all 0.4s ease;
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--luxy-border);
         }
 
-        #usernameInput:focus {
-            border-color: var(--accent-gold);
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
-        }
-
-        .luxy-btn {
-            width: 100%;
-            padding: 20px;
-            background: var(--luxy-gold);
-            color: #000;
-            border: none;
-            border-radius: 50px;
-            font-weight: 800;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
-            cursor: pointer;
-        }
-
-        /* App Layout */
-        #chat-app {
-            display: none;
-            flex-direction: column;
-            height: 100%;
-            position: relative;
-        }
-
-        .luxy-navbar {
-            height: 80px;
-            padding: 0 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(30px);
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .nav-profile { display: flex; align-items: center; gap: 15px; }
-        .luxy-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 18px;
-            background: var(--luxy-gold);
-            padding: 2px;
-            object-fit: cover;
-        }
-
-        .status-badge {
-            font-size: 10px;
-            color: var(--accent-gold);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 700;
-        }
-
-        #chat-box {
-            flex: 1;
-            overflow-y: auto;
-            padding: 25px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        /* Messages */
-        .msg { max-width: 75%; position: relative; animation: fadeIn 0.4s ease forwards; cursor: pointer; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .sent { align-self: flex-end; }
-        .recv { align-self: flex-start; }
-
-        .msg-sender {
-            font-size: 11px;
-            font-weight: 800;
-            color: var(--accent-gold);
-            margin-bottom: 6px;
-            margin-right: 10px;
-        }
-
-        .luxy-bubble {
-            padding: 15px 22px;
-            border-radius: 24px;
-            font-size: 15px;
-            line-height: 1.6;
-            backdrop-filter: blur(10px);
-            word-wrap: break-word;
-            position: relative;
-        }
-
-        .sent .luxy-bubble {
-            background: var(--msg-sent);
-            border: 1px solid var(--glass-border);
-            border-bottom-right-radius: 4px;
-            color: #fff;
-        }
-
-        .recv .luxy-bubble {
-            background: var(--msg-recv);
-            border: 1px solid rgba(212, 175, 55, 0.1);
-            border-bottom-left-radius: 4px;
-            color: #f0f0f0;
-        }
-
-        /* Private Message Style */
-        .private-msg .luxy-bubble {
-            border: 1px solid var(--accent-gold) !important;
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.15);
-        }
-
-        .private-tag {
-            font-size: 9px;
-            background: var(--luxy-gold);
-            color: #000;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-weight: 800;
-            position: absolute;
-            top: -10px;
-            left: 10px;
-            text-transform: uppercase;
-        }
-
-        .encrypted-placeholder {
-            font-style: italic;
-            opacity: 0.6;
-            color: var(--accent-gold);
-        }
-
-        /* Input Area */
-        .luxy-footer {
-            padding: 20px 25px calc(25px + env(safe-area-inset-bottom));
-            background: linear-gradient(transparent, #000);
-        }
-
-        .private-indicator {
-            display: none;
-            background: rgba(212, 175, 55, 0.1);
-            border: 1px solid var(--accent-gold);
-            padding: 8px 15px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            font-size: 12px;
-            color: var(--accent-gold);
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .luxy-input-container {
-            display: flex;
-            align-items: center;
-            background: var(--glass);
-            border-radius: 25px;
-            padding: 6px 20px;
-            border: 1px solid var(--glass-border);
-        }
-
-        #msgInput {
-            flex: 1;
-            background: transparent;
-            border: none;
-            outline: none;
-            color: #fff;
-            padding: 12px 0;
-            font-size: 15px;
-        }
-
-        .luxy-send {
-            color: var(--accent-gold);
-            font-weight: 800;
-            font-size: 13px;
-            text-transform: uppercase;
-            border: none;
-            background: none;
-            margin-right: 15px;
-            display: none;
-            cursor: pointer;
-        }
-
-        /* Admin/Banned View */
-        #admin-panel, #banned-screen {
-            position: fixed; inset: 0; background: #000; z-index: 10005;
-            display: none; flex-direction: column; padding: 30px;
-        }
-
-        .admin-card {
-            background: var(--glass); border: 1px solid var(--glass-border);
-            padding: 20px; border-radius: 24px; margin-bottom: 15px;
-        }
-
-        .ban-timer {
-            font-family: 'Cinzel', serif;
-            font-size: 70px;
+        .gold-text {
             background: var(--luxy-gold);
             -webkit-background-clip: text;
+            background-clip: text;
             color: transparent;
         }
 
-        #toast {
-            position: fixed; top: 40px; left: 50%; transform: translateX(-50%);
-            background: var(--luxy-gold); color: #000; padding: 12px 35px;
-            border-radius: 40px; font-weight: 800; font-size: 13px; z-index: 99999;
-            display: none; box-shadow: 0 15px 40px rgba(0,0,0,0.5);
-            text-align: center;
+        .gold-btn {
+            background: var(--luxy-gold);
+            color: #000;
+            font-weight: 700;
+            transition: all 0.3s ease;
         }
 
-        ::-webkit-scrollbar { width: 3px; }
-        ::-webkit-scrollbar-thumb { background: var(--accent-gold); }
+        .gold-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(212, 175, 55, 0.6); }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.2); }
+            50% { box-shadow: 0 0 30px rgba(212, 175, 55, 0.5); }
+        }
+
+        .gold-glow { animation: pulseGlow 3s infinite; }
+
+        .chat-bubble-sent {
+            background: linear-gradient(135deg, #1e2638 0%, #111622 100%);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            border-bottom-left-radius: 18px;
+            border-bottom-right-radius: 4px;
+            border-top-left-radius: 18px;
+            border-top-right-radius: 18px;
+        }
+
+        .chat-bubble-recv {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 18px;
+            border-top-left-radius: 18px;
+            border-top-right-radius: 18px;
+        }
     </style>
 </head>
-<body>
+<body class="flex flex-col h-screen w-screen overflow-hidden">
 
     <!-- Splash Screen -->
-    <div id="splash-screen">
-        <div class="splash-logo">LUXY</div>
-        <div class="loader-bar">
-            <div class="loader-progress"></div>
+    <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#090a0f] transition-opacity duration-700">
+        <div class="cinzel text-5xl font-extrabold gold-text tracking-widest mb-4 animate-pulse">LUXY</div>
+        <p class="text-xs text-amber-200/60 uppercase tracking-widest mb-8">Ultra Private Chat Network</p>
+        <div class="w-40 h-1 bg-white/10 rounded-full overflow-hidden relative">
+            <div class="h-full bg-gradient-to-r from-amber-500 to-amber-200 w-1/2 absolute animate-[loading_1.5s_infinite_ease-in-out]"></div>
         </div>
     </div>
 
-    <div id="toast"></div>
-
-    <!-- Login -->
-    <div id="login-screen">
-        <div class="luxy-title">LUXY</div>
-        <div class="login-input-group">
-            <input type="text" id="usernameInput" placeholder="أدخل اسمك الفاخر" maxlength="15">
-            <button class="luxy-btn" onclick="startApp()">دخول المجلس</button>
-        </div>
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 hidden bg-amber-400 text-black px-6 py-3 rounded-full font-bold text-sm shadow-2xl transition-all">
+        <span id="toastMsg">إشعار</span>
     </div>
 
-    <!-- Chat App -->
-    <div id="chat-app">
-        <nav class="luxy-navbar">
-            <div class="nav-profile">
-                <img id="headerAvatar" class="luxy-avatar" src="" alt="User">
+    <!-- Auth Screen (Login / Register) -->
+    <div id="authScreen" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-[#090a0f]/95 backdrop-blur-md">
+        <div class="glass-panel w-full max-w-md p-8 rounded-3xl shadow-2xl relative border border-amber-500/20">
+            <div class="text-center mb-8">
+                <h1 class="cinzel text-4xl font-extrabold gold-text tracking-wider mb-2">LUXY PRO</h1>
+                <p class="text-xs text-gray-400">سجل دخولك أو أنشئ حساباً جديداً للدردشة الخاصة</p>
+            </div>
+
+            <!-- Tab Buttons -->
+            <div class="flex bg-black/40 p-1 rounded-xl mb-6 border border-white/5">
+                <button id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 py-2 rounded-lg text-sm font-semibold text-amber-400 bg-white/10 transition-all">دخول</button>
+                <button id="tabRegisterBtn" onclick="switchAuthTab('register')" class="flex-1 py-2 rounded-lg text-sm font-semibold text-gray-400 transition-all">تسجيل جديد</button>
+            </div>
+
+            <!-- Form -->
+            <div class="space-y-4">
                 <div>
-                    <h3 id="headerName" style="font-size: 16px;">---</h3>
-                    <span class="status-badge">● متصل الآن</span>
+                    <label class="block text-xs font-semibold text-amber-300/80 mb-1">اسم المستخدم</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute right-4 top-3.5 text-gray-500 text-sm"></i>
+                        <input type="text" id="authUsername" placeholder="أدخل اسم المستخدم..." class="w-full pr-11 pl-4 py-3 bg-black/50 rounded-xl border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-amber-500/50 text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-amber-300/80 mb-1">كلمة السر</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-key absolute right-4 top-3.5 text-gray-500 text-sm"></i>
+                        <input type="password" id="authPassword" placeholder="••••••••" class="w-full pr-11 pl-4 py-3 bg-black/50 rounded-xl border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-amber-500/50 text-sm">
+                    </div>
+                </div>
+
+                <button id="authSubmitBtn" onclick="handleAuthSubmit()" class="w-full gold-btn py-3.5 rounded-xl text-sm mt-4 shadow-lg">
+                    دخول الحساب
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application View -->
+    <div id="mainApp" class="flex h-full w-full relative overflow-hidden hidden">
+        
+        <!-- Sidebar (Contacts & Direct Messages) -->
+        <aside id="sidebar" class="w-full md:w-80 lg:w-96 glass-panel flex flex-col h-full border-l border-white/10 z-20 transition-all duration-300">
+            <!-- User Header -->
+            <div class="p-4 border-b border-white/10 flex items-center justify-between bg-black/40">
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <img id="myAvatar" src="" class="w-11 h-11 rounded-full border-2 border-amber-500/50 object-cover">
+                        <span class="w-3 h-3 bg-green-500 border-2 border-black rounded-full absolute bottom-0 right-0"></span>
+                    </div>
+                    <div>
+                        <h3 id="myName" class="font-bold text-sm text-white">---</h3>
+                        <span class="text-[10px] text-amber-400/80 tracking-wider">متصل الآن</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="logout()" title="تسجيل خروج" class="w-9 h-9 rounded-full bg-white/5 hover:bg-red-500/20 hover:text-red-400 text-gray-400 flex items-center justify-center transition-all">
+                        <i class="fa-solid fa-right-from-bracket text-sm"></i>
+                    </button>
                 </div>
             </div>
-            <div style="opacity: 0.5; font-size: 20px; cursor: pointer;" onclick="location.reload()">✧</div>
-        </nav>
 
-        <main id="chat-box"></main>
+            <!-- Online / Total Users Badge -->
+            <div class="p-4 pb-2">
+                <div class="flex items-center justify-between bg-amber-500/10 border border-amber-500/20 p-3 rounded-2xl">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-users text-amber-400 text-sm"></i>
+                        <span class="text-xs font-semibold text-amber-200">الأعضاء المسجلين</span>
+                    </div>
+                    <span id="userCountBadge" class="bg-amber-400 text-black px-2.5 py-0.5 rounded-full text-xs font-bold">0</span>
+                </div>
+            </div>
 
-        <footer class="luxy-footer">
-            <div id="privateIndicator" class="private-indicator">
-                <span>تكلم خاص مع: <strong id="targetUserLabel"></strong></span>
-                <span onclick="clearPrivateTarget()" style="cursor:pointer; font-weight:bold;">✕</span>
+            <!-- Search Contacts -->
+            <div class="px-4 py-2">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3 text-gray-500 text-xs"></i>
+                    <input type="text" id="contactSearch" oninput="filterContacts()" placeholder="بحث عن صديق..." class="w-full pr-9 pl-3 py-2 bg-black/30 rounded-xl border border-white/5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/30">
+                </div>
             </div>
-            <div class="luxy-input-container">
-                <input type="text" id="msgInput" placeholder="اكتب رسالة فخمة..." autocomplete="off">
-                <button id="sendBtn" class="luxy-send" onclick="send()">إرسال</button>
+
+            <!-- Contacts List -->
+            <div class="flex-1 overflow-y-auto p-3 space-y-1" id="contactsList">
+                <!-- User items dynamically injected -->
             </div>
-        </footer>
+        </aside>
+
+        <!-- Chat Area -->
+        <main id="chatArea" class="flex-1 flex flex-col h-full bg-black/20 relative w-full">
+            
+            <!-- Default Placeholder when no user selected -->
+            <div id="noChatSelected" class="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                <div class="w-20 h-20 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-4 gold-glow">
+                    <i class="fa-regular fa-comments text-3xl text-amber-400"></i>
+                </div>
+                <h2 class="cinzel text-2xl font-bold gold-text mb-2">LUXY PRIVATE CHAT</h2>
+                <p class="text-xs text-gray-400 max-w-sm">اختر أي مستخدم من قائمة المتصلين على اليمين لبدء المحادثة المشفرة المباشرة.</p>
+            </div>
+
+            <!-- Active Chat View -->
+            <div id="activeChatContainer" class="flex-1 flex flex-col h-full hidden">
+                
+                <!-- Chat Header -->
+                <div class="p-4 border-b border-white/10 glass-panel flex items-center justify-between z-10">
+                    <div class="flex items-center gap-3">
+                        <button onclick="closeChatMobile()" class="md:hidden text-gray-400 hover:text-white pl-2">
+                            <i class="fa-solid fa-arrow-right text-lg"></i>
+                        </button>
+                        <div class="relative">
+                            <img id="chatTargetAvatar" src="" class="w-10 h-10 rounded-full border border-amber-500/40 object-cover">
+                            <span id="chatTargetStatusDot" class="w-2.5 h-2.5 bg-green-500 rounded-full absolute bottom-0 right-0 border border-black"></span>
+                        </div>
+                        <div>
+                            <h3 id="chatTargetName" class="font-bold text-sm text-white">---</h3>
+                            <span id="chatTargetStatusText" class="text-[10px] text-gray-400">خاص وشفاف</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-full font-semibold">
+                            <i class="fa-solid fa-lock text-[9px] ml-1"></i> مشفر 1-to-1
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Messages Feed -->
+                <div id="messagesBox" class="flex-1 overflow-y-auto p-4 space-y-3">
+                    <!-- Messages dynamically loaded here -->
+                </div>
+
+                <!-- Input Footer -->
+                <div class="p-3 border-t border-white/10 glass-panel">
+                    <form onsubmit="sendMessage(event)" class="flex items-center gap-2">
+                        <input type="text" id="messageInput" placeholder="اكتب رسالتك السرية..." autocomplete="off" class="flex-1 bg-black/50 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/50">
+                        <button type="submit" class="gold-btn w-11 h-11 rounded-2xl flex items-center justify-center text-black shrink-0">
+                            <i class="fa-solid fa-paper-plane text-sm"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <!-- Admin Panel -->
-    <div id="admin-panel">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
-            <h2 style="font-family:'Cinzel'; color:var(--accent-gold);">لوحة التحكم الملكية</h2>
-            <button onclick="closeAdmin()" style="background:none; border:none; color:#fff; font-size:24px;">✕</button>
+    <!-- Admin Pin Verification Modal -->
+    <div id="adminPinModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
+        <div class="glass-panel w-full max-w-xs p-6 rounded-3xl text-center border border-amber-500/40">
+            <div class="w-12 h-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto mb-3">
+                <i class="fa-solid fa-user-shield text-xl"></i>
+            </div>
+            <h3 class="cinzel font-bold text-lg gold-text mb-1">منطقة المسؤول</h3>
+            <p class="text-xs text-gray-400 mb-4">أدخل الرمز السري للولوج للوحة الأدمن</p>
+            <input type="password" id="adminPinInput" maxlength="10" placeholder="••••••••" class="w-full text-center tracking-widest text-lg bg-black/60 border border-amber-500/30 rounded-xl py-2.5 text-white mb-4 focus:outline-none">
+            <div class="flex gap-2">
+                <button onclick="closeAdminPinModal()" class="flex-1 py-2 bg-white/10 text-xs font-semibold rounded-xl text-gray-300">إلغاء</button>
+                <button onclick="verifyAdminPin()" class="flex-1 gold-btn py-2 text-xs rounded-xl">تأكيد</button>
+            </div>
         </div>
-        <div style="flex:1; overflow-y:auto;" id="admin-list"></div>
-        <button onclick="nuclearWipe()" style="background:#ff3b30; color:#fff; padding:20px; border-radius:20px; border:none; font-weight:800; margin-top:20px;">مسح كافة السجلات</button>
     </div>
 
-    <!-- Banned UI -->
-    <div id="banned-screen">
-        <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
-            <div style="font-size: 100px; margin-bottom: 20px;">👑</div>
-            <h1 style="font-family:'Cinzel'; margin-bottom:10px;">دخول مقيد</h1>
-            <div class="ban-timer" id="timer-display">00:00</div>
-            <p style="color:#666; max-width:250px;">لقد تم تعليق صلاحياتك في هذا المجلس الفاخر مؤقتاً.</p>
+    <!-- Admin Panel Full Dashboard Modal -->
+    <div id="adminPanelModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 bg-black/90 backdrop-blur-lg hidden">
+        <div class="glass-panel w-full max-w-4xl h-[90vh] rounded-3xl border border-amber-500/30 flex flex-col overflow-hidden shadow-2xl">
+            
+            <!-- Admin Header -->
+            <div class="p-5 border-b border-white/10 flex items-center justify-between bg-black/50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+                        <i class="fa-solid fa-crown text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="cinzel font-bold text-lg gold-text">لوحة التحكم الملكية (Admin Area)</h2>
+                        <span class="text-[10px] text-gray-400">مراقبة المستخدمين والمحادثات المباشرة</span>
+                    </div>
+                </div>
+                <button onclick="closeAdminPanelModal()" class="w-8 h-8 rounded-full bg-white/10 text-gray-400 hover:text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="flex border-b border-white/10 bg-black/30 px-5 pt-3 gap-3">
+                <button id="adminTabUsersBtn" onclick="switchAdminTab('users')" class="py-2.5 px-4 text-xs font-bold text-amber-400 border-b-2 border-amber-400 flex items-center gap-2">
+                    <i class="fa-solid fa-users"></i> قاعدة حسابات المستخدمين
+                </button>
+                <button id="adminTabSpyBtn" onclick="switchAdminTab('spy')" class="py-2.5 px-4 text-xs font-bold text-gray-400 hover:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-eye text-red-400"></i> المراقبة المباشرة (Spectator Mode)
+                </button>
+            </div>
+
+            <!-- Tab Content 1: User Accounts -->
+            <div id="adminTabUsers" class="flex-1 overflow-y-auto p-5 space-y-3">
+                <div class="text-xs text-gray-400 mb-2">قائمة بجميع الحسابات المسجلة مع كلمات السر الصريحة:</div>
+                <div id="adminUsersList" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- Admin user cards injected dynamically -->
+                </div>
+            </div>
+
+            <!-- Tab Content 2: Live Spectator Mode -->
+            <div id="adminTabSpy" class="flex-1 overflow-hidden flex flex-col md:flex-row hidden">
+                <!-- Active Chats List Sidebar -->
+                <div class="w-full md:w-64 border-b md:border-b-0 md:border-l border-white/10 p-3 overflow-y-auto bg-black/20">
+                    <div class="text-[11px] font-bold text-amber-300 mb-2">المحادثات النشطة للمراقبة:</div>
+                    <div id="adminActiveChatsList" class="space-y-1">
+                        <!-- Dynamic active chat list -->
+                    </div>
+                </div>
+
+                <!-- Chat Monitor Stream -->
+                <div class="flex-1 flex flex-col h-full bg-black/40 p-4">
+                    <div class="pb-3 border-b border-white/10 flex items-center justify-between">
+                        <span id="spyChatTitle" class="text-xs font-bold text-red-400 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span> اختر محادثة لمراقبتها في الوقت الفعلي
+                        </span>
+                    </div>
+                    <div id="spyMessagesBox" class="flex-1 overflow-y-auto py-3 space-y-2 text-xs">
+                        <div class="text-center text-gray-500 my-auto">لم يتم تحديد أي محادثة بعد.</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Security Configuration
-        const SEC_KEY = "luxy_ultra_secret_1337"; 
-
+        // Security & Configuration
+        const ADMIN_CODE = "20102010";
+        
+        // Standard Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDuscs-L7y5aNwBX6zzz95XU3qGrF4ZsSk",
             authDomain: "instasoop-230e0.firebaseapp.com",
+            databaseURL: "https://instasoop-230e0-default-rtdb.firebaseio.com",
             projectId: "instasoop-230e0",
             storageBucket: "instasoop-230e0.firebasestorage.app",
             messagingSenderId: "968767111628",
             appId: "1:968767111628:web:4b79cdd708b1a32ba69d69"
         };
 
-        firebase.initializeApp(firebaseConfig);
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const db = firebase.database();
-        let currentUser = localStorage.getItem('luxy_user') || "";
-        let selectedTarget = null; // للمحادثات الخاصة
 
-        // Traffic Security: Encrypt/Decrypt Functions
-        function encryptData(text) {
-            return CryptoJS.AES.encrypt(text, SEC_KEY).toString();
+        // State Variables
+        let currentUser = null;
+        let activeTargetUser = null;
+        let currentAuthTab = 'login';
+        let allRegisteredUsers = {};
+        let activeChatListener = null;
+        let activeSpyListener = null;
+
+        // 5 Clicks Trigger Secret Admin Prompt
+        let clickCount = 0;
+        let clickTimer = null;
+
+        document.addEventListener('click', (e) => {
+            // Ignore clicks inside modal itself when open
+            if (e.target.closest('#adminPinModal') || e.target.closest('#adminPanelModal')) return;
+
+            clickCount++;
+            clearTimeout(clickTimer);
+
+            if (clickCount >= 5) {
+                clickCount = 0;
+                openAdminPinModal();
+            } else {
+                clickTimer = setTimeout(() => {
+                    clickCount = 0;
+                }, 1500); // 1.5 seconds window for 5 clicks
+            }
+        });
+
+        // Application Startup
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splashScreen');
+                splash.style.opacity = '0';
+                setTimeout(() => splash.style.display = 'none', 700);
+
+                // Auto Login check
+                const savedUser = localStorage.getItem('luxy_auth_user');
+                if (savedUser) {
+                    try {
+                        currentUser = JSON.parse(savedUser);
+                        initApp();
+                    } catch(e) {
+                        localStorage.removeItem('luxy_auth_user');
+                    }
+                }
+            }, 1800);
+        });
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
         }
 
-        function decryptData(cipher) {
-            try {
-                const bytes = CryptoJS.AES.decrypt(cipher, SEC_KEY);
-                return bytes.toString(CryptoJS.enc.Utf8);
-            } catch(e) {
-                return "[رسالة مشفرة غير صالحة]";
+        function switchAuthTab(tab) {
+            currentAuthTab = tab;
+            const loginBtn = document.getElementById('tabLoginBtn');
+            const regBtn = document.getElementById('tabRegisterBtn');
+            const submitBtn = document.getElementById('authSubmitBtn');
+
+            if (tab === 'login') {
+                loginBtn.className = "flex-1 py-2 rounded-lg text-sm font-semibold text-amber-400 bg-white/10 transition-all";
+                regBtn.className = "flex-1 py-2 rounded-lg text-sm font-semibold text-gray-400 transition-all";
+                submitBtn.innerText = "دخول الحساب";
+            } else {
+                regBtn.className = "flex-1 py-2 rounded-lg text-sm font-semibold text-amber-400 bg-white/10 transition-all";
+                loginBtn.className = "flex-1 py-2 rounded-lg text-sm font-semibold text-gray-400 transition-all";
+                submitBtn.innerText = "إنشاء حساب جديد";
             }
         }
 
-        window.onload = () => {
-            setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                splash.style.transition = 'opacity 0.8s ease';
-                splash.style.opacity = '0';
-                setTimeout(() => {
-                    splash.style.display = 'none';
-                    if (!currentUser) {
-                        document.getElementById('login-screen').style.display = 'flex';
+        function handleAuthSubmit() {
+            const username = document.getElementById('authUsername').value.trim().toLowerCase();
+            const password = document.getElementById('authPassword').value.trim();
+
+            if (!username || username.length < 3) return showToast("اسم المستخدم يجب أن يكون 3 أحرف على الأقل");
+            if (!password || password.length < 4) return showToast("كلمة السر يجب أن تكون 4 أحرف على الأقل");
+
+            const userRef = db.ref('users/' + username);
+
+            if (currentAuthTab === 'register') {
+                userRef.once('value', (snap) => {
+                    if (snap.exists()) {
+                        showToast("اسم المستخدم هذا مأخوذ بالفعل!");
                     } else {
-                        checkBan(currentUser);
+                        const newUser = {
+                            username: username,
+                            password: password,
+                            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`,
+                            createdAt: Date.now()
+                        };
+                        userRef.set(newUser).then(() => {
+                            showToast("تم إنشاء الحساب بنجاح! جاري الدخول...");
+                            currentUser = newUser;
+                            localStorage.setItem('luxy_auth_user', JSON.stringify(currentUser));
+                            initApp();
+                        });
                     }
-                }, 800);
-            }, 2500);
-        };
-
-        function showToast(m) {
-            const t = document.getElementById('toast');
-            t.innerText = m; t.style.display = 'block';
-            setTimeout(() => t.style.display='none', 3000);
-        }
-
-        function setPrivateTarget(user) {
-            if(user === currentUser) return;
-            selectedTarget = user;
-            document.getElementById('privateIndicator').style.display = 'flex';
-            document.getElementById('targetUserLabel').innerText = user;
-            document.getElementById('msgInput').placeholder = `اكتب رسالة سرية لـ ${user}...`;
-            showToast(`أنت الآن تراسل ${user} سراً`);
-        }
-
-        function clearPrivateTarget() {
-            selectedTarget = null;
-            document.getElementById('privateIndicator').style.display = 'none';
-            document.getElementById('msgInput').placeholder = "اكتب رسالة فخمة...";
-        }
-
-        function startApp() {
-            const val = document.getElementById('usernameInput').value.trim();
-            if(val.length < 2) return showToast("الاسم يجب أن يكون أطول");
-            currentUser = val;
-            checkBan(val);
-        }
-
-        function checkBan(name) {
-            db.ref('banned_users/' + name).on('value', (s) => {
-                const b = s.val();
-                if(b && b.expiry && Date.now() < b.expiry) {
-                    showBannedView(b.expiry);
-                } else {
-                    if(document.getElementById('banned-screen').style.display === 'flex') location.reload();
-                    launch(name);
-                }
-            });
-        }
-
-        function launch(name) {
-            localStorage.setItem('luxy_user', name);
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('chat-app').style.display = 'flex';
-            document.getElementById('headerAvatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}&backgroundColor=000000`;
-            document.getElementById('headerName').innerText = name;
-            
-            db.ref('active_users/' + name).set({ ts: Date.now() });
-
-            // Fetch and Decrypt Messages
-            db.ref('messages').limitToLast(100).on('value', (snap) => {
-                const box = document.getElementById('chat-box');
-                const scroll = box.scrollHeight - box.scrollTop <= box.clientHeight + 100;
-                box.innerHTML = '';
-                
-                snap.forEach(child => {
-                    const m = child.val();
-                    const isMe = m.user === currentUser;
-                    const isPrivate = m.target ? true : false;
-                    const canRead = !isPrivate || isMe || m.target === currentUser;
-                    
-                    let displayContent = "";
-                    if (canRead) {
-                        displayContent = decryptData(m.text);
-                    } else {
-                        displayContent = `<span class="encrypted-placeholder">رسالة مشفرة</span>`;
-                    }
-                    
-                    const d = document.createElement('div');
-                    d.className = `msg ${isMe ? 'sent' : 'recv'} ${isPrivate ? 'private-msg' : ''}`;
-                    d.onclick = () => setPrivateTarget(m.user);
-                    
-                    d.innerHTML = `
-                        ${!isMe ? `<div class="msg-sender">${m.user}</div>` : ''}
-                        <div class="luxy-bubble">
-                            ${isPrivate && canRead ? `<span class="private-tag">سرية</span>` : ''}
-                            ${displayContent}
-                        </div>
-                    `;
-                    box.appendChild(d);
                 });
-                if(scroll) box.scrollTop = box.scrollHeight;
+            } else {
+                userRef.once('value', (snap) => {
+                    const userData = snap.val();
+                    if (userData && userData.password === password) {
+                        currentUser = userData;
+                        localStorage.setItem('luxy_auth_user', JSON.stringify(currentUser));
+                        showToast(`مرحباً بعودتك ${username}`);
+                        initApp();
+                    } else {
+                        showToast("اسم المستخدم أو كلمة السر غير صحيحة!");
+                    }
+                });
+            }
+        }
+
+        function logout() {
+            if (currentUser) {
+                db.ref('presence/' + currentUser.username).remove();
+            }
+            localStorage.removeItem('luxy_auth_user');
+            location.reload();
+        }
+
+        function initApp() {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+
+            document.getElementById('myName').innerText = currentUser.username;
+            document.getElementById('myAvatar').src = currentUser.avatar;
+
+            // Set presence online
+            db.ref('presence/' + currentUser.username).set({
+                online: true,
+                lastSeen: Date.now()
+            });
+            db.ref('presence/' + currentUser.username).onDisconnect().remove();
+
+            // Sync all users
+            listenToUsers();
+        }
+
+        function listenToUsers() {
+            db.ref('users').on('value', (snap) => {
+                allRegisteredUsers = snap.val() || {};
+                renderContacts();
+                updateBadge();
             });
         }
 
-        function send() {
-            const input = document.getElementById('msgInput');
-            const txt = input.value.trim();
-            if(!txt) return;
-            if(txt === "20102010") return openAdmin();
+        function updateBadge() {
+            const count = Object.keys(allRegisteredUsers).length;
+            document.getElementById('userCountBadge').innerText = count;
+        }
 
-            const encryptedText = encryptData(txt);
-            const payload = {
-                user: currentUser,
-                text: encryptedText,
-                ts: Date.now()
+        function renderContacts(filter = '') {
+            const list = document.getElementById('contactsList');
+            list.innerHTML = '';
+
+            Object.values(allRegisteredUsers).forEach(u => {
+                if (u.username === currentUser.username) return; // Skip myself
+                if (filter && !u.username.includes(filter.toLowerCase())) return;
+
+                const isSelected = activeTargetUser && activeTargetUser.username === u.username;
+
+                const card = document.createElement('div');
+                card.className = `p-3 rounded-2xl flex items-center justify-between cursor-pointer transition-all ${isSelected ? 'bg-amber-500/20 border border-amber-500/40' : 'hover:bg-white/5 border border-transparent'}`;
+                card.onclick = () => selectChatUser(u);
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <img src="${u.avatar}" class="w-10 h-10 rounded-full border border-white/10 object-cover bg-black/40">
+                            <span class="w-2.5 h-2.5 bg-green-500 rounded-full absolute bottom-0 right-0 border border-black"></span>
+                        </div>
+                        <div>
+                            <div class="font-bold text-xs text-white">${u.username}</div>
+                            <div class="text-[10px] text-gray-400">انقر للدردشة المباشرة</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-left text-xs text-gray-600"></i>
+                `;
+
+                list.appendChild(card);
+            });
+        }
+
+        function filterContacts() {
+            const q = document.getElementById('contactSearch').value.trim();
+            renderContacts(q);
+        }
+
+        function selectChatUser(user) {
+            activeTargetUser = user;
+            renderContacts();
+
+            document.getElementById('noChatSelected').classList.add('hidden');
+            document.getElementById('activeChatContainer').classList.remove('hidden');
+
+            document.getElementById('chatTargetName').innerText = user.username;
+            document.getElementById('chatTargetAvatar').src = user.avatar;
+
+            // Generate unique 1-to-1 chat channel ID
+            const chatId = getChatId(currentUser.username, user.username);
+            listenToMessages(chatId);
+        }
+
+        function closeChatMobile() {
+            document.getElementById('activeChatContainer').classList.add('hidden');
+            document.getElementById('noChatSelected').classList.remove('hidden');
+        }
+
+        function getChatId(userA, userB) {
+            return [userA, userB].sort().join('_chat_');
+        }
+
+        function listenToMessages(chatId) {
+            const box = document.getElementById('messagesBox');
+            box.innerHTML = '';
+
+            if (activeChatListener) {
+                activeChatListener.off();
+            }
+
+            activeChatListener = db.ref('chats/' + chatId);
+            activeChatListener.limitToLast(100).on('value', (snap) => {
+                box.innerHTML = '';
+                const msgs = snap.val() || {};
+
+                Object.values(msgs).forEach(m => {
+                    const isMe = m.sender === currentUser.username;
+                    const div = document.createElement('div');
+                    div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} my-1`;
+
+                    const timeStr = new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                    div.innerHTML = `
+                        <div class="max-w-[80%] px-4 py-2.5 text-xs text-white ${isMe ? 'chat-bubble-sent' : 'chat-bubble-recv'}">
+                            ${m.text}
+                        </div>
+                        <span class="text-[9px] text-gray-500 mt-1 px-1">${timeStr}</span>
+                    `;
+                    box.appendChild(div);
+                });
+
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+
+        function sendMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+
+            if (!text || !activeTargetUser) return;
+
+            const chatId = getChatId(currentUser.username, activeTargetUser.username);
+            const msgObj = {
+                sender: currentUser.username,
+                receiver: activeTargetUser.username,
+                text: text,
+                timestamp: Date.now()
             };
 
-            // إضافة المستلم إذا كان هناك اختيار خاص
-            if (selectedTarget) {
-                payload.target = selectedTarget;
-            }
-
-            db.ref('messages').push(payload);
-            
-            input.value = "";
-            document.getElementById('sendBtn').style.display = 'none';
-            // لا نمسح الـ Target تلقائياً لنسمح بمحادثة مستمرة، إلا لو أراد المستخدم
+            db.ref('chats/' + chatId).push(msgObj);
+            input.value = '';
         }
 
-        document.getElementById('msgInput').oninput = function() {
-            document.getElementById('sendBtn').style.display = this.value.trim() ? 'block' : 'none';
-        };
+        function openAdminPinModal() {
+            document.getElementById('adminPinModal').classList.remove('hidden');
+            document.getElementById('adminPinInput').value = '';
+            document.getElementById('adminPinInput').focus();
+        }
 
-        document.getElementById('msgInput').onkeypress = (e) => { if(e.key==='Enter') send(); };
+        function closeAdminPinModal() {
+            document.getElementById('adminPinModal').classList.add('hidden');
+        }
 
-        function openAdmin() {
-            document.getElementById('admin-panel').style.display = 'flex';
-            db.ref('active_users').on('value', (s) => {
-                const list = document.getElementById('admin-list');
+        function verifyAdminPin() {
+            const val = document.getElementById('adminPinInput').value.trim();
+            if (val === ADMIN_CODE) {
+                closeAdminPinModal();
+                openAdminPanel();
+            } else {
+                showToast("الرمز السري غير صحيح!");
+            }
+        }
+
+        function openAdminPanel() {
+            document.getElementById('adminPanelModal').classList.remove('hidden');
+            renderAdminUsers();
+            listenToAdminActiveChats();
+        }
+
+        function closeAdminPanelModal() {
+            document.getElementById('adminPanelModal').classList.add('hidden');
+            if (activeSpyListener) activeSpyListener.off();
+        }
+
+        function switchAdminTab(tab) {
+            const usersTab = document.getElementById('adminTabUsers');
+            const spyTab = document.getElementById('adminTabSpy');
+            const usersBtn = document.getElementById('adminTabUsersBtn');
+            const spyBtn = document.getElementById('adminTabSpyBtn');
+
+            if (tab === 'users') {
+                usersTab.classList.remove('hidden');
+                spyTab.classList.add('hidden');
+                usersBtn.className = "py-2.5 px-4 text-xs font-bold text-amber-400 border-b-2 border-amber-400 flex items-center gap-2";
+                spyBtn.className = "py-2.5 px-4 text-xs font-bold text-gray-400 hover:text-white flex items-center gap-2";
+            } else {
+                spyTab.classList.remove('hidden');
+                usersTab.classList.add('hidden');
+                spyBtn.className = "py-2.5 px-4 text-xs font-bold text-amber-400 border-b-2 border-amber-400 flex items-center gap-2";
+                usersBtn.className = "py-2.5 px-4 text-xs font-bold text-gray-400 hover:text-white flex items-center gap-2";
+            }
+        }
+
+        function renderAdminUsers() {
+            const container = document.getElementById('adminUsersList');
+            container.innerHTML = '';
+
+            Object.values(allRegisteredUsers).forEach(u => {
+                const card = document.createElement('div');
+                card.className = "p-3 bg-black/50 rounded-2xl border border-white/10 flex items-center justify-between";
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <img src="${u.avatar}" class="w-10 h-10 rounded-full border border-amber-500/30">
+                        <div>
+                            <div class="font-bold text-xs text-amber-300">@${u.username}</div>
+                            <div class="text-[11px] text-gray-300">كلمة السر: <span class="bg-amber-400/20 px-2 py-0.5 rounded text-amber-200 font-mono">${u.password}</span></div>
+                        </div>
+                    </div>
+                    <button onclick="deleteUserByAdmin('${u.username}')" class="text-xs text-red-400 hover:text-red-300 bg-red-500/10 p-2 rounded-xl border border-red-500/20">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function deleteUserByAdmin(username) {
+            if (confirm(`هل أنت تأكد من حذف المستخدم @${username}؟`)) {
+                db.ref('users/' + username).remove().then(() => {
+                    showToast("تم حذف الحساب بنجاح");
+                    renderAdminUsers();
+                });
+            }
+        }
+
+        function listenToAdminActiveChats() {
+            db.ref('chats').on('value', (snap) => {
+                const chats = snap.val() || {};
+                const list = document.getElementById('adminActiveChatsList');
                 list.innerHTML = '';
-                s.forEach(u => {
-                    const d = document.createElement('div');
-                    d.className = 'admin-card';
-                    d.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
-                            <strong>@${u.key}</strong>
-                            <button onclick="banUser('${u.key}', -1)" style="color:var(--accent-gold); background:none; border:none; font-weight:800;">فك القيد</button>
-                        </div>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                            <button onclick="banUser('${u.key}', 60)" style="padding:10px; border-radius:12px; background:rgba(255,255,255,0.05); color:#fff; border:none;">دقيقة</button>
-                            <button onclick="banUser('${u.key}', 0)" style="padding:10px; border-radius:12px; background:rgba(255,75,43,0.1); color:#ff3b30; border:none;">مؤبد</button>
-                        </div>
-                    `;
-                    list.appendChild(d);
+
+                Object.keys(chats).forEach(chatId => {
+                    const names = chatId.split('_chat_');
+                    const btn = document.createElement('button');
+                    btn.className = "w-full text-right p-2 rounded-xl text-xs bg-white/5 hover:bg-amber-500/20 hover:text-amber-300 transition-all border border-white/5 my-1 text-gray-300 block truncate";
+                    btn.innerText = `💬 ${names[0]} ↔ ${names[1]}`;
+                    btn.onclick = () => spyOnChat(chatId, names[0], names[1]);
+                    list.appendChild(btn);
                 });
             });
         }
 
-        function banUser(user, sec) {
-            if(sec === -1) { db.ref('banned_users/' + user).remove(); return showToast("تم العفو الملكي"); }
-            const exp = sec === 0 ? 9999999999999 : Date.now() + (sec * 1000);
-            db.ref('banned_users/' + user).set({ expiry: exp });
-            showToast("تم تقييد المستخدم");
-        }
+        function spyOnChat(chatId, u1, u2) {
+            document.getElementById('spyChatTitle').innerText = `مراقبة محادثة: ${u1} مع ${u2}`;
+            const box = document.getElementById('spyMessagesBox');
 
-        function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
-        
-        function nuclearWipe() { 
-            const pass = prompt("أدخل رمز التأكيد لمسح السجلات:");
-            if(pass === "20102010") {
-                db.ref('messages').remove(); 
-                showToast("تم تصفير المجلس بنجاح");
-            } else {
-                showToast("رمز غير صحيح");
-            }
-        }
+            if (activeSpyListener) activeSpyListener.off();
 
-        function showBannedView(exp) {
-            document.getElementById('chat-app').style.display = 'none';
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('banned-screen').style.display = 'flex';
-            const timer = setInterval(() => {
-                const diff = exp - Date.now();
-                if(diff <= 0) { clearInterval(timer); location.reload(); }
-                const m = Math.floor(diff/60000);
-                const s = Math.floor((diff%60000)/1000);
-                document.getElementById('timer-display').innerText = exp > 2000000000000 ? "مؤبد" : `${m}:${s<10?'0'+s:s}`;
-            }, 1000);
+            activeSpyListener = db.ref('chats/' + chatId);
+            activeSpyListener.on('value', (snap) => {
+                box.innerHTML = '';
+                const msgs = snap.val() || {};
+
+                Object.values(msgs).forEach(m => {
+                    const div = document.createElement('div');
+                    div.className = "p-2 rounded-xl bg-black/60 border border-white/10 my-1";
+                    div.innerHTML = `
+                        <div class="flex justify-between text-[10px] text-amber-400 mb-1">
+                            <span class="font-bold">${m.sender}:</span>
+                            <span class="text-gray-500">${new Date(m.timestamp).toLocaleTimeString()}</span>
+                        </div>
+                        <div class="text-gray-200">${m.text}</div>
+                    `;
+                    box.appendChild(div);
+                });
+                box.scrollTop = box.scrollHeight;
+            });
         }
     </script>
 </body>
