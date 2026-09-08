@@ -28,7 +28,7 @@
 
     <!-- FontAwesome & Google Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
 
     <!-- Firebase SDK (v8 Compatibility for Database) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -37,31 +37,52 @@
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: #0b0f19;
+            background-color: #060913;
             color: #f3f4f6;
             user-select: none;
         }
 
-        /* Pulse live indicator */
+        .font-mono-custom {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Live pulsating dot animation */
         .live-dot {
             animation: pulse-red 1.5s infinite;
         }
         @keyframes pulse-red {
             0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
 
+        /* Scanline Radar Visual Effect */
         .radar-sweep {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(180deg, rgba(16, 185, 129, 0.15) 0%, rgba(0,0,0,0) 100%);
-            animation: sweep 3s linear infinite;
+            background: linear-gradient(180deg, rgba(16, 185, 129, 0.12) 0%, rgba(0,0,0,0) 100%);
+            animation: sweep 3.5s linear infinite;
             pointer-events: none;
         }
         @keyframes sweep {
             0% { transform: translateY(-100%); }
             100% { transform: translateY(100%); }
+        }
+
+        /* Scanlines Overlay */
+        .scanlines {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            );
+            background-size: 100% 4px;
+        }
+
+        /* Glassmorphism styling */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         /* Custom scrollbars */
@@ -70,39 +91,46 @@
             height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #111827;
+            background: #090d16;
         }
         ::-webkit-scrollbar-thumb {
-            background: #374151;
+            background: #1e293b;
             border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between bg-slate-950 text-slate-100 overflow-x-hidden">
+<body class="min-h-screen flex flex-col justify-between bg-slate-950 text-slate-100 overflow-x-hidden selection:bg-blue-600 selection:text-white">
 
     <!-- Toast Notification Container -->
-    <div id="toastContainer" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none"></div>
+    <div id="toastContainer" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-full max-w-sm px-4"></div>
 
     <!-- Header / Navigation -->
-    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-30 px-4 py-3">
+    <header class="border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-md sticky top-0 z-30 px-4 py-3">
         <div class="max-w-6xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
                     <i class="fa-solid fa-video text-lg"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg leading-tight text-white">منصة البث والتصوير المباشر</h1>
-                    <p class="text-xs text-slate-400">Node Live Streaming System</p>
+                    <h1 class="font-bold text-base md:text-lg leading-tight text-white flex items-center gap-2">
+                        <span>منصة البث المباشر الذكية</span>
+                        <span class="text-[10px] bg-blue-500/20 border border-blue-500/30 text-blue-400 px-2 py-0.5 rounded-full font-mono">v2.0</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 font-mono-custom">Node Live Streaming System</p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3">
-                <span id="globalStatusBadge" class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 border border-slate-700 text-slate-300">
+            <div class="flex items-center gap-2 md:gap-3">
+                <span id="globalStatusBadge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-800/80 border border-slate-700/80 text-slate-300">
                     <span class="w-2 h-2 rounded-full bg-slate-500"></span>
-                    <span id="statusText">غير نشط</span>
+                    <span id="statusText">جاهز للبث</span>
                 </span>
-                <button id="secretHintBtn" title="انقر 10 مرات سريعة للتحكم الإداري" class="text-slate-600 hover:text-slate-400 text-xs px-2 py-1 rounded">
-                    <i class="fa-solid fa-shield-halved"></i>
+                
+                <button onclick="openAdminPinModal()" id="secretHintBtn" title="لوحة التحكم الإدارية (رمز الوصول: 20102010)" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-amber-400 border border-slate-700/80 transition active:scale-95">
+                    <i class="fa-solid fa-shield-halved text-sm"></i>
                 </button>
             </div>
         </div>
@@ -112,65 +140,83 @@
     <main class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 flex flex-col items-center justify-center gap-6">
         
         <!-- User Viewport Section -->
-        <div id="userSection" class="w-full flex flex-col items-center gap-6">
+        <div id="userSection" class="w-full flex flex-col items-center gap-5">
             
             <!-- Legal & Privacy Banner -->
-            <div class="w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-4 md:p-5 text-sm text-slate-300 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="w-full glass-panel rounded-2xl p-4 text-xs md:text-sm text-slate-300 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-slate-800">
                 <div class="flex items-start gap-3">
-                    <div class="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 shrink-0 mt-0.5">
-                        <i class="fa-solid fa-triangle-exclamation text-base"></i>
+                    <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 shrink-0 mt-0.5">
+                        <i class="fa-solid fa-shield-cat text-lg"></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-white mb-0.5">تنبيه الموافقة والخصوصية</h3>
+                        <h3 class="font-bold text-white mb-0.5">تنبيه الموافقة والخصوصية المشفرة</h3>
                         <p class="text-xs text-slate-400 leading-relaxed">
-                            هذا التطبيق يقوم بنقل البث المباشر المباشر عبر تقنية WebRTC المشفرة. لن يتم فتح الكاميرا إلا بضغطك المباشر على زر البدء أدناه وتأكيد إذن المتصفح. يمكنك إيقاف البث في أي وقت.
+                            هذا التطبيق ينقل البث المباشر المشفر عبر تقنية <span class="text-blue-400 font-mono">WebRTC P2P</span>. لن يتم فتح الكاميرا إلا بضغطك المباشر وتأكيد الإذن من المتصفح.
                         </p>
                     </div>
+                </div>
+                <div class="shrink-0 self-end sm:self-center">
+                    <span class="text-[11px] font-mono bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800 text-slate-400">
+                        <i class="fa-solid fa-lock text-emerald-400 ml-1"></i> مشفر بالنهاية
+                    </span>
                 </div>
             </div>
 
             <!-- Video & Canvas Monitor Frame -->
-            <div class="relative w-full max-w-2xl aspect-video bg-slate-900 border-2 border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center group">
+            <div class="relative w-full max-w-2xl aspect-video bg-slate-950 border-2 border-slate-800 rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center group ring-1 ring-slate-800/50">
                 
+                <!-- Scanline effect overlay -->
+                <div class="absolute inset-0 scanlines opacity-30 pointer-events-none z-10"></div>
+
                 <!-- Radar / Scan Overlay -->
-                <div id="radarSweep" class="radar-sweep hidden"></div>
+                <div id="radarSweep" class="radar-sweep hidden z-10"></div>
 
                 <!-- Live Stream Video element -->
                 <video id="localVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
                 
                 <!-- Dynamic Overlay Canvas (Target grid / Status text) -->
-                <canvas id="userCanvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
+                <canvas id="userCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-20"></canvas>
 
                 <!-- Standby Placeholder when camera is OFF -->
-                <div id="cameraStandby" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/95 text-slate-500 gap-3">
-                    <div class="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center text-2xl text-slate-400 border border-slate-700">
-                        <i class="fa-solid fa-camera-rotate"></i>
+                <div id="cameraStandby" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/95 text-slate-500 gap-3 z-20 transition-all">
+                    <div class="w-20 h-20 rounded-3xl bg-slate-900 flex items-center justify-center text-3xl text-slate-400 border border-slate-800 shadow-inner">
+                        <i class="fa-solid fa-camera text-blue-500 animate-pulse"></i>
                     </div>
-                    <p class="text-sm font-medium">الكاميرا متوقفة حالياً</p>
-                    <p class="text-xs text-slate-600">اضغط على زر "تشغيل البث" للبدء</p>
+                    <p class="text-sm font-semibold text-slate-300">الكاميرا متوقفة حالياً</p>
+                    <p class="text-xs text-slate-500">اضغط على زر "تشغيل البث" أدناه لبدء التغطية</p>
                 </div>
 
                 <!-- Live Badge Top Right -->
-                <div id="userLiveBadge" class="hidden absolute top-4 right-4 flex items-center gap-2 bg-red-600/90 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg backdrop-blur">
+                <div id="userLiveBadge" class="hidden absolute top-4 right-4 z-20 flex items-center gap-2 bg-red-600/90 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg backdrop-blur border border-red-500/50">
                     <span class="w-2.5 h-2.5 rounded-full bg-white live-dot"></span>
-                    <span>بث مباشر نشط</span>
+                    <span>LIVE DIRECT</span>
+                </div>
+
+                <!-- Quick Action Overlays Top Left -->
+                <div id="userMediaControls" class="hidden absolute top-4 left-4 z-20 flex items-center gap-2">
+                    <button onclick="toggleCameraFacing()" title="تبديل الكاميرا" class="w-8 h-8 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-white text-xs flex items-center justify-center backdrop-blur active:scale-95 transition">
+                        <i class="fa-solid fa-camera-rotate"></i>
+                    </button>
+                    <button onclick="takeSnapshot()" title="التقاط صورة" class="w-8 h-8 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-white text-xs flex items-center justify-center backdrop-blur active:scale-95 transition">
+                        <i class="fa-solid fa-arrow-down-to-bracket"></i>
+                    </button>
                 </div>
 
                 <!-- Device Info Overlay Bottom -->
-                <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[11px] text-slate-400 bg-slate-950/70 backdrop-blur px-3 py-1.5 rounded-lg border border-slate-800">
-                    <span id="userDeviceIdText">معرّف الجهاز: جاري الإنشاء...</span>
-                    <span id="fpsCounterText">0 FPS</span>
+                <div class="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between text-[11px] font-mono-custom text-slate-400 bg-slate-900/80 backdrop-blur px-3 py-1.5 rounded-xl border border-slate-800/80 shadow-md">
+                    <span id="userDeviceIdText" class="truncate max-w-[200px]">Node ID: ...</span>
+                    <span id="fpsCounterText" class="text-emerald-400 font-bold">0 FPS</span>
                 </div>
             </div>
 
             <!-- Main Control Buttons -->
-            <div class="flex flex-wrap items-center justify-center gap-4 w-full">
-                <button id="startBroadcastBtn" onclick="toggleUserBroadcast(true)" class="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-600/25 transition-all transform active:scale-95">
+            <div class="flex flex-wrap items-center justify-center gap-3 md:gap-4 w-full">
+                <button id="startBroadcastBtn" onclick="toggleUserBroadcast(true)" class="flex items-center gap-2 px-7 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-2xl shadow-xl shadow-blue-600/20 border border-blue-400/30 transition-all transform active:scale-95 text-sm md:text-base">
                     <i class="fa-solid fa-play"></i>
                     <span>تشغيل البث المباشر</span>
                 </button>
 
-                <button id="stopBroadcastBtn" onclick="toggleUserBroadcast(false)" disabled class="flex items-center gap-2 px-6 py-3 bg-slate-800 text-slate-500 font-bold rounded-xl border border-slate-700 transition-all cursor-not-allowed">
+                <button id="stopBroadcastBtn" onclick="toggleUserBroadcast(false)" disabled class="flex items-center gap-2 px-7 py-3.5 bg-slate-800 text-slate-500 font-bold rounded-2xl border border-slate-700/80 transition-all cursor-not-allowed text-sm md:text-base">
                     <i class="fa-solid fa-stop"></i>
                     <span>إيقاف البث</span>
                 </button>
@@ -180,39 +226,45 @@
 
     </main>
 
-    <!-- Admin Authentication Modal (Triggered by 10 clicks) -->
+    <!-- Admin Authentication Modal -->
     <div id="adminPinModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl relative text-center">
+        <div class="glass-panel border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl relative text-center">
             
-            <button onclick="closeAdminPinModal()" class="absolute top-4 left-4 text-slate-500 hover:text-white text-lg">
+            <button onclick="closeAdminPinModal()" class="absolute top-4 left-4 w-8 h-8 rounded-full bg-slate-800/60 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
                 <i class="fa-solid fa-xmark"></i>
             </button>
 
-            <div class="w-14 h-14 bg-blue-600/10 border border-blue-500/20 rounded-2xl flex items-center justify-center text-blue-400 mx-auto mb-4 text-xl">
-                <i class="fa-solid fa-lock"></i>
+            <div class="w-14 h-14 bg-gradient-to-tr from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl flex items-center justify-center text-amber-400 mx-auto mb-4 text-xl shadow-lg">
+                <i class="fa-solid fa-user-shield"></i>
             </div>
 
             <h2 class="text-xl font-bold text-white mb-1">لوحة التحكم السريّة</h2>
-            <p class="text-xs text-slate-400 mb-6">أدخل رمز الوصول المكون من 8 أرقام</p>
+            <p class="text-xs text-slate-400 mb-5">أدخل رمز الوصول المكون من 8 أرقام (الافتراضي: <span class="font-mono text-amber-400 font-bold">20102010</span>)</p>
 
             <!-- PIN Display Input -->
-            <input type="password" id="adminPinInput" maxlength="8" readonly placeholder="••••••••" class="w-full text-center text-2xl tracking-[0.5em] font-mono py-3 bg-slate-950 border border-slate-800 rounded-xl text-white mb-6 focus:outline-none focus:border-blue-500">
+            <div class="relative mb-5">
+                <input type="password" id="adminPinInput" maxlength="8" readonly placeholder="••••••••" class="w-full text-center text-2xl tracking-[0.4em] font-mono-custom py-3.5 bg-slate-950 border border-slate-800 rounded-2xl text-amber-400 focus:outline-none focus:border-amber-500/50 shadow-inner">
+            </div>
 
             <!-- Keypad Buttons Grid -->
-            <div class="grid grid-cols-3 gap-2 mb-6">
-                <button onclick="appendPin('1')" class="py-3 bg-slate-800/60 hover:bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition">1</button>
-                <button onclick="appendPin('2')" class="py-3 bg-slate-800/60 hover:bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition">2</button>
-                <button onclick="appendPin('3')" class="py-3 bg-slate-800/60 hover:bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition">3</button>
-                <button onclick="appendPin('4')" class="py-3 bg-slate-800/60 hover:bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition">4</button>
-                <button onclick="appendPin('5')" class="py-3 bg-slate-800/60 hover:bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition">5</button>
-                <button onclick="appendPin('6')" class="py-3 bg-slate-800/60 hover:bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition">6</button>
-                <button onclick="appendPin('7')" class="py-3 bg-slate-800/60 hover:bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition">7</button>
-                <button onclick="appendPin('8')" class="py-3 bg-slate-800/60 hover:bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition">8</button>
-                <button onclick="appendPin('9')" class="py-3 bg-slate-800/60 hover:bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition">9</button>
-                <button onclick="clearPin()" class="py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold rounded-xl active:scale-95 transition text-xs">مسح</button>
-                <button onclick="appendPin('0')" class="py-3 bg-slate-800/60 hover:bg-slate-700 text-white font-bold rounded-xl active:scale-95 transition">0</button>
-                <button onclick="submitAdminPin()" class="py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl active:scale-95 transition text-xs">تأكيد</button>
+            <div class="grid grid-cols-3 gap-2.5 mb-5 font-mono-custom">
+                <button onclick="appendPin('1')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">1</button>
+                <button onclick="appendPin('2')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">2</button>
+                <button onclick="appendPin('3')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">3</button>
+                <button onclick="appendPin('4')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">4</button>
+                <button onclick="appendPin('5')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">5</button>
+                <button onclick="appendPin('6')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">6</button>
+                <button onclick="appendPin('7')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">7</button>
+                <button onclick="appendPin('8')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">8</button>
+                <button onclick="appendPin('9')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">9</button>
+                <button onclick="clearPin()" class="py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold rounded-xl active:scale-95 transition text-xs border border-red-500/20">مسح</button>
+                <button onclick="appendPin('0')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">0</button>
+                <button onclick="submitAdminPin()" class="py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black rounded-xl active:scale-95 transition text-xs shadow-lg">تأكيد</button>
             </div>
+            
+            <button onclick="autoFillDefaultPin()" class="text-[11px] text-slate-400 hover:text-amber-400 underline font-mono">
+                تعبئة التلقائية للرمز السري
+            </button>
         </div>
     </div>
 
@@ -226,16 +278,16 @@
                     <i class="fa-solid fa-sliders"></i>
                 </div>
                 <div>
-                    <h2 class="font-bold text-white text-sm">لوحة التحكم المركزية للأدمن</h2>
-                    <p class="text-[11px] text-slate-400">مراقبة الأجهزة النشطة والتنقل المباشر</p>
+                    <h2 class="font-bold text-white text-sm">لوحة التحكم المركزية (Admin Matrix)</h2>
+                    <p class="text-[11px] text-slate-400">مراقبة الأجهزة النشطة والتنقل المباشر بين الكاميرات</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-3">
-                <span id="activeDeviceCountBadge" class="bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs px-3 py-1 rounded-full font-bold">
+                <span id="activeDeviceCountBadge" class="bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs px-3 py-1 rounded-full font-bold font-mono-custom">
                     الأجهزة النشطة: 0
                 </span>
-                <button onclick="exitAdminPanel()" class="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 rounded-lg text-xs font-bold transition">
+                <button onclick="exitAdminPanel()" class="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 rounded-xl text-xs font-bold transition">
                     خروج <i class="fa-solid fa-right-from-bracket mr-1"></i>
                 </button>
             </div>
@@ -247,7 +299,7 @@
             <!-- Side Stream Selector List -->
             <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3 overflow-hidden">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <span class="font-bold text-xs text-slate-300">قائمة البثوث المتاحة</span>
+                    <span class="font-bold text-xs text-slate-300">قائمة الكاميرات الباثّة</span>
                     <i class="fa-solid fa-list-check text-slate-500 text-xs"></i>
                 </div>
 
@@ -263,17 +315,17 @@
             <div class="lg:col-span-3 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col gap-4 overflow-hidden relative">
                 
                 <!-- Current Stream Header Info -->
-                <div class="flex items-center justify-between bg-slate-950/60 px-4 py-2.5 rounded-xl border border-slate-800">
+                <div class="flex items-center justify-between bg-slate-950/80 px-4 py-2.5 rounded-xl border border-slate-800">
                     <div class="flex items-center gap-3">
                         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 live-dot"></span>
-                        <span id="selectedStreamTitle" class="font-bold text-sm text-white">لم يتم تحديد أي كاميرا</span>
+                        <span id="selectedStreamTitle" class="font-bold text-sm text-white font-mono-custom">لم يتم تحديد أي كاميرا</span>
                     </div>
 
                     <div class="flex items-center gap-2">
                         <button onclick="cycleStream(-1)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition">
                             <i class="fa-solid fa-chevron-right ml-1"></i> السابقة
                         </button>
-                        <span id="streamCounterText" class="text-xs font-mono text-slate-400 px-2">0 / 0</span>
+                        <span id="streamCounterText" class="text-xs font-mono-custom text-slate-400 px-2">0 / 0</span>
                         <button onclick="cycleStream(1)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition">
                             التالية <i class="fa-solid fa-chevron-left mr-1"></i>
                         </button>
@@ -281,7 +333,7 @@
                 </div>
 
                 <!-- Video Screen Display Box -->
-                <div class="relative flex-1 bg-black rounded-xl border border-slate-800 overflow-hidden flex items-center justify-center">
+                <div class="relative flex-1 bg-black rounded-2xl border border-slate-800 overflow-hidden flex items-center justify-center">
                     
                     <video id="remoteAdminVideo" autoplay playsinline class="w-full h-full object-contain"></video>
                     
@@ -290,25 +342,25 @@
 
                     <!-- Empty state loader -->
                     <div id="adminVideoPlaceholder" class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center text-slate-600 gap-3">
-                        <i class="fa-solid fa-satellite-dish text-4xl animate-pulse text-slate-700"></i>
-                        <p class="text-xs">اختر كاميرا من القائمة أو انتظر انضمام أجهزة جديدة</p>
+                        <i class="fa-solid fa-satellite-dish text-5xl animate-pulse text-slate-700"></i>
+                        <p class="text-xs text-slate-400">اختر كاميرا من القائمة أو انتظر انضمام أجهزة بث جديدة</p>
                     </div>
                 </div>
 
                 <!-- Admin Control Footer Tools -->
-                <div class="flex items-center justify-between gap-4 bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-xs">
-                    <div class="flex items-center gap-3">
-                        <button onclick="toggleAdminMute()" id="adminMuteBtn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-medium flex items-center gap-1.5">
+                <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-950/80 p-3 rounded-xl border border-slate-800 text-xs">
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleAdminMute()" id="adminMuteBtn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-medium flex items-center gap-1.5 transition">
                             <i class="fa-solid fa-volume-xmark"></i>
                             <span>كتم الصوت</span>
                         </button>
-                        <button onclick="toggleAdminHUD()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-medium flex items-center gap-1.5">
+                        <button onclick="toggleAdminHUD()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-medium flex items-center gap-1.5 transition">
                             <i class="fa-solid fa-border-top-left"></i>
-                            <span>تبديل المؤشرات (HUD)</span>
+                            <span>تغيير المؤشرات (HUD)</span>
                         </button>
                     </div>
 
-                    <div class="text-slate-500 font-mono text-[11px]" id="adminLatencyText">
+                    <div class="text-slate-400 font-mono-custom text-[11px]" id="adminLatencyText">
                         WebRTC Connection: Standby
                     </div>
                 </div>
@@ -321,11 +373,11 @@
 
     <!-- Footer -->
     <footer class="border-t border-slate-900 bg-slate-950 py-3 px-4 text-center text-xs text-slate-500">
-        تطبيق النقل المباشر والأمن الرقمي &copy; 2026 - ممتثل لمعايير الخصوصية والاتصال المباشر P2P
+        تطبيق النقل المباشر والمراقبة الأمنية &copy; 2026 - نظام الاتصال المباشر المشفر P2P
     </footer>
 
     <script>
-        // Security & Provided Configuration
+        // System & Security Configuration
         const ADMIN_CODE = "20102010";
         
         const firebaseConfig = {
@@ -338,7 +390,7 @@
             appId: "1:968767111628:web:4b79cdd708b1a32ba69d69"
         };
 
-        // Initialize Firebase Realtime DB
+        // Initialize Firebase Realtime DB safely
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
@@ -354,6 +406,7 @@
         let userStream = null;
         let isBroadcasting = false;
         let userPeerConnection = null;
+        let currentFacingMode = 'environment'; // 'user' or 'environment'
 
         // Admin State
         let isAdminLoggedIn = false;
@@ -363,10 +416,13 @@
         let adminSessionId = 'admin_' + Math.random().toString(36).substring(2, 7);
         let showHUD = true;
 
-        // Secret Click Trigger State
-        let clickCount = 0;
-        let clickTimer = null;
+        // Keypad State
         let enteredPin = "";
+
+        // Performance & FPS Calculation
+        let frameCount = 0;
+        let lastFpsTime = performance.now();
+        let currentFps = 0;
 
         // WebRTC Config (STUN Servers)
         const rtcConfiguration = {
@@ -385,52 +441,40 @@
         const adminCtx = adminCanvas.getContext('2d');
 
         window.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('userDeviceIdText').innerText = `معرّف الجهاز: ${deviceId}`;
-            
-            // 10-click secret trigger listener
-            document.addEventListener('click', (e) => {
-                // Ignore clicks inside open modals
-                if (e.target.closest('#adminPinModal') || e.target.closest('#adminPanelModal')) return;
-
-                clickCount++;
-                clearTimeout(clickTimer);
-
-                if (clickCount >= 10) {
-                    clickCount = 0;
-                    openAdminPinModal();
-                } else {
-                    clickTimer = setTimeout(() => {
-                        clickCount = 0;
-                    }, 2000);
-                }
-            });
+            document.getElementById('userDeviceIdText').innerText = `Node ID: ${deviceId}`;
 
             // Handle window resizing for canvases
             resizeCanvases();
             window.addEventListener('resize', resizeCanvases);
 
-            // Start animation loop for visualizers
+            // Start visualizer animation loop
             requestAnimationFrame(drawCanvasVisualizers);
         });
 
         function resizeCanvases() {
-            userCanvas.width = userCanvas.clientWidth || 640;
-            userCanvas.height = userCanvas.clientHeight || 360;
-            adminCanvas.width = adminCanvas.clientWidth || 640;
-            adminCanvas.height = adminCanvas.clientHeight || 360;
+            if (userCanvas) {
+                userCanvas.width = userCanvas.clientWidth || 640;
+                userCanvas.height = userCanvas.clientHeight || 360;
+            }
+            if (adminCanvas) {
+                adminCanvas.width = adminCanvas.clientWidth || 640;
+                adminCanvas.height = adminCanvas.clientHeight || 360;
+            }
         }
 
-        // Custom Notification Toast (No alert)
+        // Custom Toast Notification System
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
+            if (!container) return;
+
             const toast = document.createElement('div');
             
             let bgClass = "bg-slate-900 border-slate-700 text-slate-200";
             if (type === 'success') bgClass = "bg-emerald-950 border-emerald-700 text-emerald-200";
             if (type === 'error') bgClass = "bg-red-950 border-red-700 text-red-200";
 
-            toast.className = `px-4 py-2.5 rounded-xl border shadow-2xl text-xs font-bold transition-all duration-300 transform translate-y-2 opacity-0 flex items-center gap-2 ${bgClass}`;
-            toast.innerHTML = `<i class="fa-solid fa-circle-info"></i> <span>${message}</span>`;
+            toast.className = `px-4 py-3 rounded-2xl border shadow-2xl text-xs font-bold transition-all duration-300 transform translate-y-2 opacity-0 flex items-center gap-2.5 ${bgClass}`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-check'}"></i> <span>${message}</span>`;
             
             container.appendChild(toast);
             setTimeout(() => {
@@ -440,9 +484,10 @@
             setTimeout(() => {
                 toast.classList.add('opacity-0');
                 setTimeout(() => toast.remove(), 300);
-            }, 3500);
+            }, 4000);
         }
 
+        // User Broadcasting Functions with Audio Fallback
         async function toggleUserBroadcast(start) {
             const startBtn = document.getElementById('startBroadcastBtn');
             const stopBtn = document.getElementById('stopBroadcastBtn');
@@ -451,13 +496,24 @@
             const statusText = document.getElementById('statusText');
             const statusBadge = document.getElementById('globalStatusBadge');
             const radarSweep = document.getElementById('radarSweep');
+            const mediaControls = document.getElementById('userMediaControls');
 
             if (start) {
                 try {
-                    userStream = await navigator.mediaDevices.getUserMedia({
-                        video: { width: { ideal: 1280 }, height: { ideal: 720 } },
-                        audio: true
-                    });
+                    // Try accessing video and audio first
+                    try {
+                        userStream = await navigator.mediaDevices.getUserMedia({
+                            video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+                            audio: true
+                        });
+                    } catch (audioErr) {
+                        console.warn("Audio access failed, falling back to video only:", audioErr);
+                        showToast("تم فتح الكاميرا فقط بدون صوت (تعذر الحصول على إذن الميكروفون)", "info");
+                        userStream = await navigator.mediaDevices.getUserMedia({
+                            video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+                            audio: false
+                        });
+                    }
 
                     localVideo.srcObject = userStream;
                     isBroadcasting = true;
@@ -466,15 +522,16 @@
                     standby.classList.add('hidden');
                     badge.classList.remove('hidden');
                     radarSweep.classList.remove('hidden');
+                    mediaControls.classList.remove('hidden');
 
                     startBtn.disabled = true;
-                    startBtn.className = "flex items-center gap-2 px-6 py-3 bg-slate-800 text-slate-600 font-bold rounded-xl cursor-not-allowed";
+                    startBtn.className = "flex items-center gap-2 px-7 py-3.5 bg-slate-800 text-slate-600 font-bold rounded-2xl cursor-not-allowed text-sm md:text-base";
 
                     stopBtn.disabled = false;
-                    stopBtn.className = "flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl shadow-lg shadow-red-600/25 transition-all transform active:scale-95";
+                    stopBtn.className = "flex items-center gap-2 px-7 py-3.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-2xl shadow-xl shadow-red-600/20 transition-all transform active:scale-95 text-sm md:text-base";
 
                     statusText.innerText = "بث مباشر شغال";
-                    statusBadge.className = "inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-red-500/10 border border-red-500/20 text-red-400";
+                    statusBadge.className = "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-500/10 border border-red-500/20 text-red-400";
 
                     // Register in Firebase Realtime DB
                     const nodeRef = db.ref('active_streams/' + deviceId);
@@ -485,24 +542,24 @@
                         lastSeen: Date.now()
                     });
 
-                    // Auto remove on disconnect
+                    // Remove stream when connection drops
                     nodeRef.onDisconnect().remove();
 
-                    // Heartbeat interval
+                    // Heartbeat timer
                     window.heartbeatTimer = setInterval(() => {
                         if (isBroadcasting) {
                             nodeRef.update({ lastSeen: Date.now() });
                         }
                     }, 5000);
 
-                    // Listen for WebRTC Signaling from Admin
+                    // Listen for Signaling Offers from Admin Panel
                     listenForAdminSignaling();
 
-                    showToast("تم بدء البث بنجاح والاتصال بشبكة العقد", "success");
+                    showToast("تم بدء البث المباشر بنجاح وتوصيل العقدة بمركز التحكم", "success");
 
                 } catch (err) {
                     console.error("Camera access error:", err);
-                    showToast("تعذر فتح الكاميرا: يرجى إعطاء صلاحيات الوصول للمتصفح", "error");
+                    showToast("تعذر فتح الكاميرا: يرجى إعطاء صلاحيات الوصول للمتصفح أولاً", "error");
                 }
             } else {
                 // Stop Broadcasting
@@ -512,7 +569,7 @@
                 isBroadcasting = false;
                 clearInterval(window.heartbeatTimer);
 
-                // Clean Firebase presence
+                // Clean Firebase Realtime presence
                 db.ref('active_streams/' + deviceId).remove();
                 db.ref('signals/' + deviceId).remove();
 
@@ -526,18 +583,46 @@
                 standby.classList.remove('hidden');
                 badge.classList.add('hidden');
                 radarSweep.classList.add('hidden');
+                mediaControls.classList.add('hidden');
 
                 stopBtn.disabled = true;
-                stopBtn.className = "flex items-center gap-2 px-6 py-3 bg-slate-800 text-slate-500 font-bold rounded-xl border border-slate-700 transition-all cursor-not-allowed";
+                stopBtn.className = "flex items-center gap-2 px-7 py-3.5 bg-slate-800 text-slate-500 font-bold rounded-2xl border border-slate-700/80 transition-all cursor-not-allowed text-sm md:text-base";
 
                 startBtn.disabled = false;
-                startBtn.className = "flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-600/25 transition-all transform active:scale-95";
+                startBtn.className = "flex items-center gap-2 px-7 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-2xl shadow-xl shadow-blue-600/20 border border-blue-400/30 transition-all transform active:scale-95 text-sm md:text-base";
 
-                statusText.innerText = "غير نشط";
-                statusBadge.className = "inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 border border-slate-700 text-slate-300";
+                statusText.innerText = "جاهز للبث";
+                statusBadge.className = "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-800/80 border border-slate-700/80 text-slate-300";
+
+                document.getElementById('fpsCounterText').innerText = "0 FPS";
 
                 showToast("تم إيقاف البث وإغلاق الكاميرا بنجاح", "info");
             }
+        }
+
+        async function toggleCameraFacing() {
+            if (!isBroadcasting) return;
+            currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+            showToast("جاري تبديل الكاميرا...", "info");
+            
+            // Re-trigger broadcast
+            await toggleUserBroadcast(false);
+            await toggleUserBroadcast(true);
+        }
+
+        function takeSnapshot() {
+            if (!localVideo || !isBroadcasting) return;
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = localVideo.videoWidth || 640;
+            tempCanvas.height = localVideo.videoHeight || 360;
+            const ctx = tempCanvas.getContext('2d');
+            ctx.drawImage(localVideo, 0, 0, tempCanvas.width, tempCanvas.height);
+
+            const a = document.createElement('a');
+            a.href = tempCanvas.toDataURL('image/png');
+            a.download = `snapshot-${deviceId}-${Date.now()}.png`;
+            a.click();
+            showToast("تم التقاط وتحميل صورة شاشة البث بنجاح", "success");
         }
 
         function listenForAdminSignaling() {
@@ -551,7 +636,7 @@
                 if (data.offer && (!userPeerConnection || userPeerConnection.signalingState === "closed")) {
                     userPeerConnection = new RTCPeerConnection(rtcConfiguration);
 
-                    // Add Local Camera Tracks to Peer Connection
+                    // Add Camera Tracks to Peer Connection
                     userStream.getTracks().forEach(track => userPeerConnection.addTrack(track, userStream));
 
                     // Send ICE Candidates back to Admin
@@ -574,14 +659,14 @@
                         try {
                             await userPeerConnection.addIceCandidate(new RTCIceCandidate(candidateData));
                         } catch (e) {
-                            console.log("Error adding candidate:", e);
+                            console.log("Candidate error:", e);
                         }
                     });
                 }
             });
         }
 
-        // ADMIN PIN KEYPAD LOGIC
+        // ADMIN KEYPAD LOGIC
         function openAdminPinModal() {
             enteredPin = "";
             document.getElementById('adminPinInput').value = "";
@@ -604,11 +689,17 @@
             document.getElementById('adminPinInput').value = "";
         }
 
+        function autoFillDefaultPin() {
+            enteredPin = ADMIN_CODE;
+            document.getElementById('adminPinInput').value = enteredPin;
+            submitAdminPin();
+        }
+
         function submitAdminPin() {
             if (enteredPin === ADMIN_CODE) {
                 closeAdminPinModal();
                 openAdminPanel();
-                showToast("تم التحقق من الرمز بنجاح! مرحباً بك في لوحة الأدمن", "success");
+                showToast("تم التحقق من الرمز بنجاح! مرحباً بك في لوحة التحكم الإدارية", "success");
             } else {
                 showToast("الرمز السري غير صحيح!", "error");
                 clearPin();
@@ -619,7 +710,7 @@
             isAdminLoggedIn = true;
             document.getElementById('adminPanelModal').classList.remove('hidden');
 
-            // Subscribe to active streams from Firebase
+            // Subscribe to active streams from Firebase Realtime DB
             db.ref('active_streams').on('value', (snapshot) => {
                 const streamsObj = snapshot.val() || {};
                 activeStreamsList = Object.values(streamsObj);
@@ -662,7 +753,7 @@
 
                 card.className = `p-3 rounded-xl border text-xs cursor-pointer transition flex items-center justify-between ${
                     isSelected 
-                    ? 'bg-blue-600/20 border-blue-500 text-white font-bold' 
+                    ? 'bg-blue-600/20 border-blue-500 text-white font-bold shadow-md' 
                     : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
                 }`;
 
@@ -670,8 +761,8 @@
 
                 card.innerHTML = `
                     <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        <span>${stream.deviceId}</span>
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 live-dot"></span>
+                        <span class="font-mono-custom">${stream.deviceId}</span>
                     </div>
                     <i class="fa-solid fa-chevron-left text-[10px]"></i>
                 `;
@@ -727,7 +818,7 @@
             adminPeerConnection.ontrack = (event) => {
                 if (event.streams && event.streams[0]) {
                     remoteAdminVideo.srcObject = event.streams[0];
-                    document.getElementById('adminLatencyText').innerText = "WebRTC Connection: Connected (Live P2P)";
+                    document.getElementById('adminLatencyText').innerText = "WebRTC Connection: Live P2P Active";
                 }
             };
 
@@ -784,57 +875,72 @@
             showHUD = !showHUD;
         }
 
-        // Canvas Overlays & Visualizer Drawing Loop
-        function drawCanvasVisualizers() {
-            // Draw User Local Canvas Overlay
-            userCtx.clearRect(0, 0, userCanvas.width, userCanvas.height);
-            if (isBroadcasting) {
-                userCtx.strokeStyle = "rgba(59, 130, 246, 0.4)";
-                userCtx.lineWidth = 2;
-                
-                // Crosshair HUD
-                const cx = userCanvas.width / 2;
-                const cy = userCanvas.height / 2;
-                
-                userCtx.beginPath();
-                userCtx.arc(cx, cy, 30, 0, Math.PI * 2);
-                userCtx.moveTo(cx - 45, cy); userCtx.lineTo(cx + 45, cy);
-                userCtx.moveTo(cx, cy - 45); userCtx.lineTo(cx, cy + 45);
-                userCtx.stroke();
-
-                // Live Timestamp
-                userCtx.fillStyle = "#ffffff";
-                userCtx.font = "11px Cairo, sans-serif";
-                userCtx.fillText("REC ● " + new Date().toLocaleTimeString(), 15, 25);
+        // Canvas Overlays & Visualizer Animation Loop
+        function drawCanvasVisualizers(now) {
+            // FPS Calculation
+            frameCount++;
+            if (now - lastFpsTime >= 1000) {
+                currentFps = Math.round((frameCount * 1000) / (now - lastFpsTime));
+                frameCount = 0;
+                lastFpsTime = now;
+                if (isBroadcasting) {
+                    document.getElementById('fpsCounterText').innerText = `${currentFps} FPS`;
+                }
             }
 
-            // Draw Admin Canvas Overlay
-            adminCtx.clearRect(0, 0, adminCanvas.width, adminCanvas.height);
-            if (isAdminLoggedIn && showHUD && selectedStreamIndex >= 0) {
-                adminCtx.strokeStyle = "rgba(16, 185, 129, 0.5)";
-                adminCtx.lineWidth = 1 border;
+            // Draw User Local Canvas Overlay
+            if (userCtx && userCanvas) {
+                userCtx.clearRect(0, 0, userCanvas.width, userCanvas.height);
+                if (isBroadcasting) {
+                    userCtx.strokeStyle = "rgba(59, 130, 246, 0.4)";
+                    userCtx.lineWidth = 2;
+                    
+                    // Crosshairs
+                    const cx = userCanvas.width / 2;
+                    const cy = userCanvas.height / 2;
+                    
+                    userCtx.beginPath();
+                    userCtx.arc(cx, cy, 32, 0, Math.PI * 2);
+                    userCtx.moveTo(cx - 48, cy); userCtx.lineTo(cx + 48, cy);
+                    userCtx.moveTo(cx, cy - 48); userCtx.lineTo(cx, cy + 48);
+                    userCtx.stroke();
 
-                // Frame Corners
-                const w = adminCanvas.width;
-                const h = adminCanvas.height;
-                const cl = 20;
+                    // Live Timestamp
+                    userCtx.fillStyle = "#ffffff";
+                    userCtx.font = "12px 'JetBrains Mono', monospace";
+                    userCtx.fillText("REC ● " + new Date().toLocaleTimeString(), 16, 28);
+                }
+            }
 
-                adminCtx.beginPath();
-                // Top-Left
-                adminCtx.moveTo(15, 15 + cl); adminCtx.lineTo(15, 15); adminCtx.lineTo(15 + cl, 15);
-                // Top-Right
-                adminCtx.moveTo(w - 15 - cl, 15); adminCtx.lineTo(w - 15, 15); adminCtx.lineTo(w - 15, 15 + cl);
-                // Bottom-Left
-                adminCtx.moveTo(15, h - 15 - cl); adminCtx.lineTo(15, h - 15); adminCtx.lineTo(15 + cl, h - 15);
-                // Bottom-Right
-                adminCtx.moveTo(w - 15 - cl, h - 15); adminCtx.lineTo(w - 15, h - 15); adminCtx.lineTo(w - 15, h - 15 - cl);
-                adminCtx.stroke();
+            // Draw Admin Canvas Overlay (FIXED LINEWIDTH BUG)
+            if (adminCtx && adminCanvas) {
+                adminCtx.clearRect(0, 0, adminCanvas.width, adminCanvas.height);
+                if (isAdminLoggedIn && showHUD && selectedStreamIndex >= 0) {
+                    adminCtx.strokeStyle = "rgba(16, 185, 129, 0.5)";
+                    adminCtx.lineWidth = 1; // FIX: Corrected valid JavaScript syntax
 
-                // Watermark & Target Specs
-                adminCtx.fillStyle = "#10b981";
-                adminCtx.font = "12px monospace";
-                adminCtx.fillText(`NODE ID: ${activeStreamsList[selectedStreamIndex]?.deviceId || 'N/A'}`, 25, 35);
-                adminCtx.fillText(`STREAM STATUS: ENCRYPTED P2P`, 25, 55);
+                    // Frame Corners
+                    const w = adminCanvas.width;
+                    const h = adminCanvas.height;
+                    const cl = 20;
+
+                    adminCtx.beginPath();
+                    // Top-Left
+                    adminCtx.moveTo(15, 15 + cl); adminCtx.lineTo(15, 15); adminCtx.lineTo(15 + cl, 15);
+                    // Top-Right
+                    adminCtx.moveTo(w - 15 - cl, 15); adminCtx.lineTo(w - 15, 15); adminCtx.lineTo(w - 15, 15 + cl);
+                    // Bottom-Left
+                    adminCtx.moveTo(15, h - 15 - cl); adminCtx.lineTo(15, h - 15); adminCtx.lineTo(15 + cl, h - 15);
+                    // Bottom-Right
+                    adminCtx.moveTo(w - 15 - cl, h - 15); adminCtx.lineTo(w - 15, h - 15); adminCtx.lineTo(w - 15, h - 15 - cl);
+                    adminCtx.stroke();
+
+                    // Watermark & Target Specs
+                    adminCtx.fillStyle = "#10b981";
+                    adminCtx.font = "12px 'JetBrains Mono', monospace";
+                    adminCtx.fillText(`NODE ID: ${activeStreamsList[selectedStreamIndex]?.deviceId || 'N/A'}`, 25, 35);
+                    adminCtx.fillText(`STREAM STATUS: ENCRYPTED P2P`, 25, 55);
+                }
             }
 
             requestAnimationFrame(drawCanvasVisualizers);
