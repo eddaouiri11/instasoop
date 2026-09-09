@@ -1,385 +1,389 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" class="dark">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة البث المباشر الذكية - Live Stream Node</title>
-    
+    <title>لعبة الداما أونلاين - Dama Online</title>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        cyber: {
-                            50: '#eff6ff',
-                            500: '#3b82f6',
-                            800: '#1e40af',
-                            900: '#0f172a',
-                            accent: '#10b981'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
-    <!-- FontAwesome & Google Fonts -->
+    
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Google Fonts (Inter & Cairo) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-    <!-- Firebase SDK (v8 Compatibility for Database) -->
+    <!-- Firebase Legacy Compatibility SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
         body {
-            font-family: 'Cairo', sans-serif;
-            background-color: #060913;
+            font-family: 'Cairo', 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #1a1c29, #0e1017);
             color: #f3f4f6;
+            min-height: 100vh;
+            overflow-x: hidden;
             user-select: none;
         }
 
-        .font-mono-custom {
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        /* Live pulsating dot animation */
-        .live-dot {
-            animation: pulse-red 1.5s infinite;
-        }
-        @keyframes pulse-red {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-
-        /* Scanline Radar Visual Effect */
-        .radar-sweep {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(180deg, rgba(16, 185, 129, 0.12) 0%, rgba(0,0,0,0) 100%);
-            animation: sweep 3.5s linear infinite;
-            pointer-events: none;
-        }
-        @keyframes sweep {
-            0% { transform: translateY(-100%); }
-            100% { transform: translateY(100%); }
-        }
-
-        /* Scanlines Overlay */
-        .scanlines {
-            background: linear-gradient(
-                rgba(18, 16, 16, 0) 50%, 
-                rgba(0, 0, 0, 0.25) 50%
-            );
-            background-size: 100% 4px;
-        }
-
-        /* Glassmorphism styling */
+        /* Glassmorphism effects */
         .glass-panel {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(12px);
+            background: rgba(22, 27, 38, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
         }
 
-        /* Custom scrollbars */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(8px);
+        }
+
+        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
-            height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #090d16;
+            background: rgba(0, 0, 0, 0.2);
         }
         ::-webkit-scrollbar-thumb {
-            background: #1e293b;
+            background: rgba(245, 158, 11, 0.4);
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #334155;
+            background: rgba(245, 158, 11, 0.8);
+        }
+
+        /* Canvas glow effects */
+        #gameCanvas {
+            box-shadow: 0 0 35px rgba(245, 158, 11, 0.15), 0 15px 30px rgba(0, 0, 0, 0.7);
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        /* Pulse Animations */
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(245, 158, 11, 0.8); }
+        }
+
+        .active-turn-glow {
+            animation: pulseGlow 2s infinite ease-in-out;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between bg-slate-950 text-slate-100 overflow-x-hidden selection:bg-blue-600 selection:text-white">
+<body class="flex flex-col min-h-screen text-slate-100">
 
-    <!-- Toast Notification Container -->
-    <div id="toastContainer" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-full max-w-sm px-4"></div>
+    <!-- Splash Screen -->
+    <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 transition-opacity duration-700">
+        <div class="relative flex items-center justify-center">
+            <div class="w-24 h-24 rounded-full border-4 border-amber-500/20 border-t-amber-500 animate-spin"></div>
+            <i class="fa-solid fa-chess-board text-4xl text-amber-400 absolute"></i>
+        </div>
+        <h1 class="mt-6 text-3xl font-extrabold tracking-wide bg-gradient-to-r from-amber-400 via-orange-400 to-amber-200 bg-clip-text text-transparent">
+            داما أونلاين - DAMA
+        </h1>
+        <p class="text-sm text-slate-400 mt-2">جاري الاتصال بالسيرفر...</p>
+    </div>
 
-    <!-- Header / Navigation -->
-    <header class="border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-md sticky top-0 z-30 px-4 py-3">
-        <div class="max-w-6xl mx-auto flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-                    <i class="fa-solid fa-video text-lg"></i>
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 hidden transition-all duration-300">
+        <div class="flex items-center gap-3 bg-slate-900/90 text-amber-300 border border-amber-500/30 px-6 py-3 rounded-xl shadow-2xl backdrop-blur-md">
+            <i class="fa-solid fa-circle-info text-amber-400 text-lg"></i>
+            <span id="toastMsg" class="font-semibold text-sm">تنبيه!</span>
+        </div>
+    </div>
+
+    <!-- Admin Warning Alert Popup -->
+    <div id="userWarningModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+        <div class="glass-panel w-full max-w-md p-6 rounded-2xl text-center border-amber-500/40">
+            <div class="w-16 h-16 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-xl font-bold text-amber-400 mb-2">تنبيه إداري من المسؤول</h3>
+            <p id="userWarningText" class="text-slate-300 mb-6 bg-slate-900/50 p-4 rounded-xl border border-white/5 text-sm">تنبيه هق!</p>
+            <button onclick="closeWarningModal()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-600 font-bold rounded-xl hover:brightness-110 transition-all text-slate-950">
+                فهمت ذلك
+            </button>
+        </div>
+    </div>
+
+    <!-- Banned / Penalty Screen -->
+    <div id="bannedScreen" class="fixed inset-0 z-50 hidden flex flex-col items-center justify-center bg-slate-950 p-6 text-center">
+        <div class="w-20 h-20 bg-red-500/10 text-red-500 border border-red-500/30 rounded-full flex items-center justify-center mb-6 text-4xl">
+            <i class="fa-solid fa-ban"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-red-400 mb-2">حسابك معطل / محظور حالياً</h2>
+        <p id="bannedReasonText" class="text-slate-400 max-w-md mb-6">لقد تم فرض عقوبة على حسابك من طرف المسؤول.</p>
+        <div id="penaltyCountdown" class="text-lg font-mono text-amber-400 bg-slate-900 px-6 py-3 rounded-xl border border-amber-500/20 mb-6"></div>
+        <button onclick="logoutUser()" class="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition">
+            تسجيل الخروج
+        </button>
+    </div>
+
+    <!-- Admin PIN Prompt Modal -->
+    <div id="adminPinModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+        <div class="glass-panel w-full max-w-sm p-6 rounded-2xl text-center border-amber-500/30">
+            <i class="fa-solid fa-user-shield text-4xl text-amber-400 mb-3"></i>
+            <h3 class="text-lg font-bold text-slate-100 mb-4">أدخل كود المسؤول (Admin PIN)</h3>
+            <input type="password" id="adminPinInput" placeholder="أدخل الرقم السري..." class="w-full px-4 py-3 bg-slate-900/80 border border-slate-700 rounded-xl text-center text-xl tracking-widest text-amber-300 mb-4 focus:outline-none focus:border-amber-500">
+            <div class="flex gap-3">
+                <button onclick="verifyAdminPin()" class="flex-1 py-2.5 bg-amber-500 text-slate-950 font-bold rounded-xl hover:bg-amber-400 transition">تأكيد</button>
+                <button onclick="closeAdminPinModal()" class="px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700 transition">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel Full Modal -->
+    <div id="adminPanelModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/85 backdrop-blur-lg p-4 overflow-y-auto">
+        <div class="glass-panel w-full max-w-4xl p-6 rounded-2xl border-amber-500/30 max-h-[90vh] flex flex-col">
+            <!-- Header -->
+            <div class="flex justify-between items-center pb-4 border-b border-white/10 mb-4">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-screwdriver-wrench text-2xl text-amber-400"></i>
+                    <div>
+                        <h2 class="text-xl font-bold text-amber-300">لوحة تحكم المسؤول (Secret Dashboard)</h2>
+                        <p class="text-xs text-slate-400">مراقبة المستخدمين، كشف كلمات السر، العقوبات والتنبيهات</p>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="font-bold text-base md:text-lg leading-tight text-white flex items-center gap-2">
-                        <span>منصة البث المباشر الذكية</span>
-                        <span class="text-[10px] bg-blue-500/20 border border-blue-500/30 text-blue-400 px-2 py-0.5 rounded-full font-mono">v2.0</span>
-                    </h1>
-                    <p class="text-xs text-slate-400 font-mono-custom">Node Live Streaming System</p>
+                <button onclick="closeAdminPanel()" class="w-9 h-9 bg-slate-800 hover:bg-red-500/20 hover:text-red-400 text-slate-400 rounded-xl transition flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Stats & Controls -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="glass-card p-4 rounded-xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400">إجمالي المسجلين</p>
+                        <h4 id="adminTotalUsers" class="text-2xl font-black text-amber-400">0</h4>
+                    </div>
+                    <i class="fa-solid fa-users text-3xl text-amber-500/30"></i>
+                </div>
+                <div class="glass-card p-4 rounded-xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400">المحظورين حالياً</p>
+                        <h4 id="adminBannedUsers" class="text-2xl font-black text-red-400">0</h4>
+                    </div>
+                    <i class="fa-solid fa-user-slash text-3xl text-red-500/30"></i>
+                </div>
+                <div class="glass-card p-4 rounded-xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400">حالة الربط</p>
+                        <h4 class="text-lg font-bold text-emerald-400">Firebase Live</h4>
+                    </div>
+                    <i class="fa-solid fa-bolt text-3xl text-emerald-500/30"></i>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 md:gap-3">
-                <span id="globalStatusBadge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-800/80 border border-slate-700/80 text-slate-300">
-                    <span class="w-2 h-2 rounded-full bg-slate-500"></span>
-                    <span id="statusText">جاهز للبث</span>
-                </span>
-                
-                <button onclick="openAdminPinModal()" id="secretHintBtn" title="لوحة التحكم الإدارية (رمز الوصول: 20102010)" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-amber-400 border border-slate-700/80 transition active:scale-95">
-                    <i class="fa-solid fa-shield-halved text-sm"></i>
+            <!-- Users Table List -->
+            <div class="flex-1 overflow-y-auto pr-1">
+                <table class="w-full text-right text-sm">
+                    <thead>
+                        <tr class="text-slate-400 border-b border-white/10 text-xs">
+                            <th class="pb-3 pr-2">المستخدم</th>
+                            <th class="pb-3">كلمة السر (Secret)</th>
+                            <th class="pb-3">الحالة / العقوبة</th>
+                            <th class="pb-3 text-center">الإجراءات والتحكم</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminUsersTable" class="divide-y divide-white/5">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Authentication Screen -->
+    <div id="authScreen" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-slate-950">
+        <div class="glass-panel w-full max-w-md p-8 rounded-3xl border-amber-500/20 shadow-2xl relative overflow-hidden">
+            <!-- Decorative Glow -->
+            <div class="absolute -top-16 -right-16 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl"></div>
+            
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-gradient-to-tr from-amber-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-amber-500/20">
+                    <i class="fa-solid fa-chess-king text-3xl text-slate-950"></i>
+                </div>
+                <h2 class="text-2xl font-black bg-gradient-to-r from-amber-300 via-orange-300 to-amber-100 bg-clip-text text-transparent">
+                    داما أونلاين - Dama Online
+                </h2>
+                <p class="text-xs text-slate-400 mt-1">سجل دخولك أو أنشئ حساباً جديداً لبدء اللعب</p>
+            </div>
+
+            <!-- Tabs Switcher -->
+            <div class="flex bg-slate-900/80 p-1 rounded-xl mb-6 border border-white/5">
+                <button id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 py-2 rounded-lg text-sm font-semibold text-amber-400 bg-white/10 transition-all">
+                    تسجيل الدخول
+                </button>
+                <button id="tabRegisterBtn" onclick="switchAuthTab('register')" class="flex-1 py-2 rounded-lg text-sm font-semibold text-slate-400 transition-all">
+                    إنشاء حساب
+                </button>
+            </div>
+
+            <!-- Form -->
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">اسم المستخدم</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute right-4 top-3.5 text-slate-500 text-sm"></i>
+                        <input type="text" id="authUsername" placeholder="مثال: Player1" class="w-full pr-10 pl-4 py-3 bg-slate-900/80 border border-slate-700/80 rounded-xl text-sm focus:outline-none focus:border-amber-500 transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">كلمة السر</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute right-4 top-3.5 text-slate-500 text-sm"></i>
+                        <input type="password" id="authPassword" placeholder="••••••••" class="w-full pr-10 pl-4 py-3 bg-slate-900/80 border border-slate-700/80 rounded-xl text-sm focus:outline-none focus:border-amber-500 transition">
+                    </div>
+                </div>
+
+                <button id="authSubmitBtn" onclick="handleAuthSubmit()" class="w-full py-3.5 mt-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold rounded-xl transition shadow-lg shadow-amber-500/20 active:scale-[0.98]">
+                    دخول الحساب
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header id="mainHeader" class="hidden glass-panel sticky top-0 z-30 border-b border-white/5 px-6 py-3">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <!-- Brand -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-amber-500/20 border border-amber-500/40 rounded-xl flex items-center justify-center text-amber-400">
+                    <i class="fa-solid fa-chess-board text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-amber-400 text-lg leading-tight">Dama Online</h1>
+                    <span class="text-[10px] text-slate-400">Realtime Multiplayer Canvas</span>
+                </div>
+            </div>
+
+            <!-- User Info & Logout -->
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3 bg-slate-900/80 px-4 py-2 rounded-xl border border-white/5">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 to-orange-400 flex items-center justify-center font-bold text-slate-950 text-sm" id="userAvatar">
+                        U
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-200" id="headerUsername">User</p>
+                        <p class="text-[10px] text-emerald-400 flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> متصل
+                        </p>
+                    </div>
+                </div>
+                <button onclick="logoutUser()" title="تسجيل الخروج" class="w-10 h-10 bg-slate-900 hover:bg-red-500/20 text-slate-400 hover:text-red-400 border border-white/5 rounded-xl transition flex items-center justify-center">
+                    <i class="fa-solid fa-right-from-bracket"></i>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Main Content Container for Standard User -->
-    <main class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 flex flex-col items-center justify-center gap-6">
+    <!-- Main Container -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 flex flex-col justify-center">
         
-        <!-- User Viewport Section -->
-        <div id="userSection" class="w-full flex flex-col items-center gap-5">
-            
-            <!-- Legal & Privacy Banner -->
-            <div class="w-full glass-panel rounded-2xl p-4 text-xs md:text-sm text-slate-300 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-slate-800">
-                <div class="flex items-start gap-3">
-                    <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 shrink-0 mt-0.5">
-                        <i class="fa-solid fa-shield-cat text-lg"></i>
+        <!-- LOBBY VIEW -->
+        <div id="lobbyView" class="hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Create Room Card -->
+                <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center text-2xl mb-4">
+                            <i class="fa-solid fa-plus"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-100 mb-2">إنشاء غرفة لعب جديدة</h3>
+                        <p class="text-xs text-slate-400 mb-6">قم بإنشاء طاولة داما جديدة وانتظر انضمام منافسك أو شارك الكود معه.</p>
                     </div>
                     <div>
-                        <h3 class="font-bold text-white mb-0.5">تنبيه الموافقة والخصوصية المشفرة</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed">
-                            هذا التطبيق ينقل البث المباشر المشفر عبر تقنية <span class="text-blue-400 font-mono">WebRTC P2P</span>. لن يتم فتح الكاميرا إلا بضغطك المباشر وتأكيد الإذن من المتصفح.
-                        </p>
+                        <input type="text" id="newRoomName" placeholder="اسم الغرفة (اختياري)..." class="w-full px-4 py-3 bg-slate-900/90 border border-slate-700/80 rounded-xl text-sm mb-3 focus:outline-none focus:border-amber-500">
+                        <button onclick="createNewRoom()" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg shadow-amber-500/20">
+                            أنشئ الغرفة الآن
+                        </button>
                     </div>
                 </div>
-                <div class="shrink-0 self-end sm:self-center">
-                    <span class="text-[11px] font-mono bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800 text-slate-400">
-                        <i class="fa-solid fa-lock text-emerald-400 ml-1"></i> مشفر بالنهاية
-                    </span>
-                </div>
-            </div>
 
-            <!-- Video & Canvas Monitor Frame -->
-            <div class="relative w-full max-w-2xl aspect-video bg-slate-950 border-2 border-slate-800 rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center group ring-1 ring-slate-800/50">
-                
-                <!-- Scanline effect overlay -->
-                <div class="absolute inset-0 scanlines opacity-30 pointer-events-none z-10"></div>
-
-                <!-- Radar / Scan Overlay -->
-                <div id="radarSweep" class="radar-sweep hidden z-10"></div>
-
-                <!-- Live Stream Video element -->
-                <video id="localVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
-                
-                <!-- Dynamic Overlay Canvas (Target grid / Status text) -->
-                <canvas id="userCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-20"></canvas>
-
-                <!-- Standby Placeholder when camera is OFF -->
-                <div id="cameraStandby" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/95 text-slate-500 gap-3 z-20 transition-all">
-                    <div class="w-20 h-20 rounded-3xl bg-slate-900 flex items-center justify-center text-3xl text-slate-400 border border-slate-800 shadow-inner">
-                        <i class="fa-solid fa-camera text-blue-500 animate-pulse"></i>
+                <!-- Rooms List Panel -->
+                <div class="md:col-span-2 glass-panel p-6 rounded-2xl flex flex-col h-[400px]">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-list-ul text-amber-400"></i>
+                            <h3 class="font-bold text-slate-200">الغرف المتاحة أونلاين</h3>
+                        </div>
+                        <span id="roomCountBadge" class="text-xs bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-full border border-amber-500/30">0 غرف</span>
                     </div>
-                    <p class="text-sm font-semibold text-slate-300">الكاميرا متوقفة حالياً</p>
-                    <p class="text-xs text-slate-500">اضغط على زر "تشغيل البث" أدناه لبدء التغطية</p>
+
+                    <div id="roomsListContainer" class="flex-1 overflow-y-auto space-y-3 pr-1">
+                        <!-- Rooms List Rendered via Firebase -->
+                        <div class="text-center text-slate-500 py-12 text-sm">جاري البحث عن غرف متوفرة...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GAME ARENA VIEW -->
+        <div id="gameView" class="hidden flex flex-col items-center">
+            
+            <!-- Game Top Status Bar -->
+            <div class="w-full max-w-2xl glass-panel px-6 py-4 rounded-2xl mb-4 flex items-center justify-between">
+                <!-- Player 1 (Red/Amber) -->
+                <div id="player1Card" class="flex items-center gap-3 p-2 rounded-xl transition">
+                    <div class="w-10 h-10 rounded-full bg-amber-600 border-2 border-amber-300 flex items-center justify-center font-bold text-slate-950 text-sm shadow-md">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div>
+                        <p id="player1Name" class="text-sm font-bold text-slate-200">في الانتظار...</p>
+                        <p class="text-[10px] text-amber-400">قطع الأحادي (البرتقالي)</p>
+                    </div>
                 </div>
 
-                <!-- Live Badge Top Right -->
-                <div id="userLiveBadge" class="hidden absolute top-4 right-4 z-20 flex items-center gap-2 bg-red-600/90 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg backdrop-blur border border-red-500/50">
-                    <span class="w-2.5 h-2.5 rounded-full bg-white live-dot"></span>
-                    <span>LIVE DIRECT</span>
+                <!-- Match Status Indicator -->
+                <div class="text-center">
+                    <div id="turnBadge" class="px-4 py-1.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-full font-bold text-xs active-turn-glow">
+                        جاري تجهيز الرقعة...
+                    </div>
                 </div>
 
-                <!-- Quick Action Overlays Top Left -->
-                <div id="userMediaControls" class="hidden absolute top-4 left-4 z-20 flex items-center gap-2">
-                    <button onclick="toggleCameraFacing()" title="تبديل الكاميرا" class="w-8 h-8 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-white text-xs flex items-center justify-center backdrop-blur active:scale-95 transition">
-                        <i class="fa-solid fa-camera-rotate"></i>
-                    </button>
-                    <button onclick="takeSnapshot()" title="التقاط صورة" class="w-8 h-8 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-white text-xs flex items-center justify-center backdrop-blur active:scale-95 transition">
-                        <i class="fa-solid fa-arrow-down-to-bracket"></i>
-                    </button>
-                </div>
-
-                <!-- Device Info Overlay Bottom -->
-                <div class="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between text-[11px] font-mono-custom text-slate-400 bg-slate-900/80 backdrop-blur px-3 py-1.5 rounded-xl border border-slate-800/80 shadow-md">
-                    <span id="userDeviceIdText" class="truncate max-w-[200px]">Node ID: ...</span>
-                    <span id="fpsCounterText" class="text-emerald-400 font-bold">0 FPS</span>
+                <!-- Player 2 (Dark/Blue) -->
+                <div id="player2Card" class="flex items-center gap-3 p-2 rounded-xl transition text-left">
+                    <div>
+                        <p id="player2Name" class="text-sm font-bold text-slate-200">في الانتظار...</p>
+                        <p class="text-[10px] text-sky-400">قطع الأزرق (الأزرق)</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-slate-800 border-2 border-sky-400 flex items-center justify-center font-bold text-sky-300 text-sm shadow-md">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
                 </div>
             </div>
 
-            <!-- Main Control Buttons -->
-            <div class="flex flex-wrap items-center justify-center gap-3 md:gap-4 w-full">
-                <button id="startBroadcastBtn" onclick="toggleUserBroadcast(true)" class="flex items-center gap-2 px-7 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-2xl shadow-xl shadow-blue-600/20 border border-blue-400/30 transition-all transform active:scale-95 text-sm md:text-base">
-                    <i class="fa-solid fa-play"></i>
-                    <span>تشغيل البث المباشر</span>
-                </button>
-
-                <button id="stopBroadcastBtn" onclick="toggleUserBroadcast(false)" disabled class="flex items-center gap-2 px-7 py-3.5 bg-slate-800 text-slate-500 font-bold rounded-2xl border border-slate-700/80 transition-all cursor-not-allowed text-sm md:text-base">
-                    <i class="fa-solid fa-stop"></i>
-                    <span>إيقاف البث</span>
-                </button>
+            <!-- Canvas Container -->
+            <div class="relative max-w-full">
+                <canvas id="gameCanvas" width="560" height="560" class="max-w-full h-auto bg-slate-900 border-2 border-amber-500/30"></canvas>
             </div>
 
+            <!-- Controls Footer -->
+            <div class="w-full max-w-2xl flex justify-between items-center mt-4 gap-4">
+                <button onclick="leaveCurrentRoom()" class="px-5 py-2.5 bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 font-semibold rounded-xl transition text-xs flex items-center gap-2">
+                    <i class="fa-solid fa-door-open"></i> مغادرة الطاولة
+                </button>
+                
+                <div class="text-xs text-slate-400 font-mono" id="roomCodeDisplay">
+                    غرفة: ----
+                </div>
+            </div>
         </div>
 
     </main>
 
-    <!-- Admin Authentication Modal -->
-    <div id="adminPinModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-panel border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl relative text-center">
-            
-            <button onclick="closeAdminPinModal()" class="absolute top-4 left-4 w-8 h-8 rounded-full bg-slate-800/60 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-
-            <div class="w-14 h-14 bg-gradient-to-tr from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl flex items-center justify-center text-amber-400 mx-auto mb-4 text-xl shadow-lg">
-                <i class="fa-solid fa-user-shield"></i>
-            </div>
-
-            <h2 class="text-xl font-bold text-white mb-1">لوحة التحكم السريّة</h2>
-            <p class="text-xs text-slate-400 mb-5">أدخل رمز الوصول المكون من 8 أرقام (الافتراضي: <span class="font-mono text-amber-400 font-bold">20102010</span>)</p>
-
-            <!-- PIN Display Input -->
-            <div class="relative mb-5">
-                <input type="password" id="adminPinInput" maxlength="8" readonly placeholder="••••••••" class="w-full text-center text-2xl tracking-[0.4em] font-mono-custom py-3.5 bg-slate-950 border border-slate-800 rounded-2xl text-amber-400 focus:outline-none focus:border-amber-500/50 shadow-inner">
-            </div>
-
-            <!-- Keypad Buttons Grid -->
-            <div class="grid grid-cols-3 gap-2.5 mb-5 font-mono-custom">
-                <button onclick="appendPin('1')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">1</button>
-                <button onclick="appendPin('2')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">2</button>
-                <button onclick="appendPin('3')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">3</button>
-                <button onclick="appendPin('4')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">4</button>
-                <button onclick="appendPin('5')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">5</button>
-                <button onclick="appendPin('6')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">6</button>
-                <button onclick="appendPin('7')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">7</button>
-                <button onclick="appendPin('8')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">8</button>
-                <button onclick="appendPin('9')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">9</button>
-                <button onclick="clearPin()" class="py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold rounded-xl active:scale-95 transition text-xs border border-red-500/20">مسح</button>
-                <button onclick="appendPin('0')" class="py-3 bg-slate-800/70 hover:bg-slate-700/80 text-white font-bold rounded-xl active:scale-95 transition border border-slate-700/40">0</button>
-                <button onclick="submitAdminPin()" class="py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black rounded-xl active:scale-95 transition text-xs shadow-lg">تأكيد</button>
-            </div>
-            
-            <button onclick="autoFillDefaultPin()" class="text-[11px] text-slate-400 hover:text-amber-400 underline font-mono">
-                تعبئة التلقائية للرمز السري
-            </button>
-        </div>
-    </div>
-
-    <!-- Fullscreen Admin Panel Area -->
-    <div id="adminPanelModal" class="fixed inset-0 bg-slate-950 z-40 hidden flex flex-col">
-        
-        <!-- Admin Top Navigation Bar -->
-        <div class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                    <i class="fa-solid fa-sliders"></i>
-                </div>
-                <div>
-                    <h2 class="font-bold text-white text-sm">لوحة التحكم المركزية (Admin Matrix)</h2>
-                    <p class="text-[11px] text-slate-400">مراقبة الأجهزة النشطة والتنقل المباشر بين الكاميرات</p>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-3">
-                <span id="activeDeviceCountBadge" class="bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs px-3 py-1 rounded-full font-bold font-mono-custom">
-                    الأجهزة النشطة: 0
-                </span>
-                <button onclick="exitAdminPanel()" class="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 rounded-xl text-xs font-bold transition">
-                    خروج <i class="fa-solid fa-right-from-bracket mr-1"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- Admin Dashboard Body -->
-        <div class="flex-1 p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6 overflow-hidden">
-            
-            <!-- Side Stream Selector List -->
-            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3 overflow-hidden">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <span class="font-bold text-xs text-slate-300">قائمة الكاميرات الباثّة</span>
-                    <i class="fa-solid fa-list-check text-slate-500 text-xs"></i>
-                </div>
-
-                <div id="streamListContainer" class="flex-1 overflow-y-auto flex flex-col gap-2">
-                    <!-- Stream Cards populated dynamically -->
-                    <div class="text-center py-8 text-xs text-slate-500">
-                        لا توجد كاميرات نشطة حالياً...
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main Admin Video Viewing Console -->
-            <div class="lg:col-span-3 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col gap-4 overflow-hidden relative">
-                
-                <!-- Current Stream Header Info -->
-                <div class="flex items-center justify-between bg-slate-950/80 px-4 py-2.5 rounded-xl border border-slate-800">
-                    <div class="flex items-center gap-3">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 live-dot"></span>
-                        <span id="selectedStreamTitle" class="font-bold text-sm text-white font-mono-custom">لم يتم تحديد أي كاميرا</span>
-                    </div>
-
-                    <div class="flex items-center gap-2">
-                        <button onclick="cycleStream(-1)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition">
-                            <i class="fa-solid fa-chevron-right ml-1"></i> السابقة
-                        </button>
-                        <span id="streamCounterText" class="text-xs font-mono-custom text-slate-400 px-2">0 / 0</span>
-                        <button onclick="cycleStream(1)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition">
-                            التالية <i class="fa-solid fa-chevron-left mr-1"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Video Screen Display Box -->
-                <div class="relative flex-1 bg-black rounded-2xl border border-slate-800 overflow-hidden flex items-center justify-center">
-                    
-                    <video id="remoteAdminVideo" autoplay playsinline class="w-full h-full object-contain"></video>
-                    
-                    <!-- Admin Dynamic HUD Canvas overlay -->
-                    <canvas id="adminCanvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
-
-                    <!-- Empty state loader -->
-                    <div id="adminVideoPlaceholder" class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center text-slate-600 gap-3">
-                        <i class="fa-solid fa-satellite-dish text-5xl animate-pulse text-slate-700"></i>
-                        <p class="text-xs text-slate-400">اختر كاميرا من القائمة أو انتظر انضمام أجهزة بث جديدة</p>
-                    </div>
-                </div>
-
-                <!-- Admin Control Footer Tools -->
-                <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-950/80 p-3 rounded-xl border border-slate-800 text-xs">
-                    <div class="flex items-center gap-2">
-                        <button onclick="toggleAdminMute()" id="adminMuteBtn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-medium flex items-center gap-1.5 transition">
-                            <i class="fa-solid fa-volume-xmark"></i>
-                            <span>كتم الصوت</span>
-                        </button>
-                        <button onclick="toggleAdminHUD()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-medium flex items-center gap-1.5 transition">
-                            <i class="fa-solid fa-border-top-left"></i>
-                            <span>تغيير المؤشرات (HUD)</span>
-                        </button>
-                    </div>
-
-                    <div class="text-slate-400 font-mono-custom text-[11px]" id="adminLatencyText">
-                        WebRTC Connection: Standby
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- Footer -->
-    <footer class="border-t border-slate-900 bg-slate-950 py-3 px-4 text-center text-xs text-slate-500">
-        تطبيق النقل المباشر والمراقبة الأمنية &copy; 2026 - نظام الاتصال المباشر المشفر P2P
-    </footer>
-
     <script>
-        // System & Security Configuration
+        // Security PIN for Secret Admin Panel
         const ADMIN_CODE = "20102010";
-        
+
+        // Standard Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDuscs-L7y5aNwBX6zzz95XU3qGrF4ZsSk",
             authDomain: "instasoop-230e0.firebaseapp.com",
@@ -390,286 +394,230 @@
             appId: "1:968767111628:web:4b79cdd708b1a32ba69d69"
         };
 
-        // Initialize Firebase Realtime DB safely
+        // Initialize Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.database();
 
         // Application State
-        let deviceId = localStorage.getItem('node_device_id');
-        if (!deviceId) {
-            deviceId = 'Cam-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-            localStorage.setItem('node_device_id', deviceId);
-        }
+        let currentUser = null;
+        let currentAuthTab = 'login';
+        let currentRoomId = null;
+        let currentRoomRef = null;
+        let isMyTurn = false;
+        let myRole = null; // 'p1' or 'p2' or 'spectator'
+        let userListenerRef = null;
 
-        let userStream = null;
-        let isBroadcasting = false;
-        let userPeerConnection = null;
-        let currentFacingMode = 'environment'; // 'user' or 'environment'
+        // 5 Clicks Trigger Secret Admin Prompt
+        let clickCount = 0;
+        let clickTimer = null;
 
-        // Admin State
-        let isAdminLoggedIn = false;
-        let activeStreamsList = [];
-        let selectedStreamIndex = -1;
-        let adminPeerConnection = null;
-        let adminSessionId = 'admin_' + Math.random().toString(36).substring(2, 7);
-        let showHUD = true;
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#adminPinModal') || e.target.closest('#adminPanelModal') || e.target.closest('#userWarningModal')) return;
 
-        // Keypad State
-        let enteredPin = "";
+            clickCount++;
+            clearTimeout(clickTimer);
 
-        // Performance & FPS Calculation
-        let frameCount = 0;
-        let lastFpsTime = performance.now();
-        let currentFps = 0;
-
-        // WebRTC Config (STUN Servers)
-        const rtcConfiguration = {
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' }
-            ]
-        };
-
-        // UI Element References
-        const localVideo = document.getElementById('localVideo');
-        const userCanvas = document.getElementById('userCanvas');
-        const userCtx = userCanvas.getContext('2d');
-        const remoteAdminVideo = document.getElementById('remoteAdminVideo');
-        const adminCanvas = document.getElementById('adminCanvas');
-        const adminCtx = adminCanvas.getContext('2d');
-
-        window.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('userDeviceIdText').innerText = `Node ID: ${deviceId}`;
-
-            // Handle window resizing for canvases
-            resizeCanvases();
-            window.addEventListener('resize', resizeCanvases);
-
-            // Start visualizer animation loop
-            requestAnimationFrame(drawCanvasVisualizers);
+            if (clickCount >= 5) {
+                clickCount = 0;
+                openAdminPinModal();
+            } else {
+                clickTimer = setTimeout(() => {
+                    clickCount = 0;
+                }, 1500);
+            }
         });
 
-        function resizeCanvases() {
-            if (userCanvas) {
-                userCanvas.width = userCanvas.clientWidth || 640;
-                userCanvas.height = userCanvas.clientHeight || 360;
-            }
-            if (adminCanvas) {
-                adminCanvas.width = adminCanvas.clientWidth || 640;
-                adminCanvas.height = adminCanvas.clientHeight || 360;
-            }
-        }
-
-        // Custom Toast Notification System
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toastContainer');
-            if (!container) return;
-
-            const toast = document.createElement('div');
-            
-            let bgClass = "bg-slate-900 border-slate-700 text-slate-200";
-            if (type === 'success') bgClass = "bg-emerald-950 border-emerald-700 text-emerald-200";
-            if (type === 'error') bgClass = "bg-red-950 border-red-700 text-red-200";
-
-            toast.className = `px-4 py-3 rounded-2xl border shadow-2xl text-xs font-bold transition-all duration-300 transform translate-y-2 opacity-0 flex items-center gap-2.5 ${bgClass}`;
-            toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-check'}"></i> <span>${message}</span>`;
-            
-            container.appendChild(toast);
+        window.addEventListener('load', () => {
             setTimeout(() => {
-                toast.classList.remove('translate-y-2', 'opacity-0');
-            }, 10);
+                const splash = document.getElementById('splashScreen');
+                splash.style.opacity = '0';
+                setTimeout(() => splash.style.display = 'none', 700);
 
-            setTimeout(() => {
-                toast.classList.add('opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 4000);
-        }
-
-        // User Broadcasting Functions with Audio Fallback
-        async function toggleUserBroadcast(start) {
-            const startBtn = document.getElementById('startBroadcastBtn');
-            const stopBtn = document.getElementById('stopBroadcastBtn');
-            const standby = document.getElementById('cameraStandby');
-            const badge = document.getElementById('userLiveBadge');
-            const statusText = document.getElementById('statusText');
-            const statusBadge = document.getElementById('globalStatusBadge');
-            const radarSweep = document.getElementById('radarSweep');
-            const mediaControls = document.getElementById('userMediaControls');
-
-            if (start) {
-                try {
-                    // Try accessing video and audio first
+                // Check LocalStorage for saved login session
+                const savedUser = localStorage.getItem('dama_auth_user');
+                if (savedUser) {
                     try {
-                        userStream = await navigator.mediaDevices.getUserMedia({
-                            video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
-                            audio: true
-                        });
-                    } catch (audioErr) {
-                        console.warn("Audio access failed, falling back to video only:", audioErr);
-                        showToast("تم فتح الكاميرا فقط بدون صوت (تعذر الحصول على إذن الميكروفون)", "info");
-                        userStream = await navigator.mediaDevices.getUserMedia({
-                            video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
-                            audio: false
+                        currentUser = JSON.parse(savedUser);
+                        initUserSession();
+                    } catch(e) {
+                        localStorage.removeItem('dama_auth_user');
+                        showAuthScreen();
+                    }
+                } else {
+                    showAuthScreen();
+                }
+            }, 1200);
+
+            initCanvasEvents();
+        });
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        function switchAuthTab(tab) {
+            currentAuthTab = tab;
+            const loginBtn = document.getElementById('tabLoginBtn');
+            const regBtn = document.getElementById('tabRegisterBtn');
+            const submitBtn = document.getElementById('authSubmitBtn');
+
+            if (tab === 'login') {
+                loginBtn.className = "flex-1 py-2 rounded-lg text-sm font-semibold text-amber-400 bg-white/10 transition-all";
+                regBtn.className = "flex-1 py-2 rounded-lg text-sm font-semibold text-slate-400 transition-all";
+                submitBtn.innerText = "دخول الحساب";
+            } else {
+                regBtn.className = "flex-1 py-2 rounded-lg text-sm font-semibold text-amber-400 bg-white/10 transition-all";
+                loginBtn.className = "flex-1 py-2 rounded-lg text-sm font-semibold text-slate-400 transition-all";
+                submitBtn.innerText = "إنشاء حساب جديد";
+            }
+        }
+
+        function handleAuthSubmit() {
+            const usernameInput = document.getElementById('authUsername').value.trim();
+            const passwordInput = document.getElementById('authPassword').value.trim();
+
+            if (!usernameInput || !passwordInput) {
+                showToast("يرجى كتابة اسم المستخدم وكلمة السر!");
+                return;
+            }
+
+            const cleanUserKey = usernameInput.toLowerCase().replace(/[.#$/[\]]/g, "_");
+
+            if (currentAuthTab === 'register') {
+                // Check if user exists
+                db.ref('users/' + cleanUserKey).once('value', snapshot => {
+                    if (snapshot.exists()) {
+                        showToast("اسم المستخدم هذا مستعمل بالفعل!");
+                    } else {
+                        const newUser = {
+                            username: usernameInput,
+                            password: passwordInput,
+                            createdAt: Date.now(),
+                            isBanned: false,
+                            bannedUntil: 0,
+                            warningMsg: ""
+                        };
+                        db.ref('users/' + cleanUserKey).set(newUser, err => {
+                            if (!err) {
+                                currentUser = newUser;
+                                localStorage.setItem('dama_auth_user', JSON.stringify(currentUser));
+                                initUserSession();
+                                showToast("تم إنشاء الحساب بنجاح!");
+                            }
                         });
                     }
-
-                    localVideo.srcObject = userStream;
-                    isBroadcasting = true;
-
-                    // UI Updates
-                    standby.classList.add('hidden');
-                    badge.classList.remove('hidden');
-                    radarSweep.classList.remove('hidden');
-                    mediaControls.classList.remove('hidden');
-
-                    startBtn.disabled = true;
-                    startBtn.className = "flex items-center gap-2 px-7 py-3.5 bg-slate-800 text-slate-600 font-bold rounded-2xl cursor-not-allowed text-sm md:text-base";
-
-                    stopBtn.disabled = false;
-                    stopBtn.className = "flex items-center gap-2 px-7 py-3.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded-2xl shadow-xl shadow-red-600/20 transition-all transform active:scale-95 text-sm md:text-base";
-
-                    statusText.innerText = "بث مباشر شغال";
-                    statusBadge.className = "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-500/10 border border-red-500/20 text-red-400";
-
-                    // Register in Firebase Realtime DB
-                    const nodeRef = db.ref('active_streams/' + deviceId);
-                    await nodeRef.set({
-                        deviceId: deviceId,
-                        status: 'online',
-                        startedAt: Date.now(),
-                        lastSeen: Date.now()
-                    });
-
-                    // Remove stream when connection drops
-                    nodeRef.onDisconnect().remove();
-
-                    // Heartbeat timer
-                    window.heartbeatTimer = setInterval(() => {
-                        if (isBroadcasting) {
-                            nodeRef.update({ lastSeen: Date.now() });
-                        }
-                    }, 5000);
-
-                    // Listen for Signaling Offers from Admin Panel
-                    listenForAdminSignaling();
-
-                    showToast("تم بدء البث المباشر بنجاح وتوصيل العقدة بمركز التحكم", "success");
-
-                } catch (err) {
-                    console.error("Camera access error:", err);
-                    showToast("تعذر فتح الكاميرا: يرجى إعطاء صلاحيات الوصول للمتصفح أولاً", "error");
-                }
+                });
             } else {
-                // Stop Broadcasting
-                if (userStream) {
-                    userStream.getTracks().forEach(track => track.stop());
-                }
-                isBroadcasting = false;
-                clearInterval(window.heartbeatTimer);
-
-                // Clean Firebase Realtime presence
-                db.ref('active_streams/' + deviceId).remove();
-                db.ref('signals/' + deviceId).remove();
-
-                if (userPeerConnection) {
-                    userPeerConnection.close();
-                    userPeerConnection = null;
-                }
-
-                // UI Reset
-                localVideo.srcObject = null;
-                standby.classList.remove('hidden');
-                badge.classList.add('hidden');
-                radarSweep.classList.add('hidden');
-                mediaControls.classList.add('hidden');
-
-                stopBtn.disabled = true;
-                stopBtn.className = "flex items-center gap-2 px-7 py-3.5 bg-slate-800 text-slate-500 font-bold rounded-2xl border border-slate-700/80 transition-all cursor-not-allowed text-sm md:text-base";
-
-                startBtn.disabled = false;
-                startBtn.className = "flex items-center gap-2 px-7 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-2xl shadow-xl shadow-blue-600/20 border border-blue-400/30 transition-all transform active:scale-95 text-sm md:text-base";
-
-                statusText.innerText = "جاهز للبث";
-                statusBadge.className = "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-800/80 border border-slate-700/80 text-slate-300";
-
-                document.getElementById('fpsCounterText').innerText = "0 FPS";
-
-                showToast("تم إيقاف البث وإغلاق الكاميرا بنجاح", "info");
+                // Login
+                db.ref('users/' + cleanUserKey).once('value', snapshot => {
+                    if (snapshot.exists()) {
+                        const userData = snapshot.val();
+                        if (userData.password === passwordInput) {
+                            currentUser = userData;
+                            localStorage.setItem('dama_auth_user', JSON.stringify(currentUser));
+                            initUserSession();
+                            showToast("تم تسجيل الدخول بنجاح!");
+                        } else {
+                            showToast("كلمة السر غير صحيحة!");
+                        }
+                    } else {
+                        showToast("اسم المستخدم غير موجود!");
+                    }
+                });
             }
         }
 
-        async function toggleCameraFacing() {
-            if (!isBroadcasting) return;
-            currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
-            showToast("جاري تبديل الكاميرا...", "info");
+        function showAuthScreen() {
+            document.getElementById('authScreen').classList.remove('hidden');
+            document.getElementById('mainHeader').classList.add('hidden');
+            document.getElementById('lobbyView').classList.add('hidden');
+            document.getElementById('gameView').classList.add('hidden');
+        }
+
+        function initUserSession() {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('mainHeader').classList.remove('hidden');
+            document.getElementById('headerUsername').innerText = currentUser.username;
+            document.getElementById('userAvatar').innerText = currentUser.username.charAt(0).toUpperCase();
+
+            // Realtime user account status monitoring
+            const cleanUserKey = currentUser.username.toLowerCase().replace(/[.#$/[\]]/g, "_");
             
-            // Re-trigger broadcast
-            await toggleUserBroadcast(false);
-            await toggleUserBroadcast(true);
-        }
+            if (userListenerRef) userListenerRef.off();
+            userListenerRef = db.ref('users/' + cleanUserKey);
 
-        function takeSnapshot() {
-            if (!localVideo || !isBroadcasting) return;
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = localVideo.videoWidth || 640;
-            tempCanvas.height = localVideo.videoHeight || 360;
-            const ctx = tempCanvas.getContext('2d');
-            ctx.drawImage(localVideo, 0, 0, tempCanvas.width, tempCanvas.height);
-
-            const a = document.createElement('a');
-            a.href = tempCanvas.toDataURL('image/png');
-            a.download = `snapshot-${deviceId}-${Date.now()}.png`;
-            a.click();
-            showToast("تم التقاط وتحميل صورة شاشة البث بنجاح", "success");
-        }
-
-        function listenForAdminSignaling() {
-            const signalRef = db.ref('signals/' + deviceId);
-
-            signalRef.on('value', async (snapshot) => {
+            userListenerRef.on('value', snapshot => {
+                if (!snapshot.exists()) {
+                    logoutUser();
+                    return;
+                }
                 const data = snapshot.val();
-                if (!data || !isBroadcasting) return;
 
-                // Handle WebRTC Offer from Admin
-                if (data.offer && (!userPeerConnection || userPeerConnection.signalingState === "closed")) {
-                    userPeerConnection = new RTCPeerConnection(rtcConfiguration);
-
-                    // Add Camera Tracks to Peer Connection
-                    userStream.getTracks().forEach(track => userPeerConnection.addTrack(track, userStream));
-
-                    // Send ICE Candidates back to Admin
-                    userPeerConnection.onicecandidate = (event) => {
-                        if (event.candidate) {
-                            db.ref(`signals/${deviceId}/userCandidates`).push(event.candidate.toJSON());
-                        }
-                    };
-
-                    await userPeerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
-                    const answer = await userPeerConnection.createAnswer();
-                    await userPeerConnection.setLocalDescription(answer);
-
-                    await signalRef.update({ answer: answer });
+                // Check Ban & Time Penalty
+                const now = Date.now();
+                if (data.isBanned || (data.bannedUntil && now < data.bannedUntil)) {
+                    showBannedScreen(data);
+                    return;
+                } else {
+                    document.getElementById('bannedScreen').classList.add('hidden');
                 }
 
-                // Receive Admin ICE Candidates
-                if (data.adminCandidates && userPeerConnection) {
-                    Object.values(data.adminCandidates).forEach(async (candidateData) => {
-                        try {
-                            await userPeerConnection.addIceCandidate(new RTCIceCandidate(candidateData));
-                        } catch (e) {
-                            console.log("Candidate error:", e);
-                        }
-                    });
+                // Check Admin Warning Popup
+                if (data.warningMsg && data.warningMsg !== "") {
+                    document.getElementById('userWarningText').innerText = data.warningMsg;
+                    document.getElementById('userWarningModal').classList.remove('hidden');
                 }
             });
+
+            // Load Lobby
+            showLobbyView();
         }
 
-        // ADMIN KEYPAD LOGIC
+        function closeWarningModal() {
+            document.getElementById('userWarningModal').classList.add('hidden');
+            const cleanUserKey = currentUser.username.toLowerCase().replace(/[.#$/[\]]/g, "_");
+            db.ref('users/' + cleanUserKey + '/warningMsg').set("");
+        }
+
+        function showBannedScreen(userData) {
+            document.getElementById('bannedScreen').classList.remove('hidden');
+            const reasonText = document.getElementById('bannedReasonText');
+            const countdownText = document.getElementById('penaltyCountdown');
+
+            if (userData.isBanned) {
+                reasonText.innerText = "لقد تم حظر حسابك بشكل دائم من طرف المسؤول.";
+                countdownText.innerText = "حظر دائم (Permanent Ban)";
+            } else if (userData.bannedUntil) {
+                reasonText.innerText = "لقد تم توقيف حسابك مؤقتاً لعقوبة زامنية.";
+                
+                const updateCountdown = () => {
+                    const diff = Math.max(0, Math.ceil((userData.bannedUntil - Date.now()) / 1000));
+                    const mins = Math.floor(diff / 60);
+                    const secs = diff % 60;
+                    countdownText.innerText = `متبقي: ${mins} دقيقة و ${secs} ثانية`;
+                    if (diff <= 0) {
+                        document.getElementById('bannedScreen').classList.add('hidden');
+                    }
+                };
+                updateCountdown();
+            }
+        }
+
+        function logoutUser() {
+            localStorage.removeItem('dama_auth_user');
+            if (userListenerRef) userListenerRef.off();
+            currentUser = null;
+            if (currentRoomId) leaveCurrentRoom();
+            showAuthScreen();
+        }
+
         function openAdminPinModal() {
-            enteredPin = "";
-            document.getElementById('adminPinInput').value = "";
+            document.getElementById('adminPinInput').value = '';
             document.getElementById('adminPinModal').classList.remove('hidden');
         }
 
@@ -677,273 +625,462 @@
             document.getElementById('adminPinModal').classList.add('hidden');
         }
 
-        function appendPin(digit) {
-            if (enteredPin.length < 8) {
-                enteredPin += digit;
-                document.getElementById('adminPinInput').value = enteredPin;
-            }
-        }
-
-        function clearPin() {
-            enteredPin = "";
-            document.getElementById('adminPinInput').value = "";
-        }
-
-        function autoFillDefaultPin() {
-            enteredPin = ADMIN_CODE;
-            document.getElementById('adminPinInput').value = enteredPin;
-            submitAdminPin();
-        }
-
-        function submitAdminPin() {
-            if (enteredPin === ADMIN_CODE) {
+        function verifyAdminPin() {
+            const inputPin = document.getElementById('adminPinInput').value.trim();
+            if (inputPin === ADMIN_CODE) {
                 closeAdminPinModal();
                 openAdminPanel();
-                showToast("تم التحقق من الرمز بنجاح! مرحباً بك في لوحة التحكم الإدارية", "success");
             } else {
-                showToast("الرمز السري غير صحيح!", "error");
-                clearPin();
+                showToast("رمز المسؤول غير صحيح!");
             }
         }
 
         function openAdminPanel() {
-            isAdminLoggedIn = true;
             document.getElementById('adminPanelModal').classList.remove('hidden');
+            loadAdminUsersList();
+        }
 
-            // Subscribe to active streams from Firebase Realtime DB
-            db.ref('active_streams').on('value', (snapshot) => {
-                const streamsObj = snapshot.val() || {};
-                activeStreamsList = Object.values(streamsObj);
+        function closeAdminPanel() {
+            document.getElementById('adminPanelModal').classList.add('hidden');
+        }
 
-                document.getElementById('activeDeviceCountBadge').innerText = `الأجهزة النشطة: ${activeStreamsList.length}`;
-                renderStreamList();
+        function loadAdminUsersList() {
+            db.ref('users').on('value', snapshot => {
+                const tableBody = document.getElementById('adminUsersTable');
+                tableBody.innerHTML = '';
 
-                // Auto-select first stream if none selected
-                if (activeStreamsList.length > 0 && selectedStreamIndex === -1) {
-                    selectStream(0);
-                } else if (activeStreamsList.length === 0) {
-                    selectedStreamIndex = -1;
-                    updateAdminConsole();
+                if (!snapshot.exists()) {
+                    tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">لا يوجد مستخدمون مسجلون</td></tr>';
+                    return;
+                }
+
+                const users = snapshot.val();
+                let total = 0;
+                let bannedCount = 0;
+
+                Object.keys(users).forEach(key => {
+                    total++;
+                    const u = users[key];
+                    const isBanned = u.isBanned || (u.bannedUntil && Date.now() < u.bannedUntil);
+                    if (isBanned) bannedCount++;
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-white/5 transition text-xs";
+                    tr.innerHTML = `
+                        <td class="py-3 pr-2 font-bold text-amber-300">${u.username}</td>
+                        <td class="py-3 font-mono text-slate-300">${u.password}</td>
+                        <td class="py-3">
+                            ${u.isBanned 
+                                ? '<span class="px-2 py-0.5 bg-red-500/20 text-red-400 border border-red-500/30 rounded">محظور دائم</span>' 
+                                : (u.bannedUntil && Date.now() < u.bannedUntil 
+                                    ? '<span class="px-2 py-0.5 bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded">موقوف مؤقتاً</span>'
+                                    : '<span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded">نشط</span>')}
+                        </td>
+                        <td class="py-3 text-center space-x-1 space-x-reverse">
+                            <button onclick="adminToggleBan('${key}', ${!u.isBanned})" class="px-2.5 py-1 ${u.isBanned ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-red-600 hover:bg-red-500'} text-white rounded font-semibold transition">
+                                ${u.isBanned ? 'فك الحظر' : 'حظر دائم'}
+                            </button>
+                            <button onclick="adminSetTimeout('${key}')" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-slate-950 font-semibold rounded transition">
+                                عقوبة 5 د
+                            </button>
+                            <button onclick="adminSendWarning('${key}')" class="px-2.5 py-1 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded transition">
+                                إرسال تنبيه
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+
+                document.getElementById('adminTotalUsers').innerText = total;
+                document.getElementById('adminBannedUsers').innerText = bannedCount;
+            });
+        }
+
+        function adminToggleBan(userKey, banState) {
+            db.ref('users/' + userKey).update({
+                isBanned: banState,
+                bannedUntil: 0
+            });
+            showToast("تم تحديث حالة الحظر!");
+        }
+
+        function adminSetTimeout(userKey) {
+            const penaltyMs = 5 * 60 * 1000; // 5 minutes
+            db.ref('users/' + userKey).update({
+                bannedUntil: Date.now() + penaltyMs,
+                isBanned: false
+            });
+            showToast("تم فرض عقوبة 5 دقائق على المستخدم!");
+        }
+
+        function adminSendWarning(userKey) {
+            const msg = prompt("أدخل نص التنبيه الإداري الموجه للاعب:");
+            if (msg && msg.trim() !== "") {
+                db.ref('users/' + userKey + '/warningMsg').set(msg.trim());
+                showToast("تم إرسال التنبيه بنجاح!");
+            }
+        }
+
+        function showLobbyView() {
+            document.getElementById('lobbyView').classList.remove('hidden');
+            document.getElementById('gameView').classList.add('hidden');
+            listenToRooms();
+        }
+
+        function listenToRooms() {
+            db.ref('rooms').on('value', snapshot => {
+                const container = document.getElementById('roomsListContainer');
+                container.innerHTML = '';
+
+                if (!snapshot.exists()) {
+                    container.innerHTML = '<div class="text-center text-slate-500 py-12 text-sm">لا توجد غرف مفتوحة حالياً، أنشئ أول غرفة!</div>';
+                    document.getElementById('roomCountBadge').innerText = "0 غرف";
+                    return;
+                }
+
+                const rooms = snapshot.val();
+                const roomKeys = Object.keys(rooms);
+                document.getElementById('roomCountBadge').innerText = `${roomKeys.length} غرف`;
+
+                roomKeys.forEach(id => {
+                    const r = rooms[id];
+                    const div = document.createElement('div');
+                    div.className = "glass-card p-4 rounded-xl flex items-center justify-between border border-white/5 hover:border-amber-500/30 transition";
+                    div.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-chess"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-200 text-sm">${r.name || 'غرفة داما'}</h4>
+                                <p class="text-[11px] text-slate-400">المنشئ: ${r.p1 ? r.p1.username : '---'} | ${r.p2 ? 'لاعبان (مكتملة)' : 'في انتظار لاعب ثانٍ'}</p>
+                            </div>
+                        </div>
+                        <button onclick="joinRoom('${id}')" class="px-4 py-2 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/40 rounded-xl text-xs font-bold transition">
+                            انضمام
+                        </button>
+                    `;
+                    container.appendChild(div);
+                });
+            });
+        }
+
+        function createNewRoom() {
+            const roomNameInput = document.getElementById('newRoomName').value.trim() || `طاولة ${currentUser.username}`;
+            const roomId = 'room_' + Date.now();
+
+            const initialBoard = createInitialBoard();
+
+            const newRoomData = {
+                id: roomId,
+                name: roomNameInput,
+                p1: { username: currentUser.username },
+                p2: null,
+                turn: 'p1', // p1 starts
+                board: initialBoard,
+                status: 'waiting'
+            };
+
+            db.ref('rooms/' + roomId).set(newRoomData, err => {
+                if (!err) {
+                    joinRoom(roomId);
                 }
             });
         }
 
-        function exitAdminPanel() {
-            isAdminLoggedIn = false;
-            document.getElementById('adminPanelModal').classList.add('hidden');
-            db.ref('active_streams').off();
-            if (adminPeerConnection) {
-                adminPeerConnection.close();
-                adminPeerConnection = null;
+        function joinRoom(roomId) {
+            currentRoomId = roomId;
+            currentRoomRef = db.ref('rooms/' + roomId);
+
+            currentRoomRef.once('value', snapshot => {
+                if (!snapshot.exists()) {
+                    showToast("هذه الغرفة لم تعد موجودة!");
+                    return;
+                }
+
+                const r = snapshot.val();
+                if (!r.p1) {
+                    currentRoomRef.child('p1').set({ username: currentUser.username });
+                    myRole = 'p1';
+                } else if (r.p1.username === currentUser.username) {
+                    myRole = 'p1';
+                } else if (!r.p2) {
+                    currentRoomRef.child('p2').set({ username: currentUser.username });
+                    currentRoomRef.child('status').set('playing');
+                    myRole = 'p2';
+                } else if (r.p2.username === currentUser.username) {
+                    myRole = 'p2';
+                } else {
+                    myRole = 'spectator';
+                }
+
+                document.getElementById('lobbyView').classList.add('hidden');
+                document.getElementById('gameView').classList.remove('hidden');
+                document.getElementById('roomCodeDisplay').innerText = `غرفة: ${roomId}`;
+
+                initGameListeners();
+            });
+        }
+
+        function leaveCurrentRoom() {
+            if (currentRoomRef) {
+                currentRoomRef.off();
+                if (myRole === 'p1') {
+                    currentRoomRef.remove();
+                } else if (myRole === 'p2') {
+                    currentRoomRef.child('p2').set(null);
+                    currentRoomRef.child('status').set('waiting');
+                }
+            }
+            currentRoomId = null;
+            currentRoomRef = null;
+            myRole = null;
+            showLobbyView();
+        }
+
+        // Board Logic Parameters
+        const BOARD_SIZE = 8;
+        let canvas, ctx;
+        let boardState = [];
+        let selectedPiece = null;
+        let validMoves = [];
+
+        function createInitialBoard() {
+            // 8x8 checkers board: 0 = empty, 1 = p1 regular, 2 = p1 king, -1 = p2 regular, -2 = p2 king
+            let board = Array(8).fill(null).map(() => Array(8).fill(0));
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    if ((r + c) % 2 === 1) {
+                        if (r < 3) board[r][c] = -1; // P2 (Blue) Top
+                        else if (r > 4) board[r][c] = 1; // P1 (Amber) Bottom
+                    }
+                }
+            }
+            return board;
+        }
+
+        function initGameListeners() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+
+            currentRoomRef.on('value', snapshot => {
+                if (!snapshot.exists()) {
+                    showToast("تم إغلاق الغرفة من طرف المنشئ!");
+                    leaveCurrentRoom();
+                    return;
+                }
+
+                const room = snapshot.val();
+                boardState = room.board || createInitialBoard();
+                
+                // Update players UI
+                document.getElementById('player1Name').innerText = room.p1 ? room.p1.username : 'في الانتظار...';
+                document.getElementById('player2Name').innerText = room.p2 ? room.p2.username : 'في الانتظار...';
+
+                // Turn logic
+                isMyTurn = (room.turn === myRole);
+                const turnBadge = document.getElementById('turnBadge');
+
+                if (room.status === 'waiting') {
+                    turnBadge.innerText = "في انتظار لاعب ثانٍ...";
+                    turnBadge.className = "px-4 py-1.5 bg-slate-800 text-slate-400 rounded-full font-bold text-xs";
+                } else {
+                    if (isMyTurn) {
+                        turnBadge.innerText = "دورك للتحريك الان!";
+                        turnBadge.className = "px-4 py-1.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-full font-bold text-xs active-turn-glow";
+                    } else {
+                        const activeName = room.turn === 'p1' ? (room.p1 ? room.p1.username : 'P1') : (room.p2 ? room.p2.username : 'P2');
+                        turnBadge.innerText = `دور اللاعب: ${activeName}`;
+                        turnBadge.className = "px-4 py-1.5 bg-slate-800/80 text-slate-400 rounded-full font-bold text-xs";
+                    }
+                }
+
+                renderCanvasBoard();
+            });
+        }
+
+        function renderCanvasBoard() {
+            if (!ctx) return;
+            const tileSize = canvas.width / BOARD_SIZE;
+
+            // Draw Board Grid
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    const isDark = (r + c) % 2 === 1;
+                    ctx.fillStyle = isDark ? '#1e2433' : '#333b4f';
+                    ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize);
+
+                    // Highlight Valid Moves
+                    if (validMoves.some(m => m.r === r && m.c === c)) {
+                        ctx.fillStyle = 'rgba(245, 158, 11, 0.45)';
+                        ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize);
+                        ctx.beginPath();
+                        ctx.arc(c * tileSize + tileSize / 2, r * tileSize + tileSize / 2, tileSize / 6, 0, Math.PI * 2);
+                        ctx.fillStyle = '#f59e0b';
+                        ctx.fill();
+                    }
+                }
+            }
+
+            // Draw Pieces
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    const val = boardState[r][c];
+                    if (val !== 0) {
+                        drawPiece(ctx, r, c, val, tileSize);
+                    }
+                }
+            }
+
+            // Highlight Selected Piece
+            if (selectedPiece) {
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(selectedPiece.c * tileSize + 2, selectedPiece.r * tileSize + 2, tileSize - 4, tileSize - 4);
             }
         }
 
-        function renderStreamList() {
-            const container = document.getElementById('streamListContainer');
-            container.innerHTML = "";
+        function drawPiece(ctx, r, c, val, tileSize) {
+            const centerX = c * tileSize + tileSize / 2;
+            const centerY = r * tileSize + tileSize / 2;
+            const radius = tileSize * 0.38;
 
-            if (activeStreamsList.length === 0) {
-                container.innerHTML = `<div class="text-center py-8 text-xs text-slate-500">لا توجد كاميرات نشطة حالياً...</div>`;
+            const isP1 = val > 0;
+            const isKing = Math.abs(val) === 2;
+
+            // Gradient for Piece
+            const grad = ctx.createRadialGradient(centerX - 5, centerY - 5, 2, centerX, centerY, radius);
+            if (isP1) {
+                grad.addColorStop(0, '#fbbf24');
+                grad.addColorStop(1, '#d97706');
+            } else {
+                grad.addColorStop(0, '#38bdf8');
+                grad.addColorStop(1, '#0284c7');
+            }
+
+            // Piece Outer Shadow & Body
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetY = 4;
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.fill();
+            ctx.restore();
+
+            // Inner Ring Overlay
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * 0.7, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Crown for King
+            if (isKing) {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = `${tileSize * 0.4}px FontAwesome, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('👑', centerX, centerY);
+            }
+        }
+
+        function initCanvasEvents() {
+            canvas = document.getElementById('gameCanvas');
+            canvas.addEventListener('click', handleCanvasClick);
+        }
+
+        function handleCanvasClick(e) {
+            if (!isMyTurn) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            const clickX = (e.clientX - rect.left) * scaleX;
+            const clickY = (e.clientY - rect.top) * scaleY;
+
+            const tileSize = canvas.width / BOARD_SIZE;
+            const c = Math.floor(clickX / tileSize);
+            const r = Math.floor(clickY / tileSize);
+
+            const pieceVal = boardState[r][c];
+
+            // If clicking on own piece
+            if ((myRole === 'p1' && pieceVal > 0) || (myRole === 'p2' && pieceVal < 0)) {
+                selectedPiece = { r, c, val: pieceVal };
+                calculateValidMoves(r, c, pieceVal);
+                renderCanvasBoard();
                 return;
             }
 
-            activeStreamsList.forEach((stream, idx) => {
-                const card = document.createElement('div');
-                const isSelected = idx === selectedStreamIndex;
-
-                card.className = `p-3 rounded-xl border text-xs cursor-pointer transition flex items-center justify-between ${
-                    isSelected 
-                    ? 'bg-blue-600/20 border-blue-500 text-white font-bold shadow-md' 
-                    : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
-                }`;
-
-                card.onclick = () => selectStream(idx);
-
-                card.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 live-dot"></span>
-                        <span class="font-mono-custom">${stream.deviceId}</span>
-                    </div>
-                    <i class="fa-solid fa-chevron-left text-[10px]"></i>
-                `;
-
-                container.appendChild(card);
-            });
-        }
-
-        function selectStream(index) {
-            if (index < 0 || index >= activeStreamsList.length) return;
-            selectedStreamIndex = index;
-            renderStreamList();
-            updateAdminConsole();
-            connectToRemoteStream(activeStreamsList[selectedStreamIndex].deviceId);
-        }
-
-        function cycleStream(direction) {
-            if (activeStreamsList.length === 0) return;
-            let newIndex = selectedStreamIndex + direction;
-            if (newIndex < 0) newIndex = activeStreamsList.length - 1;
-            if (newIndex >= activeStreamsList.length) newIndex = 0;
-            selectStream(newIndex);
-        }
-
-        function updateAdminConsole() {
-            const title = document.getElementById('selectedStreamTitle');
-            const counter = document.getElementById('streamCounterText');
-            const placeholder = document.getElementById('adminVideoPlaceholder');
-
-            if (selectedStreamIndex >= 0 && activeStreamsList[selectedStreamIndex]) {
-                const dev = activeStreamsList[selectedStreamIndex];
-                title.innerText = `الكاميرا المحددة: ${dev.deviceId}`;
-                counter.innerText = `${selectedStreamIndex + 1} / ${activeStreamsList.length}`;
-                placeholder.classList.add('hidden');
-            } else {
-                title.innerText = "لم يتم تحديد أي كاميرا";
-                counter.innerText = "0 / 0";
-                placeholder.classList.remove('hidden');
-                remoteAdminVideo.srcObject = null;
+            // If clicking on a valid move destination
+            if (selectedPiece && validMoves.some(m => m.r === r && m.c === c)) {
+                const moveObj = validMoves.find(m => m.r === r && m.c === c);
+                executeMove(selectedPiece, moveObj);
             }
         }
 
-        async function connectToRemoteStream(targetDeviceId) {
-            if (adminPeerConnection) {
-                adminPeerConnection.close();
-                adminPeerConnection = null;
-            }
+        function calculateValidMoves(r, c, val) {
+            validMoves = [];
+            const isKing = Math.abs(val) === 2;
+            const directions = [];
 
-            document.getElementById('adminLatencyText').innerText = "WebRTC Connection: Connecting...";
+            if (val > 0 || isKing) directions.push({ dr: -1, dc: -1 }, { dr: -1, dc: 1 }); // Forward P1
+            if (val < 0 || isKing) directions.push({ dr: 1, dc: -1 }, { dr: 1, dc: 1 });   // Forward P2
 
-            adminPeerConnection = new RTCPeerConnection(rtcConfiguration);
+            directions.forEach(d => {
+                const nr = r + d.dr;
+                const nc = c + d.dc;
 
-            adminPeerConnection.ontrack = (event) => {
-                if (event.streams && event.streams[0]) {
-                    remoteAdminVideo.srcObject = event.streams[0];
-                    document.getElementById('adminLatencyText').innerText = "WebRTC Connection: Live P2P Active";
-                }
-            };
-
-            adminPeerConnection.onicecandidate = (event) => {
-                if (event.candidate) {
-                    db.ref(`signals/${targetDeviceId}/adminCandidates`).push(event.candidate.toJSON());
-                }
-            };
-
-            // Create Offer for Target Stream
-            const offer = await adminPeerConnection.createOffer();
-            await adminPeerConnection.setLocalDescription(offer);
-
-            // Clean previous signaling data
-            const signalRef = db.ref('signals/' + targetDeviceId);
-            await signalRef.remove();
-
-            // Set Offer in DB
-            await signalRef.set({
-                adminId: adminSessionId,
-                offer: offer
-            });
-
-            // Listen for Answer
-            signalRef.on('value', async (snapshot) => {
-                const data = snapshot.val();
-                if (!data) return;
-
-                if (data.answer && adminPeerConnection.signalingState === "have-local-offer") {
-                    await adminPeerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-                }
-
-                if (data.userCandidates) {
-                    Object.values(data.userCandidates).forEach(async (candidateData) => {
-                        try {
-                            await adminPeerConnection.addIceCandidate(new RTCIceCandidate(candidateData));
-                        } catch (e) {
-                            console.log("Candidate error:", e);
+                // Simple step move
+                if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                    if (boardState[nr][nc] === 0) {
+                        validMoves.push({ r: nr, c: nc, isJump: false });
+                    } 
+                    // Jump capture move
+                    else if ((val > 0 && boardState[nr][nc] < 0) || (val < 0 && boardState[nr][nc] > 0)) {
+                        const jnr = nr + d.dr;
+                        const jnc = nc + d.dc;
+                        if (jnr >= 0 && jnr < 8 && jnc >= 0 && jnc < 8 && boardState[jnr][jnc] === 0) {
+                            validMoves.push({ r: jnr, c: jnc, isJump: true, capR: nr, capC: nc });
                         }
-                    });
+                    }
                 }
             });
         }
 
-        function toggleAdminMute() {
-            remoteAdminVideo.muted = !remoteAdminVideo.muted;
-            const btn = document.getElementById('adminMuteBtn');
-            btn.innerHTML = remoteAdminVideo.muted 
-                ? `<i class="fa-solid fa-volume-xmark"></i> <span>كتم الصوت</span>`
-                : `<i class="fa-solid fa-volume-high text-emerald-400"></i> <span>تشغيل الصوت</span>`;
-        }
+        function executeMove(from, to) {
+            // Update Board state array
+            let newBoard = JSON.parse(JSON.stringify(boardState));
+            newBoard[from.r][from.c] = 0;
 
-        function toggleAdminHUD() {
-            showHUD = !showHUD;
-        }
+            let pieceVal = from.val;
 
-        // Canvas Overlays & Visualizer Animation Loop
-        function drawCanvasVisualizers(now) {
-            // FPS Calculation
-            frameCount++;
-            if (now - lastFpsTime >= 1000) {
-                currentFps = Math.round((frameCount * 1000) / (now - lastFpsTime));
-                frameCount = 0;
-                lastFpsTime = now;
-                if (isBroadcasting) {
-                    document.getElementById('fpsCounterText').innerText = `${currentFps} FPS`;
-                }
+            // Check Promotion to King
+            if (myRole === 'p1' && to.r === 0) pieceVal = 2; // P1 King
+            if (myRole === 'p2' && to.r === 7) pieceVal = -2; // P2 King
+
+            newBoard[to.r][to.c] = pieceVal;
+
+            // Handle Capture
+            if (to.isJump) {
+                newBoard[to.capR][to.capC] = 0;
             }
 
-            // Draw User Local Canvas Overlay
-            if (userCtx && userCanvas) {
-                userCtx.clearRect(0, 0, userCanvas.width, userCanvas.height);
-                if (isBroadcasting) {
-                    userCtx.strokeStyle = "rgba(59, 130, 246, 0.4)";
-                    userCtx.lineWidth = 2;
-                    
-                    // Crosshairs
-                    const cx = userCanvas.width / 2;
-                    const cy = userCanvas.height / 2;
-                    
-                    userCtx.beginPath();
-                    userCtx.arc(cx, cy, 32, 0, Math.PI * 2);
-                    userCtx.moveTo(cx - 48, cy); userCtx.lineTo(cx + 48, cy);
-                    userCtx.moveTo(cx, cy - 48); userCtx.lineTo(cx, cy + 48);
-                    userCtx.stroke();
+            // Switch Turn
+            const nextTurn = myRole === 'p1' ? 'p2' : 'p1';
 
-                    // Live Timestamp
-                    userCtx.fillStyle = "#ffffff";
-                    userCtx.font = "12px 'JetBrains Mono', monospace";
-                    userCtx.fillText("REC ● " + new Date().toLocaleTimeString(), 16, 28);
-                }
-            }
+            // Sync with Firebase
+            currentRoomRef.update({
+                board: newBoard,
+                turn: nextTurn
+            });
 
-            // Draw Admin Canvas Overlay (FIXED LINEWIDTH BUG)
-            if (adminCtx && adminCanvas) {
-                adminCtx.clearRect(0, 0, adminCanvas.width, adminCanvas.height);
-                if (isAdminLoggedIn && showHUD && selectedStreamIndex >= 0) {
-                    adminCtx.strokeStyle = "rgba(16, 185, 129, 0.5)";
-                    adminCtx.lineWidth = 1; // FIX: Corrected valid JavaScript syntax
-
-                    // Frame Corners
-                    const w = adminCanvas.width;
-                    const h = adminCanvas.height;
-                    const cl = 20;
-
-                    adminCtx.beginPath();
-                    // Top-Left
-                    adminCtx.moveTo(15, 15 + cl); adminCtx.lineTo(15, 15); adminCtx.lineTo(15 + cl, 15);
-                    // Top-Right
-                    adminCtx.moveTo(w - 15 - cl, 15); adminCtx.lineTo(w - 15, 15); adminCtx.lineTo(w - 15, 15 + cl);
-                    // Bottom-Left
-                    adminCtx.moveTo(15, h - 15 - cl); adminCtx.lineTo(15, h - 15); adminCtx.lineTo(15 + cl, h - 15);
-                    // Bottom-Right
-                    adminCtx.moveTo(w - 15 - cl, h - 15); adminCtx.lineTo(w - 15, h - 15); adminCtx.lineTo(w - 15, h - 15 - cl);
-                    adminCtx.stroke();
-
-                    // Watermark & Target Specs
-                    adminCtx.fillStyle = "#10b981";
-                    adminCtx.font = "12px 'JetBrains Mono', monospace";
-                    adminCtx.fillText(`NODE ID: ${activeStreamsList[selectedStreamIndex]?.deviceId || 'N/A'}`, 25, 35);
-                    adminCtx.fillText(`STREAM STATUS: ENCRYPTED P2P`, 25, 55);
-                }
-            }
-
-            requestAnimationFrame(drawCanvasVisualizers);
+            selectedPiece = null;
+            validMoves = [];
         }
     </script>
 </body>
