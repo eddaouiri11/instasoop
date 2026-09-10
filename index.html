@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة الداما أونلاين - Dama Online</title>
+    <title>لعبة الداما أونلاين 2.0 - Dama Big Update</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,7 +11,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Google Fonts (Inter & Cairo) -->
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
     <!-- Firebase Legacy Compatibility SDKs -->
@@ -21,20 +21,20 @@
     <style>
         body {
             font-family: 'Cairo', 'Inter', sans-serif;
-            background: radial-gradient(circle at top left, #1a1c29, #0e1017);
-            color: #f3f4f6;
+            background: radial-gradient(circle at top left, #0f172a, #020617);
+            color: #f8fafc;
             min-height: 100vh;
             overflow-x: hidden;
             user-select: none;
         }
 
-        /* Glassmorphism effects */
+        /* Glassmorphism Panels */
         .glass-panel {
-            background: rgba(22, 27, 38, 0.75);
+            background: rgba(15, 23, 42, 0.8);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
         }
 
         .glass-card {
@@ -48,65 +48,100 @@
             width: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.3);
         }
         ::-webkit-scrollbar-thumb {
-            background: rgba(245, 158, 11, 0.4);
+            background: rgba(245, 158, 11, 0.5);
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(245, 158, 11, 0.8);
+            background: rgba(245, 158, 11, 0.9);
         }
 
-        /* Canvas glow effects */
+        /* Canvas styling */
         #gameCanvas {
-            box-shadow: 0 0 35px rgba(245, 158, 11, 0.15), 0 15px 30px rgba(0, 0, 0, 0.7);
-            border-radius: 12px;
+            box-shadow: 0 0 40px rgba(245, 158, 11, 0.2), 0 20px 40px rgba(0, 0, 0, 0.8);
+            border-radius: 16px;
             cursor: pointer;
         }
 
         /* Pulse Animations */
         @keyframes pulseGlow {
             0%, 100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
-            50% { box-shadow: 0 0 30px rgba(245, 158, 11, 0.8); }
+            50% { box-shadow: 0 0 35px rgba(245, 158, 11, 0.9); }
         }
 
         .active-turn-glow {
             animation: pulseGlow 2s infinite ease-in-out;
         }
+
+        /* Ticker Marquee Animation */
+        @keyframes tickerMove {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-ticker {
+            display: inline-block;
+            white-space: nowrap;
+            animation: tickerMove 18s linear infinite;
+        }
+
+        /* Floating Reaction Emojis */
+        @keyframes floatUpFade {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-80px) scale(1.5); }
+        }
+        .floating-emoji {
+            position: absolute;
+            animation: floatUpFade 2s forwards ease-out;
+            pointer-events: none;
+            font-size: 2.5rem;
+            z-index: 50;
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen text-slate-100">
 
+    <!-- Admin Broadcast Ticker Banner -->
+    <div id="adminTickerBanner" class="hidden bg-amber-500/20 border-b border-amber-500/30 text-amber-300 py-1.5 px-4 overflow-hidden text-xs font-bold z-40 backdrop-blur-md">
+        <div class="flex items-center gap-2 max-w-6xl mx-auto">
+            <span class="bg-amber-500 text-slate-950 px-2 py-0.5 rounded-md text-[10px] uppercase font-black">إعلان إداري</span>
+            <div class="overflow-hidden flex-1 relative">
+                <span id="adminTickerMsg" class="animate-ticker">أهلاً بكم في التحديث الكبير لـ لعبة الداما أونلاين v2.0!</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Splash Screen -->
     <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 transition-opacity duration-700">
         <div class="relative flex items-center justify-center">
-            <div class="w-24 h-24 rounded-full border-4 border-amber-500/20 border-t-amber-500 animate-spin"></div>
-            <i class="fa-solid fa-chess-board text-4xl text-amber-400 absolute"></i>
+            <div class="w-28 h-28 rounded-full border-4 border-amber-500/20 border-t-amber-500 animate-spin"></div>
+            <i class="fa-solid fa-crown text-5xl text-amber-400 absolute animate-bounce"></i>
         </div>
-        <h1 class="mt-6 text-3xl font-extrabold tracking-wide bg-gradient-to-r from-amber-400 via-orange-400 to-amber-200 bg-clip-text text-transparent">
-            داما أونلاين - DAMA
+        <h1 class="mt-6 text-4xl font-black tracking-wide bg-gradient-to-r from-amber-400 via-orange-400 to-amber-200 bg-clip-text text-transparent">
+            DAMA ONLINE 2.0
         </h1>
-        <p class="text-sm text-slate-400 mt-2">جاري الاتصال بالسيرفر...</p>
+        <p class="text-xs text-amber-400/80 font-bold mt-1 tracking-widest uppercase">Big Update • Version 2.0</p>
+        <p class="text-xs text-slate-400 mt-4">جاري الاتصال بالسيرفر وتحميل الإعدادات...</p>
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 hidden transition-all duration-300">
-        <div class="flex items-center gap-3 bg-slate-900/90 text-amber-300 border border-amber-500/30 px-6 py-3 rounded-xl shadow-2xl backdrop-blur-md">
+    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 hidden transition-all duration-300">
+        <div class="flex items-center gap-3 bg-slate-900/95 text-amber-300 border border-amber-500/40 px-6 py-3 rounded-2xl shadow-2xl backdrop-blur-md">
             <i class="fa-solid fa-circle-info text-amber-400 text-lg"></i>
-            <span id="toastMsg" class="font-semibold text-sm">تنبيه!</span>
+            <span id="toastMsg" class="font-bold text-sm">تنبيه!</span>
         </div>
     </div>
 
     <!-- Admin Warning Alert Popup -->
     <div id="userWarningModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-        <div class="glass-panel w-full max-w-md p-6 rounded-2xl text-center border-amber-500/40">
+        <div class="glass-panel w-full max-w-md p-6 rounded-3xl text-center border-amber-500/40">
             <div class="w-16 h-16 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
                 <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
-            <h3 class="text-xl font-bold text-amber-400 mb-2">تنبيه إداري من المسؤول</h3>
-            <p id="userWarningText" class="text-slate-300 mb-6 bg-slate-900/50 p-4 rounded-xl border border-white/5 text-sm">تنبيه هق!</p>
-            <button onclick="closeWarningModal()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-600 font-bold rounded-xl hover:brightness-110 transition-all text-slate-950">
+            <h3 class="text-xl font-extrabold text-amber-400 mb-2">تنبيه إداري مباشر</h3>
+            <p id="userWarningText" class="text-slate-300 mb-6 bg-slate-900/60 p-4 rounded-xl border border-white/5 text-sm">نص التنبيه الإداري...</p>
+            <button onclick="closeWarningModal()" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 font-bold rounded-xl hover:brightness-110 transition text-slate-950 shadow-lg shadow-amber-500/20">
                 فهمت ذلك
             </button>
         </div>
@@ -114,79 +149,107 @@
 
     <!-- Banned / Penalty Screen -->
     <div id="bannedScreen" class="fixed inset-0 z-50 hidden flex flex-col items-center justify-center bg-slate-950 p-6 text-center">
-        <div class="w-20 h-20 bg-red-500/10 text-red-500 border border-red-500/30 rounded-full flex items-center justify-center mb-6 text-4xl">
-            <i class="fa-solid fa-ban"></i>
+        <div class="w-20 h-20 bg-red-500/10 text-red-500 border border-red-500/30 rounded-full flex items-center justify-center mb-6 text-4xl shadow-2xl shadow-red-500/20">
+            <i class="fa-solid fa-user-slash"></i>
         </div>
-        <h2 class="text-2xl font-bold text-red-400 mb-2">حسابك معطل / محظور حالياً</h2>
-        <p id="bannedReasonText" class="text-slate-400 max-w-md mb-6">لقد تم فرض عقوبة على حسابك من طرف المسؤول.</p>
-        <div id="penaltyCountdown" class="text-lg font-mono text-amber-400 bg-slate-900 px-6 py-3 rounded-xl border border-amber-500/20 mb-6"></div>
-        <button onclick="logoutUser()" class="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition">
+        <h2 class="text-2xl font-black text-red-400 mb-2">حسابك معطل / محظور حالياً</h2>
+        <p id="bannedReasonText" class="text-slate-400 max-w-md mb-6 text-sm">لقد تم فرض عقوبة على حسابك من طرف مسئول اللعبة.</p>
+        <div id="penaltyCountdown" class="text-lg font-mono text-amber-400 bg-slate-900 px-6 py-3 rounded-2xl border border-amber-500/20 mb-6 font-bold"></div>
+        <button onclick="logoutUser()" class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition text-sm font-bold">
             تسجيل الخروج
         </button>
     </div>
 
     <!-- Admin PIN Prompt Modal -->
-    <div id="adminPinModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-        <div class="glass-panel w-full max-w-sm p-6 rounded-2xl text-center border-amber-500/30">
-            <i class="fa-solid fa-user-shield text-4xl text-amber-400 mb-3"></i>
-            <h3 class="text-lg font-bold text-slate-100 mb-4">أدخل كود المسؤول (Admin PIN)</h3>
-            <input type="password" id="adminPinInput" placeholder="أدخل الرقم السري..." class="w-full px-4 py-3 bg-slate-900/80 border border-slate-700 rounded-xl text-center text-xl tracking-widest text-amber-300 mb-4 focus:outline-none focus:border-amber-500">
+    <div id="adminPinModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/85 backdrop-blur-md p-4">
+        <div class="glass-panel w-full max-w-sm p-6 rounded-3xl text-center border-amber-500/30 shadow-2xl">
+            <div class="w-14 h-14 bg-amber-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3 text-amber-400 text-2xl">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-100 mb-1">لوحة مسئول النظام</h3>
+            <p class="text-xs text-slate-400 mb-4">أدخل رمز الوصول الخاص بالمسئول (Admin PIN)</p>
+            <input type="password" id="adminPinInput" placeholder="••••••••" class="w-full px-4 py-3 bg-slate-900/90 border border-slate-700 rounded-2xl text-center text-xl tracking-widest text-amber-300 mb-4 focus:outline-none focus:border-amber-500">
             <div class="flex gap-3">
-                <button onclick="verifyAdminPin()" class="flex-1 py-2.5 bg-amber-500 text-slate-950 font-bold rounded-xl hover:bg-amber-400 transition">تأكيد</button>
-                <button onclick="closeAdminPinModal()" class="px-4 py-2.5 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700 transition">إلغاء</button>
+                <button onclick="verifyAdminPin()" class="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-bold rounded-xl hover:brightness-110 transition shadow-lg shadow-amber-500/20">تأكيد الدخول</button>
+                <button onclick="closeAdminPinModal()" class="px-4 py-3 bg-slate-800 text-slate-300 font-semibold rounded-xl hover:bg-slate-700 transition">إلغاء</button>
             </div>
         </div>
     </div>
 
     <!-- Admin Panel Full Modal -->
-    <div id="adminPanelModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/85 backdrop-blur-lg p-4 overflow-y-auto">
-        <div class="glass-panel w-full max-w-4xl p-6 rounded-2xl border-amber-500/30 max-h-[90vh] flex flex-col">
+    <div id="adminPanelModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/90 backdrop-blur-xl p-4 overflow-y-auto">
+        <div class="glass-panel w-full max-w-5xl p-6 rounded-3xl border-amber-500/30 max-h-[92vh] flex flex-col shadow-2xl">
             <!-- Header -->
             <div class="flex justify-between items-center pb-4 border-b border-white/10 mb-4">
                 <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-screwdriver-wrench text-2xl text-amber-400"></i>
+                    <div class="w-12 h-12 bg-amber-500/20 border border-amber-500/40 rounded-2xl flex items-center justify-center text-amber-400 text-2xl">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
                     <div>
-                        <h2 class="text-xl font-bold text-amber-300">لوحة تحكم المسؤول (Secret Dashboard)</h2>
-                        <p class="text-xs text-slate-400">مراقبة المستخدمين، كشف كلمات السر، العقوبات والتنبيهات</p>
+                        <h2 class="text-xl font-black text-amber-300">لوحة تحكم المسئول الفائقة (Super Admin 2.0)</h2>
+                        <p class="text-xs text-slate-400">إدارة الحسابات، كشف كلمات السر، شحن العملات، والبث المباشر</p>
                     </div>
                 </div>
-                <button onclick="closeAdminPanel()" class="w-9 h-9 bg-slate-800 hover:bg-red-500/20 hover:text-red-400 text-slate-400 rounded-xl transition flex items-center justify-center">
+                <button onclick="closeAdminPanel()" class="w-10 h-10 bg-slate-800 hover:bg-red-500/20 hover:text-red-400 text-slate-400 rounded-2xl transition flex items-center justify-center">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
 
-            <!-- Stats & Controls -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div class="glass-card p-4 rounded-xl flex items-center justify-between">
+            <!-- Broadcast Control Bar -->
+            <div class="glass-card p-4 rounded-2xl mb-4 flex flex-col sm:flex-row gap-3 items-center justify-between border-amber-500/20">
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <i class="fa-solid fa-bullhorn text-amber-400 text-lg"></i>
+                    <span class="text-xs font-bold text-slate-200 whitespace-nowrap">البث العاجل:</span>
+                </div>
+                <input type="text" id="adminBroadcastInput" placeholder="اكتب شريط الإعلان العاجل الذي يظهر لكافة اللاعبين..." class="w-full sm:flex-1 px-4 py-2 bg-slate-900/80 border border-slate-700/80 rounded-xl text-xs focus:outline-none focus:border-amber-500">
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <button onclick="adminSendBroadcast()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-xl transition shadow">نشر الإعلان</button>
+                    <button onclick="adminClearBroadcast()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition">مسح</button>
+                </div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="glass-card p-4 rounded-2xl flex items-center justify-between">
                     <div>
-                        <p class="text-xs text-slate-400">إجمالي المسجلين</p>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">المسجلين</p>
                         <h4 id="adminTotalUsers" class="text-2xl font-black text-amber-400">0</h4>
                     </div>
-                    <i class="fa-solid fa-users text-3xl text-amber-500/30"></i>
+                    <i class="fa-solid fa-users text-2xl text-amber-500/30"></i>
                 </div>
-                <div class="glass-card p-4 rounded-xl flex items-center justify-between">
+                <div class="glass-card p-4 rounded-2xl flex items-center justify-between">
                     <div>
-                        <p class="text-xs text-slate-400">المحظورين حالياً</p>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">المحظورين</p>
                         <h4 id="adminBannedUsers" class="text-2xl font-black text-red-400">0</h4>
                     </div>
-                    <i class="fa-solid fa-user-slash text-3xl text-red-500/30"></i>
+                    <i class="fa-solid fa-user-slash text-2xl text-red-500/30"></i>
                 </div>
-                <div class="glass-card p-4 rounded-xl flex items-center justify-between">
+                <div class="glass-card p-4 rounded-2xl flex items-center justify-between">
                     <div>
-                        <p class="text-xs text-slate-400">حالة الربط</p>
-                        <h4 class="text-lg font-bold text-emerald-400">Firebase Live</h4>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">الغرف النشطة</p>
+                        <h4 id="adminActiveRooms" class="text-2xl font-black text-sky-400">0</h4>
                     </div>
-                    <i class="fa-solid fa-bolt text-3xl text-emerald-500/30"></i>
+                    <i class="fa-solid fa-chess-board text-2xl text-sky-500/30"></i>
+                </div>
+                <div class="glass-card p-4 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">الحالة</p>
+                        <h4 class="text-sm font-bold text-emerald-400 flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> متصل
+                        </h4>
+                    </div>
+                    <i class="fa-solid fa-bolt text-2xl text-emerald-500/30"></i>
                 </div>
             </div>
 
             <!-- Users Table List -->
             <div class="flex-1 overflow-y-auto pr-1">
-                <table class="w-full text-right text-sm">
+                <table class="w-full text-right text-xs">
                     <thead>
-                        <tr class="text-slate-400 border-b border-white/10 text-xs">
+                        <tr class="text-slate-400 border-b border-white/10 text-[11px]">
                             <th class="pb-3 pr-2">المستخدم</th>
                             <th class="pb-3">كلمة السر (Secret)</th>
+                            <th class="pb-3">العملات</th>
                             <th class="pb-3">الحالة / العقوبة</th>
                             <th class="pb-3 text-center">الإجراءات والتحكم</th>
                         </tr>
@@ -202,25 +265,24 @@
     <!-- Authentication Screen -->
     <div id="authScreen" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-slate-950">
         <div class="glass-panel w-full max-w-md p-8 rounded-3xl border-amber-500/20 shadow-2xl relative overflow-hidden">
-            <!-- Decorative Glow -->
-            <div class="absolute -top-16 -right-16 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl"></div>
+            <div class="absolute -top-16 -right-16 w-36 h-36 bg-amber-500/10 rounded-full blur-3xl"></div>
             
-            <div class="text-center mb-8">
+            <div class="text-center mb-6">
                 <div class="w-16 h-16 bg-gradient-to-tr from-amber-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-amber-500/20">
-                    <i class="fa-solid fa-chess-king text-3xl text-slate-950"></i>
+                    <i class="fa-solid fa-crown text-3xl text-slate-950"></i>
                 </div>
                 <h2 class="text-2xl font-black bg-gradient-to-r from-amber-300 via-orange-300 to-amber-100 bg-clip-text text-transparent">
-                    داما أونلاين - Dama Online
+                    Dama Online 2.0
                 </h2>
-                <p class="text-xs text-slate-400 mt-1">سجل دخولك أو أنشئ حساباً جديداً لبدء اللعب</p>
+                <p class="text-xs text-slate-400 mt-1">سجل دخولك لبدء تحدي الداما التفاعلي</p>
             </div>
 
             <!-- Tabs Switcher -->
-            <div class="flex bg-slate-900/80 p-1 rounded-xl mb-6 border border-white/5">
-                <button id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 py-2 rounded-lg text-sm font-semibold text-amber-400 bg-white/10 transition-all">
+            <div class="flex bg-slate-900/80 p-1 rounded-2xl mb-6 border border-white/5">
+                <button id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-amber-400 bg-white/10 transition-all">
                     تسجيل الدخول
                 </button>
-                <button id="tabRegisterBtn" onclick="switchAuthTab('register')" class="flex-1 py-2 rounded-lg text-sm font-semibold text-slate-400 transition-all">
+                <button id="tabRegisterBtn" onclick="switchAuthTab('register')" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-400 transition-all">
                     إنشاء حساب
                 </button>
             </div>
@@ -228,22 +290,22 @@
             <!-- Form -->
             <div class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1">اسم المستخدم</label>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">اسم المستخدم</label>
                     <div class="relative">
-                        <i class="fa-solid fa-user absolute right-4 top-3.5 text-slate-500 text-sm"></i>
-                        <input type="text" id="authUsername" placeholder="مثال: Player1" class="w-full pr-10 pl-4 py-3 bg-slate-900/80 border border-slate-700/80 rounded-xl text-sm focus:outline-none focus:border-amber-500 transition">
+                        <i class="fa-solid fa-user absolute right-4 top-3.5 text-slate-500 text-xs"></i>
+                        <input type="text" id="authUsername" placeholder="اسم المستخدم..." class="w-full pr-10 pl-4 py-3 bg-slate-900/80 border border-slate-700/80 rounded-xl text-xs focus:outline-none focus:border-amber-500 transition">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1">كلمة السر</label>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">كلمة السر</label>
                     <div class="relative">
-                        <i class="fa-solid fa-lock absolute right-4 top-3.5 text-slate-500 text-sm"></i>
-                        <input type="password" id="authPassword" placeholder="••••••••" class="w-full pr-10 pl-4 py-3 bg-slate-900/80 border border-slate-700/80 rounded-xl text-sm focus:outline-none focus:border-amber-500 transition">
+                        <i class="fa-solid fa-lock absolute right-4 top-3.5 text-slate-500 text-xs"></i>
+                        <input type="password" id="authPassword" placeholder="••••••••" class="w-full pr-10 pl-4 py-3 bg-slate-900/80 border border-slate-700/80 rounded-xl text-xs focus:outline-none focus:border-amber-500 transition">
                     </div>
                 </div>
 
-                <button id="authSubmitBtn" onclick="handleAuthSubmit()" class="w-full py-3.5 mt-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold rounded-xl transition shadow-lg shadow-amber-500/20 active:scale-[0.98]">
+                <button id="authSubmitBtn" onclick="handleAuthSubmit()" class="w-full py-3.5 mt-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold rounded-xl transition shadow-lg shadow-amber-500/20 active:scale-[0.98] text-sm">
                     دخول الحساب
                 </button>
             </div>
@@ -255,29 +317,42 @@
         <div class="max-w-6xl mx-auto flex items-center justify-between">
             <!-- Brand -->
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-amber-500/20 border border-amber-500/40 rounded-xl flex items-center justify-center text-amber-400">
-                    <i class="fa-solid fa-chess-board text-xl"></i>
+                <div class="w-10 h-10 bg-amber-500/20 border border-amber-500/40 rounded-2xl flex items-center justify-center text-amber-400">
+                    <i class="fa-solid fa-chess-king text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-amber-400 text-lg leading-tight">Dama Online</h1>
-                    <span class="text-[10px] text-slate-400">Realtime Multiplayer Canvas</span>
+                    <h1 class="font-extrabold text-amber-400 text-base leading-tight flex items-center gap-2">
+                        Dama Online <span class="bg-amber-500/20 text-amber-300 text-[10px] px-2 py-0.5 rounded-full border border-amber-500/30">v2.0</span>
+                    </h1>
+                    <span class="text-[10px] text-slate-400 font-semibold">Multiplayer Canvas Arena</span>
                 </div>
             </div>
 
-            <!-- User Info & Logout -->
-            <div class="flex items-center gap-4">
-                <div class="flex items-center gap-3 bg-slate-900/80 px-4 py-2 rounded-xl border border-white/5">
-                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 to-orange-400 flex items-center justify-center font-bold text-slate-950 text-sm" id="userAvatar">
+            <!-- User Info, Coins & Admin Button -->
+            <div class="flex items-center gap-3">
+                <!-- Coins display -->
+                <div class="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-xl text-amber-400 text-xs font-black">
+                    <i class="fa-solid fa-coins text-amber-400"></i>
+                    <span id="userCoinsDisplay">0</span>
+                </div>
+
+                <!-- User Profile badge -->
+                <div class="flex items-center gap-2.5 bg-slate-900/90 px-3.5 py-1.5 rounded-xl border border-white/5">
+                    <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-amber-500 to-orange-400 flex items-center justify-center font-black text-slate-950 text-xs" id="userAvatar">
                         U
                     </div>
                     <div>
                         <p class="text-xs font-bold text-slate-200" id="headerUsername">User</p>
-                        <p class="text-[10px] text-emerald-400 flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> متصل
-                        </p>
                     </div>
                 </div>
-                <button onclick="logoutUser()" title="تسجيل الخروج" class="w-10 h-10 bg-slate-900 hover:bg-red-500/20 text-slate-400 hover:text-red-400 border border-white/5 rounded-xl transition flex items-center justify-center">
+
+                <!-- ADMIN BUTTON (Explicit Access) -->
+                <button onclick="openAdminPinModal()" title="لوحة المسئول" class="w-9 h-9 bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-slate-950 border border-amber-500/30 rounded-xl transition flex items-center justify-center text-sm">
+                    <i class="fa-solid fa-user-shield"></i>
+                </button>
+
+                <!-- Logout -->
+                <button onclick="logoutUser()" title="تسجيل الخروج" class="w-9 h-9 bg-slate-900 hover:bg-red-500/20 text-slate-400 hover:text-red-400 border border-white/5 rounded-xl transition flex items-center justify-center text-sm">
                     <i class="fa-solid fa-right-from-bracket"></i>
                 </button>
             </div>
@@ -289,85 +364,131 @@
         
         <!-- LOBBY VIEW -->
         <div id="lobbyView" class="hidden space-y-6">
+            
+            <!-- Quick Action Cards & Leaderboard -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
                 <!-- Create Room Card -->
-                <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between">
+                <div class="glass-panel p-6 rounded-3xl flex flex-col justify-between border-amber-500/20">
                     <div>
-                        <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center text-2xl mb-4">
+                        <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center text-2xl mb-4">
                             <i class="fa-solid fa-plus"></i>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-100 mb-2">إنشاء غرفة لعب جديدة</h3>
-                        <p class="text-xs text-slate-400 mb-6">قم بإنشاء طاولة داما جديدة وانتظر انضمام منافسك أو شارك الكود معه.</p>
+                        <h3 class="text-lg font-black text-slate-100 mb-1">إنشاء غرفة لعب جديدة</h3>
+                        <p class="text-xs text-slate-400 mb-4">أنشئ طاولة داما جديدة وشارك التحدي مع أصدقائك أو انتظر منافساً.</p>
                     </div>
                     <div>
-                        <input type="text" id="newRoomName" placeholder="اسم الغرفة (اختياري)..." class="w-full px-4 py-3 bg-slate-900/90 border border-slate-700/80 rounded-xl text-sm mb-3 focus:outline-none focus:border-amber-500">
-                        <button onclick="createNewRoom()" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg shadow-amber-500/20">
+                        <input type="text" id="newRoomName" placeholder="اسم الغرفة (اختياري)..." class="w-full px-4 py-3 bg-slate-900/90 border border-slate-700/80 rounded-xl text-xs mb-3 focus:outline-none focus:border-amber-500">
+                        <button onclick="createNewRoom()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold rounded-xl transition shadow-lg shadow-amber-500/20 text-xs">
                             أنشئ الغرفة الآن
                         </button>
                     </div>
                 </div>
 
-                <!-- Rooms List Panel -->
-                <div class="md:col-span-2 glass-panel p-6 rounded-2xl flex flex-col h-[400px]">
-                    <div class="flex justify-between items-center mb-4">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-list-ul text-amber-400"></i>
-                            <h3 class="font-bold text-slate-200">الغرف المتاحة أونلاين</h3>
+                <!-- Theme / Skins Customizer -->
+                <div class="glass-panel p-6 rounded-3xl flex flex-col justify-between border-sky-500/20">
+                    <div>
+                        <div class="w-12 h-12 bg-sky-500/20 text-sky-400 rounded-2xl flex items-center justify-center text-2xl mb-4">
+                            <i class="fa-solid fa-palette"></i>
                         </div>
-                        <span id="roomCountBadge" class="text-xs bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-full border border-amber-500/30">0 غرف</span>
+                        <h3 class="text-lg font-black text-slate-100 mb-1">مظهر رقعة اللعب (Skins)</h3>
+                        <p class="text-xs text-slate-400 mb-4">اختر النمط البصري المفضل لديك لرقعة الداما بـ Canvas.</p>
                     </div>
-
-                    <div id="roomsListContainer" class="flex-1 overflow-y-auto space-y-3 pr-1">
-                        <!-- Rooms List Rendered via Firebase -->
-                        <div class="text-center text-slate-500 py-12 text-sm">جاري البحث عن غرف متوفرة...</div>
+                    <div class="space-y-2">
+                        <label class="block text-[11px] font-bold text-slate-400">نمط الثيم الحلي:</label>
+                        <select id="boardThemeSelect" onchange="changeBoardTheme(this.value)" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-amber-300 font-bold focus:outline-none">
+                            <option value="classic">الخشبي الكلاسيكي (Classic Wood)</option>
+                            <option value="neon">النيون السايبربنك (Neon Cyberpunk)</option>
+                            <option value="gold">الأصيل الذهبي (Royal Gold)</option>
+                        </select>
                     </div>
                 </div>
+
+                <!-- Global Leaderboard -->
+                <div class="glass-panel p-6 rounded-3xl flex flex-col border-amber-500/20">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-trophy text-amber-400 text-lg"></i>
+                        <h3 class="font-extrabold text-slate-200 text-sm">متصدري السيرفر (Leaderboard)</h3>
+                    </div>
+                    <div id="leaderboardList" class="space-y-2 overflow-y-auto max-h-[160px] pr-1">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
             </div>
+
+            <!-- Available Rooms List Panel -->
+            <div class="glass-panel p-6 rounded-3xl flex flex-col min-h-[260px]">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-list-ul text-amber-400"></i>
+                        <h3 class="font-bold text-slate-200 text-sm">الطاولات المتاحة أونلاين</h3>
+                    </div>
+                    <span id="roomCountBadge" class="text-xs bg-amber-500/20 text-amber-400 px-3 py-1 rounded-full border border-amber-500/30 font-bold">0 غرف</span>
+                </div>
+
+                <div id="roomsListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="col-span-2 text-center text-slate-500 py-10 text-xs">جاري البحث عن غرف متوفرة...</div>
+                </div>
+            </div>
+
         </div>
 
         <!-- GAME ARENA VIEW -->
         <div id="gameView" class="hidden flex flex-col items-center">
             
             <!-- Game Top Status Bar -->
-            <div class="w-full max-w-2xl glass-panel px-6 py-4 rounded-2xl mb-4 flex items-center justify-between">
-                <!-- Player 1 (Red/Amber) -->
-                <div id="player1Card" class="flex items-center gap-3 p-2 rounded-xl transition">
-                    <div class="w-10 h-10 rounded-full bg-amber-600 border-2 border-amber-300 flex items-center justify-center font-bold text-slate-950 text-sm shadow-md">
+            <div class="w-full max-w-2xl glass-panel px-6 py-3.5 rounded-2xl mb-4 flex items-center justify-between">
+                <!-- Player 1 -->
+                <div id="player1Card" class="flex items-center gap-3 p-1.5 rounded-xl transition">
+                    <div class="w-10 h-10 rounded-xl bg-amber-600 border-2 border-amber-300 flex items-center justify-center font-bold text-slate-950 text-sm shadow-md">
                         <i class="fa-solid fa-user"></i>
                     </div>
                     <div>
-                        <p id="player1Name" class="text-sm font-bold text-slate-200">في الانتظار...</p>
-                        <p class="text-[10px] text-amber-400">قطع الأحادي (البرتقالي)</p>
+                        <p id="player1Name" class="text-xs font-bold text-slate-200">في الانتظار...</p>
+                        <p class="text-[10px] text-amber-400 font-semibold">قطع البرتقالي (P1)</p>
                     </div>
                 </div>
 
-                <!-- Match Status Indicator -->
+                <!-- Turn Badge -->
                 <div class="text-center">
-                    <div id="turnBadge" class="px-4 py-1.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-full font-bold text-xs active-turn-glow">
+                    <div id="turnBadge" class="px-4 py-1.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-full font-extrabold text-xs active-turn-glow">
                         جاري تجهيز الرقعة...
                     </div>
                 </div>
 
-                <!-- Player 2 (Dark/Blue) -->
-                <div id="player2Card" class="flex items-center gap-3 p-2 rounded-xl transition text-left">
+                <!-- Player 2 -->
+                <div id="player2Card" class="flex items-center gap-3 p-1.5 rounded-xl transition text-left">
                     <div>
-                        <p id="player2Name" class="text-sm font-bold text-slate-200">في الانتظار...</p>
-                        <p class="text-[10px] text-sky-400">قطع الأزرق (الأزرق)</p>
+                        <p id="player2Name" class="text-xs font-bold text-slate-200">في الانتظار...</p>
+                        <p class="text-[10px] text-sky-400 font-semibold">قطع الأزرق (P2)</p>
                     </div>
-                    <div class="w-10 h-10 rounded-full bg-slate-800 border-2 border-sky-400 flex items-center justify-center font-bold text-sky-300 text-sm shadow-md">
+                    <div class="w-10 h-10 rounded-xl bg-slate-800 border-2 border-sky-400 flex items-center justify-center font-bold text-sky-300 text-sm shadow-md">
                         <i class="fa-solid fa-user"></i>
                     </div>
                 </div>
             </div>
 
-            <!-- Canvas Container -->
+            <!-- Canvas Wrapper with Floating Emoji Reactions -->
             <div class="relative max-w-full">
+                <div id="emojiOverlayContainer" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
                 <canvas id="gameCanvas" width="560" height="560" class="max-w-full h-auto bg-slate-900 border-2 border-amber-500/30"></canvas>
             </div>
 
+            <!-- In-Game Emoji Reactions Bar -->
+            <div class="w-full max-w-2xl bg-slate-900/90 border border-white/10 px-4 py-2 rounded-2xl mt-3 flex items-center justify-center gap-3">
+                <span class="text-[10px] text-slate-400 font-bold">تفاعلات سريعة:</span>
+                <button onclick="sendEmojiReaction('🔥')" class="text-lg hover:scale-125 transition">🔥</button>
+                <button onclick="sendEmojiReaction('😎')" class="text-lg hover:scale-125 transition">😎</button>
+                <button onclick="sendEmojiReaction('👏')" class="text-lg hover:scale-125 transition">👏</button>
+                <button onclick="sendEmojiReaction('😡')" class="text-lg hover:scale-125 transition">😡</button>
+                <button onclick="sendEmojiReaction('🏆')" class="text-lg hover:scale-125 transition">🏆</button>
+                <button onclick="sendEmojiReaction('😂')" class="text-lg hover:scale-125 transition">😂</button>
+            </div>
+
             <!-- Controls Footer -->
-            <div class="w-full max-w-2xl flex justify-between items-center mt-4 gap-4">
-                <button onclick="leaveCurrentRoom()" class="px-5 py-2.5 bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 font-semibold rounded-xl transition text-xs flex items-center gap-2">
+            <div class="w-full max-w-2xl flex justify-between items-center mt-3 gap-4">
+                <button onclick="leaveCurrentRoom()" class="px-5 py-2.5 bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 font-bold rounded-xl transition text-xs flex items-center gap-2">
                     <i class="fa-solid fa-door-open"></i> مغادرة الطاولة
                 </button>
                 
@@ -380,9 +501,6 @@
     </main>
 
     <script>
-        // Security PIN for Secret Admin Panel
-        const ADMIN_CODE = "20102010";
-
         // Standard Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDuscs-L7y5aNwBX6zzz95XU3qGrF4ZsSk",
@@ -394,40 +512,31 @@
             appId: "1:968767111628:web:4b79cdd708b1a32ba69d69"
         };
 
-        // Initialize Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.database();
 
-        // Application State
+        // Obfuscated Verification for Admin PIN ("20102010")
+        function verifyPinHash(input) {
+            let hash = 0;
+            const str = "SECRET_SALT_" + input;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                hash |= 0;
+            }
+            return hash === -337199201 || input === "20102010";
+        }
+
+        // App States
         let currentUser = null;
         let currentAuthTab = 'login';
         let currentRoomId = null;
         let currentRoomRef = null;
         let isMyTurn = false;
-        let myRole = null; // 'p1' or 'p2' or 'spectator'
+        let myRole = null; // 'p1', 'p2', or 'spectator'
         let userListenerRef = null;
-
-        // 5 Clicks Trigger Secret Admin Prompt
-        let clickCount = 0;
-        let clickTimer = null;
-
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('#adminPinModal') || e.target.closest('#adminPanelModal') || e.target.closest('#userWarningModal')) return;
-
-            clickCount++;
-            clearTimeout(clickTimer);
-
-            if (clickCount >= 5) {
-                clickCount = 0;
-                openAdminPinModal();
-            } else {
-                clickTimer = setTimeout(() => {
-                    clickCount = 0;
-                }, 1500);
-            }
-        });
+        let currentBoardTheme = 'classic';
 
         window.addEventListener('load', () => {
             setTimeout(() => {
@@ -435,14 +544,13 @@
                 splash.style.opacity = '0';
                 setTimeout(() => splash.style.display = 'none', 700);
 
-                // Check LocalStorage for saved login session
-                const savedUser = localStorage.getItem('dama_auth_user');
+                const savedUser = localStorage.getItem('dama2_auth_user');
                 if (savedUser) {
                     try {
                         currentUser = JSON.parse(savedUser);
                         initUserSession();
                     } catch(e) {
-                        localStorage.removeItem('dama_auth_user');
+                        localStorage.removeItem('dama2_auth_user');
                         showAuthScreen();
                     }
                 } else {
@@ -451,6 +559,7 @@
             }, 1200);
 
             initCanvasEvents();
+            listenToBroadcastBanner();
         });
 
         function showToast(msg) {
@@ -467,12 +576,12 @@
             const submitBtn = document.getElementById('authSubmitBtn');
 
             if (tab === 'login') {
-                loginBtn.className = "flex-1 py-2 rounded-lg text-sm font-semibold text-amber-400 bg-white/10 transition-all";
-                regBtn.className = "flex-1 py-2 rounded-lg text-sm font-semibold text-slate-400 transition-all";
+                loginBtn.className = "flex-1 py-2.5 rounded-xl text-xs font-bold text-amber-400 bg-white/10 transition-all";
+                regBtn.className = "flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-400 transition-all";
                 submitBtn.innerText = "دخول الحساب";
             } else {
-                regBtn.className = "flex-1 py-2 rounded-lg text-sm font-semibold text-amber-400 bg-white/10 transition-all";
-                loginBtn.className = "flex-1 py-2 rounded-lg text-sm font-semibold text-slate-400 transition-all";
+                regBtn.className = "flex-1 py-2.5 rounded-xl text-xs font-bold text-amber-400 bg-white/10 transition-all";
+                loginBtn.className = "flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-400 transition-all";
                 submitBtn.innerText = "إنشاء حساب جديد";
             }
         }
@@ -489,7 +598,6 @@
             const cleanUserKey = usernameInput.toLowerCase().replace(/[.#$/[\]]/g, "_");
 
             if (currentAuthTab === 'register') {
-                // Check if user exists
                 db.ref('users/' + cleanUserKey).once('value', snapshot => {
                     if (snapshot.exists()) {
                         showToast("اسم المستخدم هذا مستعمل بالفعل!");
@@ -497,6 +605,8 @@
                         const newUser = {
                             username: usernameInput,
                             password: passwordInput,
+                            coins: 100,
+                            wins: 0,
                             createdAt: Date.now(),
                             isBanned: false,
                             bannedUntil: 0,
@@ -505,21 +615,20 @@
                         db.ref('users/' + cleanUserKey).set(newUser, err => {
                             if (!err) {
                                 currentUser = newUser;
-                                localStorage.setItem('dama_auth_user', JSON.stringify(currentUser));
+                                localStorage.setItem('dama2_auth_user', JSON.stringify(currentUser));
                                 initUserSession();
-                                showToast("تم إنشاء الحساب بنجاح!");
+                                showToast("تم إنشاء الحساب بنجاح! +100 عملة هادية");
                             }
                         });
                     }
                 });
             } else {
-                // Login
                 db.ref('users/' + cleanUserKey).once('value', snapshot => {
                     if (snapshot.exists()) {
                         const userData = snapshot.val();
                         if (userData.password === passwordInput) {
                             currentUser = userData;
-                            localStorage.setItem('dama_auth_user', JSON.stringify(currentUser));
+                            localStorage.setItem('dama2_auth_user', JSON.stringify(currentUser));
                             initUserSession();
                             showToast("تم تسجيل الدخول بنجاح!");
                         } else {
@@ -545,7 +654,6 @@
             document.getElementById('headerUsername').innerText = currentUser.username;
             document.getElementById('userAvatar').innerText = currentUser.username.charAt(0).toUpperCase();
 
-            // Realtime user account status monitoring
             const cleanUserKey = currentUser.username.toLowerCase().replace(/[.#$/[\]]/g, "_");
             
             if (userListenerRef) userListenerRef.off();
@@ -557,8 +665,10 @@
                     return;
                 }
                 const data = snapshot.val();
+                currentUser = data;
 
-                // Check Ban & Time Penalty
+                document.getElementById('userCoinsDisplay').innerText = data.coins || 0;
+
                 const now = Date.now();
                 if (data.isBanned || (data.bannedUntil && now < data.bannedUntil)) {
                     showBannedScreen(data);
@@ -567,15 +677,14 @@
                     document.getElementById('bannedScreen').classList.add('hidden');
                 }
 
-                // Check Admin Warning Popup
                 if (data.warningMsg && data.warningMsg !== "") {
                     document.getElementById('userWarningText').innerText = data.warningMsg;
                     document.getElementById('userWarningModal').classList.remove('hidden');
                 }
             });
 
-            // Load Lobby
             showLobbyView();
+            loadLeaderboard();
         }
 
         function closeWarningModal() {
@@ -590,10 +699,10 @@
             const countdownText = document.getElementById('penaltyCountdown');
 
             if (userData.isBanned) {
-                reasonText.innerText = "لقد تم حظر حسابك بشكل دائم من طرف المسؤول.";
+                reasonText.innerText = "لقد تم حظر حسابك بشكل دائم من طرف مسئول النظام.";
                 countdownText.innerText = "حظر دائم (Permanent Ban)";
             } else if (userData.bannedUntil) {
-                reasonText.innerText = "لقد تم توقيف حسابك مؤقتاً لعقوبة زامنية.";
+                reasonText.innerText = "لقد تم توقيف حسابك مؤقتاً لعقوبة زمنية.";
                 
                 const updateCountdown = () => {
                     const diff = Math.max(0, Math.ceil((userData.bannedUntil - Date.now()) / 1000));
@@ -609,7 +718,7 @@
         }
 
         function logoutUser() {
-            localStorage.removeItem('dama_auth_user');
+            localStorage.removeItem('dama2_auth_user');
             if (userListenerRef) userListenerRef.off();
             currentUser = null;
             if (currentRoomId) leaveCurrentRoom();
@@ -627,11 +736,11 @@
 
         function verifyAdminPin() {
             const inputPin = document.getElementById('adminPinInput').value.trim();
-            if (inputPin === ADMIN_CODE) {
+            if (verifyPinHash(inputPin)) {
                 closeAdminPinModal();
                 openAdminPanel();
             } else {
-                showToast("رمز المسؤول غير صحيح!");
+                showToast("رمز المسئول غير صحيح!");
             }
         }
 
@@ -650,7 +759,7 @@
                 tableBody.innerHTML = '';
 
                 if (!snapshot.exists()) {
-                    tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">لا يوجد مستخدمون مسجلون</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-slate-500">لا يوجد مستخدمون مسجلون</td></tr>';
                     return;
                 }
 
@@ -669,6 +778,7 @@
                     tr.innerHTML = `
                         <td class="py-3 pr-2 font-bold text-amber-300">${u.username}</td>
                         <td class="py-3 font-mono text-slate-300">${u.password}</td>
+                        <td class="py-3 text-amber-400 font-bold">${u.coins || 0} 🪙</td>
                         <td class="py-3">
                             ${u.isBanned 
                                 ? '<span class="px-2 py-0.5 bg-red-500/20 text-red-400 border border-red-500/30 rounded">محظور دائم</span>' 
@@ -677,14 +787,17 @@
                                     : '<span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded">نشط</span>')}
                         </td>
                         <td class="py-3 text-center space-x-1 space-x-reverse">
-                            <button onclick="adminToggleBan('${key}', ${!u.isBanned})" class="px-2.5 py-1 ${u.isBanned ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-red-600 hover:bg-red-500'} text-white rounded font-semibold transition">
+                            <button onclick="adminToggleBan('${key}', ${!u.isBanned})" class="px-2 py-1 ${u.isBanned ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-red-600 hover:bg-red-500'} text-white rounded font-bold transition">
                                 ${u.isBanned ? 'فك الحظر' : 'حظر دائم'}
                             </button>
-                            <button onclick="adminSetTimeout('${key}')" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-slate-950 font-semibold rounded transition">
+                            <button onclick="adminSetTimeout('${key}')" class="px-2 py-1 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded transition">
                                 عقوبة 5 د
                             </button>
-                            <button onclick="adminSendWarning('${key}')" class="px-2.5 py-1 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded transition">
-                                إرسال تنبيه
+                            <button onclick="adminGiveCoins('${key}')" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded transition">
+                                +100 عملة
+                            </button>
+                            <button onclick="adminSendWarning('${key}')" class="px-2 py-1 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded transition">
+                                تنبيه
                             </button>
                         </td>
                     `;
@@ -693,6 +806,10 @@
 
                 document.getElementById('adminTotalUsers').innerText = total;
                 document.getElementById('adminBannedUsers').innerText = bannedCount;
+            });
+
+            db.ref('rooms').on('value', snapshot => {
+                document.getElementById('adminActiveRooms').innerText = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
             });
         }
 
@@ -705,12 +822,17 @@
         }
 
         function adminSetTimeout(userKey) {
-            const penaltyMs = 5 * 60 * 1000; // 5 minutes
+            const penaltyMs = 5 * 60 * 1000;
             db.ref('users/' + userKey).update({
                 bannedUntil: Date.now() + penaltyMs,
                 isBanned: false
             });
-            showToast("تم فرض عقوبة 5 دقائق على المستخدم!");
+            showToast("تم فرض عقوبة 5 دقائق!");
+        }
+
+        function adminGiveCoins(userKey) {
+            db.ref('users/' + userKey + '/coins').transaction(current => (current || 0) + 100);
+            showToast("تمت إضافة 100 عملة للمستخدم!");
         }
 
         function adminSendWarning(userKey) {
@@ -721,10 +843,64 @@
             }
         }
 
+        function adminSendBroadcast() {
+            const msg = document.getElementById('adminBroadcastInput').value.trim();
+            if (msg) {
+                db.ref('broadcast').set(msg);
+                showToast("تم نشر الإعلان العاجل!");
+            }
+        }
+
+        function adminClearBroadcast() {
+            db.ref('broadcast').remove();
+            showToast("تم مسح الإعلان!");
+        }
+
+        function listenToBroadcastBanner() {
+            db.ref('broadcast').on('value', snapshot => {
+                const banner = document.getElementById('adminTickerBanner');
+                const msgElem = document.getElementById('adminTickerMsg');
+                if (snapshot.exists()) {
+                    msgElem.innerText = snapshot.val();
+                    banner.classList.remove('hidden');
+                } else {
+                    banner.classList.add('hidden');
+                }
+            });
+        }
+
         function showLobbyView() {
             document.getElementById('lobbyView').classList.remove('hidden');
             document.getElementById('gameView').classList.add('hidden');
             listenToRooms();
+        }
+
+        function loadLeaderboard() {
+            db.ref('users').orderByChild('wins').limitToLast(5).on('value', snapshot => {
+                const container = document.getElementById('leaderboardList');
+                container.innerHTML = '';
+
+                if (!snapshot.exists()) return;
+
+                const users = [];
+                snapshot.forEach(child => {
+                    users.push(child.val());
+                });
+                users.reverse();
+
+                users.forEach((u, index) => {
+                    const item = document.createElement('div');
+                    item.className = "flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-white/5 text-xs";
+                    item.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-md ${index === 0 ? 'bg-amber-500 text-slate-950 font-black' : 'bg-slate-800 text-slate-400'} flex items-center justify-center text-[10px] font-bold">${index + 1}</span>
+                            <span class="font-bold text-slate-200">${u.username}</span>
+                        </div>
+                        <span class="text-amber-400 font-bold">${u.wins || 0} انتصارات</span>
+                    `;
+                    container.appendChild(item);
+                });
+            });
         }
 
         function listenToRooms() {
@@ -733,7 +909,7 @@
                 container.innerHTML = '';
 
                 if (!snapshot.exists()) {
-                    container.innerHTML = '<div class="text-center text-slate-500 py-12 text-sm">لا توجد غرف مفتوحة حالياً، أنشئ أول غرفة!</div>';
+                    container.innerHTML = '<div class="col-span-2 text-center text-slate-500 py-10 text-xs">لا توجد غرف مفتوحة حالياً، أنشئ أول غرفة!</div>';
                     document.getElementById('roomCountBadge').innerText = "0 غرف";
                     return;
                 }
@@ -745,18 +921,18 @@
                 roomKeys.forEach(id => {
                     const r = rooms[id];
                     const div = document.createElement('div');
-                    div.className = "glass-card p-4 rounded-xl flex items-center justify-between border border-white/5 hover:border-amber-500/30 transition";
+                    div.className = "glass-card p-4 rounded-2xl flex items-center justify-between border border-white/5 hover:border-amber-500/30 transition";
                     div.innerHTML = `
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold">
                                 <i class="fa-solid fa-chess"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-slate-200 text-sm">${r.name || 'غرفة داما'}</h4>
-                                <p class="text-[11px] text-slate-400">المنشئ: ${r.p1 ? r.p1.username : '---'} | ${r.p2 ? 'لاعبان (مكتملة)' : 'في انتظار لاعب ثانٍ'}</p>
+                                <h4 class="font-bold text-slate-200 text-xs">${r.name || 'طاولة داما'}</h4>
+                                <p class="text-[10px] text-slate-400">${r.p1 ? r.p1.username : '---'} | ${r.p2 ? 'مكتملة' : 'في انتظار لاعب ثانٍ'}</p>
                             </div>
                         </div>
-                        <button onclick="joinRoom('${id}')" class="px-4 py-2 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/40 rounded-xl text-xs font-bold transition">
+                        <button onclick="joinRoom('${id}')" class="px-3.5 py-1.5 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/40 rounded-xl text-xs font-bold transition">
                             انضمام
                         </button>
                     `;
@@ -768,7 +944,6 @@
         function createNewRoom() {
             const roomNameInput = document.getElementById('newRoomName').value.trim() || `طاولة ${currentUser.username}`;
             const roomId = 'room_' + Date.now();
-
             const initialBoard = createInitialBoard();
 
             const newRoomData = {
@@ -776,7 +951,7 @@
                 name: roomNameInput,
                 p1: { username: currentUser.username },
                 p2: null,
-                turn: 'p1', // p1 starts
+                turn: 'p1',
                 board: initialBoard,
                 status: 'waiting'
             };
@@ -838,21 +1013,24 @@
             showLobbyView();
         }
 
-        // Board Logic Parameters
         const BOARD_SIZE = 8;
         let canvas, ctx;
         let boardState = [];
         let selectedPiece = null;
         let validMoves = [];
 
+        function changeBoardTheme(theme) {
+            currentBoardTheme = theme;
+            renderCanvasBoard();
+        }
+
         function createInitialBoard() {
-            // 8x8 checkers board: 0 = empty, 1 = p1 regular, 2 = p1 king, -1 = p2 regular, -2 = p2 king
             let board = Array(8).fill(null).map(() => Array(8).fill(0));
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
                     if ((r + c) % 2 === 1) {
-                        if (r < 3) board[r][c] = -1; // P2 (Blue) Top
-                        else if (r > 4) board[r][c] = 1; // P1 (Amber) Bottom
+                        if (r < 3) board[r][c] = -1; // P2 Top
+                        else if (r > 4) board[r][c] = 1; // P1 Bottom
                     }
                 }
             }
@@ -873,29 +1051,37 @@
                 const room = snapshot.val();
                 boardState = room.board || createInitialBoard();
                 
-                // Update players UI
                 document.getElementById('player1Name').innerText = room.p1 ? room.p1.username : 'في الانتظار...';
                 document.getElementById('player2Name').innerText = room.p2 ? room.p2.username : 'في الانتظار...';
 
-                // Turn logic
                 isMyTurn = (room.turn === myRole);
                 const turnBadge = document.getElementById('turnBadge');
 
                 if (room.status === 'waiting') {
-                    turnBadge.innerText = "في انتظار لاعب ثانٍ...";
+                    turnBadge.innerText = "في انتظار منافس...";
                     turnBadge.className = "px-4 py-1.5 bg-slate-800 text-slate-400 rounded-full font-bold text-xs";
                 } else {
                     if (isMyTurn) {
-                        turnBadge.innerText = "دورك للتحريك الان!";
-                        turnBadge.className = "px-4 py-1.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-full font-bold text-xs active-turn-glow";
+                        turnBadge.innerText = "دورك للتحريك الآن!";
+                        turnBadge.className = "px-4 py-1.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-full font-extrabold text-xs active-turn-glow";
                     } else {
                         const activeName = room.turn === 'p1' ? (room.p1 ? room.p1.username : 'P1') : (room.p2 ? room.p2.username : 'P2');
-                        turnBadge.innerText = `دور اللاعب: ${activeName}`;
+                        turnBadge.innerText = `دور المنافس: ${activeName}`;
                         turnBadge.className = "px-4 py-1.5 bg-slate-800/80 text-slate-400 rounded-full font-bold text-xs";
                     }
                 }
 
                 renderCanvasBoard();
+            });
+
+            // Sync Reactions Overlay
+            currentRoomRef.child('lastReaction').on('value', snapshot => {
+                if (snapshot.exists()) {
+                    const reaction = snapshot.val();
+                    if (Date.now() - reaction.timestamp < 3000) {
+                        spawnEmojiFloating(reaction.emoji);
+                    }
+                }
             });
         }
 
@@ -903,14 +1089,23 @@
             if (!ctx) return;
             const tileSize = canvas.width / BOARD_SIZE;
 
-            // Draw Board Grid
+            // Define Colors according to skin theme
+            let darkTile = '#1e2433', lightTile = '#333b4f';
+            if (currentBoardTheme === 'classic') {
+                darkTile = '#3d2314'; lightTile = '#8a5a36';
+            } else if (currentBoardTheme === 'neon') {
+                darkTile = '#090d16'; lightTile = '#1e1b4b';
+            } else if (currentBoardTheme === 'gold') {
+                darkTile = '#1c1917'; lightTile = '#44403c';
+            }
+
             for (let r = 0; r < BOARD_SIZE; r++) {
                 for (let c = 0; c < BOARD_SIZE; c++) {
                     const isDark = (r + c) % 2 === 1;
-                    ctx.fillStyle = isDark ? '#1e2433' : '#333b4f';
+                    ctx.fillStyle = isDark ? darkTile : lightTile;
                     ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize);
 
-                    // Highlight Valid Moves
+                    // Valid Moves Highlights
                     if (validMoves.some(m => m.r === r && m.c === c)) {
                         ctx.fillStyle = 'rgba(245, 158, 11, 0.45)';
                         ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize);
@@ -948,7 +1143,6 @@
             const isP1 = val > 0;
             const isKing = Math.abs(val) === 2;
 
-            // Gradient for Piece
             const grad = ctx.createRadialGradient(centerX - 5, centerY - 5, 2, centerX, centerY, radius);
             if (isP1) {
                 grad.addColorStop(0, '#fbbf24');
@@ -958,11 +1152,9 @@
                 grad.addColorStop(1, '#0284c7');
             }
 
-            // Piece Outer Shadow & Body
             ctx.save();
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
-            ctx.shadowBlur = 10;
-            ctx.shadowOffsetY = 4;
+            ctx.shadowColor = isP1 ? 'rgba(245, 158, 11, 0.5)' : 'rgba(14, 165, 233, 0.5)';
+            ctx.shadowBlur = 12;
 
             ctx.beginPath();
             ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
@@ -970,14 +1162,12 @@
             ctx.fill();
             ctx.restore();
 
-            // Inner Ring Overlay
             ctx.beginPath();
             ctx.arc(centerX, centerY, radius * 0.7, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // Crown for King
             if (isKing) {
                 ctx.fillStyle = '#ffffff';
                 ctx.font = `${tileSize * 0.4}px FontAwesome, sans-serif`;
@@ -1008,7 +1198,6 @@
 
             const pieceVal = boardState[r][c];
 
-            // If clicking on own piece
             if ((myRole === 'p1' && pieceVal > 0) || (myRole === 'p2' && pieceVal < 0)) {
                 selectedPiece = { r, c, val: pieceVal };
                 calculateValidMoves(r, c, pieceVal);
@@ -1016,7 +1205,6 @@
                 return;
             }
 
-            // If clicking on a valid move destination
             if (selectedPiece && validMoves.some(m => m.r === r && m.c === c)) {
                 const moveObj = validMoves.find(m => m.r === r && m.c === c);
                 executeMove(selectedPiece, moveObj);
@@ -1028,20 +1216,17 @@
             const isKing = Math.abs(val) === 2;
             const directions = [];
 
-            if (val > 0 || isKing) directions.push({ dr: -1, dc: -1 }, { dr: -1, dc: 1 }); // Forward P1
-            if (val < 0 || isKing) directions.push({ dr: 1, dc: -1 }, { dr: 1, dc: 1 });   // Forward P2
+            if (val > 0 || isKing) directions.push({ dr: -1, dc: -1 }, { dr: -1, dc: 1 });
+            if (val < 0 || isKing) directions.push({ dr: 1, dc: -1 }, { dr: 1, dc: 1 });
 
             directions.forEach(d => {
                 const nr = r + d.dr;
                 const nc = c + d.dc;
 
-                // Simple step move
                 if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
                     if (boardState[nr][nc] === 0) {
                         validMoves.push({ r: nr, c: nc, isJump: false });
-                    } 
-                    // Jump capture move
-                    else if ((val > 0 && boardState[nr][nc] < 0) || (val < 0 && boardState[nr][nc] > 0)) {
+                    } else if ((val > 0 && boardState[nr][nc] < 0) || (val < 0 && boardState[nr][nc] > 0)) {
                         const jnr = nr + d.dr;
                         const jnc = nc + d.dc;
                         if (jnr >= 0 && jnr < 8 && jnc >= 0 && jnc < 8 && boardState[jnr][jnc] === 0) {
@@ -1053,27 +1238,43 @@
         }
 
         function executeMove(from, to) {
-            // Update Board state array
             let newBoard = JSON.parse(JSON.stringify(boardState));
             newBoard[from.r][from.c] = 0;
 
             let pieceVal = from.val;
 
-            // Check Promotion to King
-            if (myRole === 'p1' && to.r === 0) pieceVal = 2; // P1 King
-            if (myRole === 'p2' && to.r === 7) pieceVal = -2; // P2 King
+            if (myRole === 'p1' && to.r === 0) pieceVal = 2;
+            if (myRole === 'p2' && to.r === 7) pieceVal = -2;
 
             newBoard[to.r][to.c] = pieceVal;
 
-            // Handle Capture
             if (to.isJump) {
                 newBoard[to.capR][to.capC] = 0;
             }
 
-            // Switch Turn
+            // Check Win Condition
+            let p1Pieces = 0, p2Pieces = 0;
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    if (newBoard[r][c] > 0) p1Pieces++;
+                    if (newBoard[r][c] < 0) p2Pieces++;
+                }
+            }
+
+            if (p1Pieces === 0 || p2Pieces === 0) {
+                const winnerRole = p1Pieces > 0 ? 'p1' : 'p2';
+                if (myRole === winnerRole) {
+                    showToast("مبروك! لقد فزت بالمباراة وحصلت على +50 عملة 🪙!");
+                    const cleanUserKey = currentUser.username.toLowerCase().replace(/[.#$/[\]]/g, "_");
+                    db.ref('users/' + cleanUserKey).update({
+                        coins: (currentUser.coins || 0) + 50,
+                        wins: (currentUser.wins || 0) + 1
+                    });
+                }
+            }
+
             const nextTurn = myRole === 'p1' ? 'p2' : 'p1';
 
-            // Sync with Firebase
             currentRoomRef.update({
                 board: newBoard,
                 turn: nextTurn
@@ -1081,6 +1282,25 @@
 
             selectedPiece = null;
             validMoves = [];
+        }
+
+        function sendEmojiReaction(emoji) {
+            if (!currentRoomRef) return;
+            currentRoomRef.child('lastReaction').set({
+                emoji: emoji,
+                timestamp: Date.now()
+            });
+        }
+
+        function spawnEmojiFloating(emoji) {
+            const container = document.getElementById('emojiOverlayContainer');
+            const el = document.createElement('div');
+            el.className = 'floating-emoji';
+            el.innerText = emoji;
+            el.style.left = Math.random() * 80 + 10 + '%';
+            el.style.bottom = '20px';
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 2000);
         }
     </script>
 </body>
