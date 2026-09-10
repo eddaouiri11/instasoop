@@ -2,8 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة الداما أونلاين 2.0 - Dama Big Update</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لعبة الداما أونلاين v3.0 - Dama Canvas Edition</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,35 +12,45 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
 
     <!-- Firebase Legacy Compatibility SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
+        * {
+            box-sizing: border-box;
+            touch-action: manipulation;
+        }
+
         body {
-            font-family: 'Cairo', 'Inter', sans-serif;
-            background: radial-gradient(circle at top left, #0f172a, #020617);
+            font-family: 'Cairo', sans-serif;
+            background: radial-gradient(circle at 50% 20%, #1e1b4b, #090d16 80%);
             color: #f8fafc;
             min-height: 100vh;
             overflow-x: hidden;
             user-select: none;
         }
 
-        /* Glassmorphism Panels */
+        /* Glassmorphism Styling 3.0 */
         .glass-panel {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         }
 
         .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
         }
 
         /* Custom Scrollbar */
@@ -48,24 +58,25 @@
             width: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.2);
         }
         ::-webkit-scrollbar-thumb {
             background: rgba(245, 158, 11, 0.5);
-            border-radius: 4px;
+            border-radius: 999px;
         }
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(245, 158, 11, 0.9);
         }
 
-        /* Canvas styling */
+        /* Canvas Styles */
         #gameCanvas {
-            box-shadow: 0 0 40px rgba(245, 158, 11, 0.2), 0 20px 40px rgba(0, 0, 0, 0.8);
-            border-radius: 16px;
+            box-shadow: 0 0 50px rgba(245, 158, 11, 0.25), 0 25px 50px rgba(0, 0, 0, 0.9);
+            border-radius: 20px;
             cursor: pointer;
+            touch-action: none;
         }
 
-        /* Pulse Animations */
+        /* Glow & Pulse */
         @keyframes pulseGlow {
             0%, 100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
             50% { box-shadow: 0 0 35px rgba(245, 158, 11, 0.9); }
@@ -83,31 +94,35 @@
         .animate-ticker {
             display: inline-block;
             white-space: nowrap;
-            animation: tickerMove 18s linear infinite;
+            animation: tickerMove 20s linear infinite;
         }
 
         /* Floating Reaction Emojis */
         @keyframes floatUpFade {
             0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-80px) scale(1.5); }
+            100% { opacity: 0; transform: translateY(-100px) scale(1.6); }
         }
         .floating-emoji {
             position: absolute;
-            animation: floatUpFade 2s forwards ease-out;
+            animation: floatUpFade 2.2s forwards cubic-bezier(0.1, 0.8, 0.3, 1);
             pointer-events: none;
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             z-index: 50;
+        }
+
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
         }
     </style>
 </head>
 <body class="flex flex-col min-h-screen text-slate-100">
 
     <!-- Admin Broadcast Ticker Banner -->
-    <div id="adminTickerBanner" class="hidden bg-amber-500/20 border-b border-amber-500/30 text-amber-300 py-1.5 px-4 overflow-hidden text-xs font-bold z-40 backdrop-blur-md">
+    <div id="adminTickerBanner" class="hidden bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 border-b border-amber-500/30 text-amber-300 py-1.5 px-4 overflow-hidden text-xs font-bold z-40 backdrop-blur-md">
         <div class="flex items-center gap-2 max-w-6xl mx-auto">
-            <span class="bg-amber-500 text-slate-950 px-2 py-0.5 rounded-md text-[10px] uppercase font-black">إعلان إداري</span>
+            <span class="bg-amber-500 text-slate-950 px-2 py-0.5 rounded-md text-[10px] uppercase font-black">إعلان عاجل 3.0</span>
             <div class="overflow-hidden flex-1 relative">
-                <span id="adminTickerMsg" class="animate-ticker">أهلاً بكم في التحديث الكبير لـ لعبة الداما أونلاين v2.0!</span>
+                <span id="adminTickerMsg" class="animate-ticker">مرحباً بكم في الإطلاق الرسمي لـ لعبة الداما أونلاين v3.0 HD Canvas!</span>
             </div>
         </div>
     </div>
@@ -115,20 +130,20 @@
     <!-- Splash Screen -->
     <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 transition-opacity duration-700">
         <div class="relative flex items-center justify-center">
-            <div class="w-28 h-28 rounded-full border-4 border-amber-500/20 border-t-amber-500 animate-spin"></div>
-            <i class="fa-solid fa-crown text-5xl text-amber-400 absolute animate-bounce"></i>
+            <div class="w-32 h-32 rounded-full border-4 border-amber-500/20 border-t-amber-500 animate-spin"></div>
+            <i class="fa-solid fa-crown text-6xl text-amber-400 absolute animate-bounce"></i>
         </div>
-        <h1 class="mt-6 text-4xl font-black tracking-wide bg-gradient-to-r from-amber-400 via-orange-400 to-amber-200 bg-clip-text text-transparent">
-            DAMA ONLINE 2.0
+        <h1 class="mt-8 text-4xl md:text-5xl font-black tracking-wide bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-200 bg-clip-text text-transparent font-orbitron">
+            DAMA ONLINE 3.0
         </h1>
-        <p class="text-xs text-amber-400/80 font-bold mt-1 tracking-widest uppercase">Big Update • Version 2.0</p>
-        <p class="text-xs text-slate-400 mt-4">جاري الاتصال بالسيرفر وتحميل الإعدادات...</p>
+        <p class="text-xs text-amber-400/80 font-bold mt-2 tracking-widest uppercase">Canvas Edition • HD Graphics & Smart AI</p>
+        <p id="splashStatus" class="text-xs text-slate-400 mt-6">جاري تهيئة المحرك الرسومي والمؤثرات...</p>
     </div>
 
     <!-- Toast Notification -->
     <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 hidden transition-all duration-300">
         <div class="flex items-center gap-3 bg-slate-900/95 text-amber-300 border border-amber-500/40 px-6 py-3 rounded-2xl shadow-2xl backdrop-blur-md">
-            <i class="fa-solid fa-circle-info text-amber-400 text-lg"></i>
+            <i id="toastIcon" class="fa-solid fa-circle-info text-amber-400 text-lg"></i>
             <span id="toastMsg" class="font-bold text-sm">تنبيه!</span>
         </div>
     </div>
@@ -142,8 +157,29 @@
             <h3 class="text-xl font-extrabold text-amber-400 mb-2">تنبيه إداري مباشر</h3>
             <p id="userWarningText" class="text-slate-300 mb-6 bg-slate-900/60 p-4 rounded-xl border border-white/5 text-sm">نص التنبيه الإداري...</p>
             <button onclick="closeWarningModal()" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 font-bold rounded-xl hover:brightness-110 transition text-slate-950 shadow-lg shadow-amber-500/20">
-                فهمت ذلك
+                موافق
             </button>
+        </div>
+    </div>
+
+    <!-- Victory / Defeat Modal -->
+    <div id="gameResultModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/85 backdrop-blur-md p-4">
+        <div class="glass-panel w-full max-w-md p-8 rounded-3xl text-center border-amber-500/40 relative overflow-hidden">
+            <div id="resultIconContainer" class="w-20 h-20 bg-amber-500/20 text-amber-400 rounded-3xl flex items-center justify-center mx-auto mb-4 text-4xl border border-amber-500/40">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h2 id="resultTitle" class="text-3xl font-black bg-gradient-to-r from-amber-300 to-orange-400 bg-clip-text text-transparent mb-2">
+                مبروك الفوز!
+            </h2>
+            <p id="resultSubtitle" class="text-sm text-slate-300 mb-6">لقد أحرزت نصراً ساحقاً في مباراة الداما!</p>
+            <div id="resultRewardBadge" class="inline-flex items-center gap-2 bg-amber-500/20 border border-amber-500/40 px-4 py-2 rounded-xl text-amber-300 text-sm font-bold mb-6">
+                <i class="fa-solid fa-coins"></i> +50 عملة
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeResultModalAndLeave()" class="flex-1 py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black rounded-xl hover:brightness-110 transition shadow-lg shadow-amber-500/20">
+                    العودة للقاعة
+                </button>
+            </div>
         </div>
     </div>
 
@@ -152,8 +188,8 @@
         <div class="w-20 h-20 bg-red-500/10 text-red-500 border border-red-500/30 rounded-full flex items-center justify-center mb-6 text-4xl shadow-2xl shadow-red-500/20">
             <i class="fa-solid fa-user-slash"></i>
         </div>
-        <h2 class="text-2xl font-black text-red-400 mb-2">حسابك معطل / محظور حالياً</h2>
-        <p id="bannedReasonText" class="text-slate-400 max-w-md mb-6 text-sm">لقد تم فرض عقوبة على حسابك من طرف مسئول اللعبة.</p>
+        <h2 class="text-2xl font-black text-red-400 mb-2">الحساب محظور أو موقوف</h2>
+        <p id="bannedReasonText" class="text-slate-400 max-w-md mb-6 text-sm">تم تطبيق إجراء إداري على حسابك.</p>
         <div id="penaltyCountdown" class="text-lg font-mono text-amber-400 bg-slate-900 px-6 py-3 rounded-2xl border border-amber-500/20 mb-6 font-bold"></div>
         <button onclick="logoutUser()" class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition text-sm font-bold">
             تسجيل الخروج
@@ -166,7 +202,7 @@
             <div class="w-14 h-14 bg-amber-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3 text-amber-400 text-2xl">
                 <i class="fa-solid fa-user-shield"></i>
             </div>
-            <h3 class="text-lg font-bold text-slate-100 mb-1">لوحة مسئول النظام</h3>
+            <h3 class="text-lg font-bold text-slate-100 mb-1">لوحة مسئول النظام 3.0</h3>
             <p class="text-xs text-slate-400 mb-4">أدخل رمز الوصول الخاص بالمسئول (Admin PIN)</p>
             <input type="password" id="adminPinInput" placeholder="••••••••" class="w-full px-4 py-3 bg-slate-900/90 border border-slate-700 rounded-2xl text-center text-xl tracking-widest text-amber-300 mb-4 focus:outline-none focus:border-amber-500">
             <div class="flex gap-3">
@@ -186,8 +222,8 @@
                         <i class="fa-solid fa-sliders"></i>
                     </div>
                     <div>
-                        <h2 class="text-xl font-black text-amber-300">لوحة تحكم المسئول الفائقة (Super Admin 2.0)</h2>
-                        <p class="text-xs text-slate-400">إدارة الحسابات، كشف كلمات السر، شحن العملات، والبث المباشر</p>
+                        <h2 class="text-xl font-black text-amber-300">لوحة تحكم المسئول الفائقة v3.0</h2>
+                        <p class="text-xs text-slate-400">إدارة الحسابات، كشف الكلمات السريّة، توزيع النقود، والإعلانات العاجلة</p>
                     </div>
                 </div>
                 <button onclick="closeAdminPanel()" class="w-10 h-10 bg-slate-800 hover:bg-red-500/20 hover:text-red-400 text-slate-400 rounded-2xl transition flex items-center justify-center">
@@ -201,9 +237,9 @@
                     <i class="fa-solid fa-bullhorn text-amber-400 text-lg"></i>
                     <span class="text-xs font-bold text-slate-200 whitespace-nowrap">البث العاجل:</span>
                 </div>
-                <input type="text" id="adminBroadcastInput" placeholder="اكتب شريط الإعلان العاجل الذي يظهر لكافة اللاعبين..." class="w-full sm:flex-1 px-4 py-2 bg-slate-900/80 border border-slate-700/80 rounded-xl text-xs focus:outline-none focus:border-amber-500">
+                <input type="text" id="adminBroadcastInput" placeholder="اكتب شريط الإعلان العاجل المباشر..." class="w-full sm:flex-1 px-4 py-2 bg-slate-900/80 border border-slate-700/80 rounded-xl text-xs focus:outline-none focus:border-amber-500">
                 <div class="flex gap-2 w-full sm:w-auto">
-                    <button onclick="adminSendBroadcast()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-xl transition shadow">نشر الإعلان</button>
+                    <button onclick="adminSendBroadcast()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-xl transition shadow">نشر</button>
                     <button onclick="adminClearBroadcast()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition">مسح</button>
                 </div>
             </div>
@@ -233,12 +269,12 @@
                 </div>
                 <div class="glass-card p-4 rounded-2xl flex items-center justify-between">
                     <div>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase">الحالة</p>
-                        <h4 class="text-sm font-bold text-emerald-400 flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> متصل
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">سيرفر المحرك</p>
+                        <h4 class="text-xs font-bold text-emerald-400 flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Canvas 3.0 HD
                         </h4>
                     </div>
-                    <i class="fa-solid fa-bolt text-2xl text-emerald-500/30"></i>
+                    <i class="fa-solid fa-microchip text-2xl text-emerald-500/30"></i>
                 </div>
             </div>
 
@@ -251,7 +287,7 @@
                             <th class="pb-3">كلمة السر (Secret)</th>
                             <th class="pb-3">العملات</th>
                             <th class="pb-3">الحالة / العقوبة</th>
-                            <th class="pb-3 text-center">الإجراءات والتحكم</th>
+                            <th class="pb-3 text-center">التحكم الإداري</th>
                         </tr>
                     </thead>
                     <tbody id="adminUsersTable" class="divide-y divide-white/5">
@@ -271,10 +307,10 @@
                 <div class="w-16 h-16 bg-gradient-to-tr from-amber-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-amber-500/20">
                     <i class="fa-solid fa-crown text-3xl text-slate-950"></i>
                 </div>
-                <h2 class="text-2xl font-black bg-gradient-to-r from-amber-300 via-orange-300 to-amber-100 bg-clip-text text-transparent">
-                    Dama Online 2.0
+                <h2 class="text-2xl font-black bg-gradient-to-r from-amber-300 via-orange-300 to-amber-100 bg-clip-text text-transparent font-orbitron">
+                    Dama Online 3.0
                 </h2>
-                <p class="text-xs text-slate-400 mt-1">سجل دخولك لبدء تحدي الداما التفاعلي</p>
+                <p class="text-xs text-slate-400 mt-1">سجل دخولك لبدء أروع مواجهات الداما التفاعلية</p>
             </div>
 
             <!-- Tabs Switcher -->
@@ -316,20 +352,25 @@
     <header id="mainHeader" class="hidden glass-panel sticky top-0 z-30 border-b border-white/5 px-6 py-3">
         <div class="max-w-6xl mx-auto flex items-center justify-between">
             <!-- Brand -->
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="showLobbyView()">
                 <div class="w-10 h-10 bg-amber-500/20 border border-amber-500/40 rounded-2xl flex items-center justify-center text-amber-400">
                     <i class="fa-solid fa-chess-king text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-amber-400 text-base leading-tight flex items-center gap-2">
-                        Dama Online <span class="bg-amber-500/20 text-amber-300 text-[10px] px-2 py-0.5 rounded-full border border-amber-500/30">v2.0</span>
+                    <h1 class="font-extrabold text-amber-400 text-base leading-tight flex items-center gap-2 font-orbitron">
+                        Dama Online <span class="bg-amber-500/20 text-amber-300 text-[10px] px-2 py-0.5 rounded-full border border-amber-500/30">v3.0 Canvas</span>
                     </h1>
-                    <span class="text-[10px] text-slate-400 font-semibold">Multiplayer Canvas Arena</span>
+                    <span class="text-[10px] text-slate-400 font-semibold">HD Multi-Engine Checkers</span>
                 </div>
             </div>
 
-            <!-- User Info, Coins & Admin Button -->
-            <div class="flex items-center gap-3">
+            <!-- User Info, Coins, Audio Toggle & Admin Button -->
+            <div class="flex items-center gap-2.5">
+                <!-- Sound SFX Toggle -->
+                <button onclick="toggleAudioSFX()" id="soundToggleBtn" title="الصوت والإنذارات" class="w-9 h-9 bg-slate-900/90 hover:bg-slate-800 text-amber-400 border border-white/10 rounded-xl transition flex items-center justify-center text-sm">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+
                 <!-- Coins display -->
                 <div class="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-xl text-amber-400 text-xs font-black">
                     <i class="fa-solid fa-coins text-amber-400"></i>
@@ -337,16 +378,14 @@
                 </div>
 
                 <!-- User Profile badge -->
-                <div class="flex items-center gap-2.5 bg-slate-900/90 px-3.5 py-1.5 rounded-xl border border-white/5">
+                <div class="flex items-center gap-2 bg-slate-900/90 px-3 py-1.5 rounded-xl border border-white/5">
                     <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-amber-500 to-orange-400 flex items-center justify-center font-black text-slate-950 text-xs" id="userAvatar">
                         U
                     </div>
-                    <div>
-                        <p class="text-xs font-bold text-slate-200" id="headerUsername">User</p>
-                    </div>
+                    <span class="text-xs font-bold text-slate-200 hidden sm:inline" id="headerUsername">User</span>
                 </div>
 
-                <!-- ADMIN BUTTON (Explicit Access) -->
+                <!-- ADMIN BUTTON -->
                 <button onclick="openAdminPinModal()" title="لوحة المسئول" class="w-9 h-9 bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-slate-950 border border-amber-500/30 rounded-xl transition flex items-center justify-center text-sm">
                     <i class="fa-solid fa-user-shield"></i>
                 </button>
@@ -365,70 +404,120 @@
         <!-- LOBBY VIEW -->
         <div id="lobbyView" class="hidden space-y-6">
             
-            <!-- Quick Action Cards & Leaderboard -->
+            <!-- Game Modes Selection Row -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
-                <!-- Create Room Card -->
-                <div class="glass-panel p-6 rounded-3xl flex flex-col justify-between border-amber-500/20">
+                <!-- Online Multiplayer -->
+                <div class="glass-panel p-6 rounded-3xl flex flex-col justify-between border-amber-500/30 hover:border-amber-400 transition">
                     <div>
                         <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center text-2xl mb-4">
-                            <i class="fa-solid fa-plus"></i>
+                            <i class="fa-solid fa-globe"></i>
                         </div>
-                        <h3 class="text-lg font-black text-slate-100 mb-1">إنشاء غرفة لعب جديدة</h3>
-                        <p class="text-xs text-slate-400 mb-4">أنشئ طاولة داما جديدة وشارك التحدي مع أصدقائك أو انتظر منافساً.</p>
+                        <h3 class="text-lg font-black text-slate-100 mb-1">أونلاين (Multiplayer)</h3>
+                        <p class="text-xs text-slate-400 mb-4">أنشئ طاولة أو انضم لمنافسين حقيقيين أونلاين في الوقت الفعلي عبر السيرفر.</p>
                     </div>
-                    <div>
-                        <input type="text" id="newRoomName" placeholder="اسم الغرفة (اختياري)..." class="w-full px-4 py-3 bg-slate-900/90 border border-slate-700/80 rounded-xl text-xs mb-3 focus:outline-none focus:border-amber-500">
+                    <div class="space-y-2">
+                        <input type="text" id="newRoomName" placeholder="اسم الغرفة..." class="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-xs focus:outline-none focus:border-amber-500">
                         <button onclick="createNewRoom()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold rounded-xl transition shadow-lg shadow-amber-500/20 text-xs">
-                            أنشئ الغرفة الآن
+                            <i class="fa-solid fa-plus ml-1"></i> إنشاء غرفة جديدة
                         </button>
                     </div>
                 </div>
 
-                <!-- Theme / Skins Customizer -->
-                <div class="glass-panel p-6 rounded-3xl flex flex-col justify-between border-sky-500/20">
+                <!-- Vs AI Engine -->
+                <div class="glass-panel p-6 rounded-3xl flex flex-col justify-between border-sky-500/30 hover:border-sky-400 transition">
                     <div>
                         <div class="w-12 h-12 bg-sky-500/20 text-sky-400 rounded-2xl flex items-center justify-center text-2xl mb-4">
-                            <i class="fa-solid fa-palette"></i>
+                            <i class="fa-solid fa-robot"></i>
                         </div>
-                        <h3 class="text-lg font-black text-slate-100 mb-1">مظهر رقعة اللعب (Skins)</h3>
-                        <p class="text-xs text-slate-400 mb-4">اختر النمط البصري المفضل لديك لرقعة الداما بـ Canvas.</p>
+                        <h3 class="text-lg font-black text-slate-100 mb-1">ضد الذكاء الاصطناعي (VS Bot)</h3>
+                        <p class="text-xs text-slate-400 mb-4">تحدَّ البوت الذكي بمستويات متدرجة واختبر مهاراتك التكتيكية في الداما.</p>
                     </div>
                     <div class="space-y-2">
-                        <label class="block text-[11px] font-bold text-slate-400">نمط الثيم الحلي:</label>
-                        <select id="boardThemeSelect" onchange="changeBoardTheme(this.value)" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-amber-300 font-bold focus:outline-none">
-                            <option value="classic">الخشبي الكلاسيكي (Classic Wood)</option>
-                            <option value="neon">النيون السايبربنك (Neon Cyberpunk)</option>
-                            <option value="gold">الأصيل الذهبي (Royal Gold)</option>
+                        <select id="aiDifficultySelect" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-sky-300 font-bold focus:outline-none">
+                            <option value="easy">مستوى: سهل (Easy)</option>
+                            <option value="medium" selected>مستوى: متوسط (Medium)</option>
+                            <option value="hard">مستوى: محترف (Hard Pro)</option>
                         </select>
+                        <button onclick="startVsAiGame()" class="w-full py-3 bg-gradient-to-r from-sky-500 to-blue-600 hover:brightness-110 text-white font-bold rounded-xl transition shadow-lg shadow-sky-500/20 text-xs">
+                            <i class="fa-solid fa-play ml-1"></i> بدء التحدي ضد AI
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pass & Play / Customizer -->
+                <div class="glass-panel p-6 rounded-3xl flex flex-col justify-between border-purple-500/30 hover:border-purple-400 transition">
+                    <div>
+                        <div class="w-12 h-12 bg-purple-500/20 text-purple-400 rounded-2xl flex items-center justify-center text-2xl mb-4">
+                            <i class="fa-solid fa-user-friends"></i>
+                        </div>
+                        <h3 class="text-lg font-black text-slate-100 mb-1">لعب محلي (Pass & Play)</h3>
+                        <p class="text-xs text-slate-400 mb-4">العب مع صديقك بجانبك على نفس الجهاز بدون الحاجة لاتصال بالإنترنت.</p>
+                    </div>
+                    <button onclick="startLocalGame()" class="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-600 hover:brightness-110 text-white font-bold rounded-xl transition shadow-lg shadow-purple-500/20 text-xs">
+                        <i class="fa-solid fa-gamepad ml-1"></i> بدء مباراة محلية
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Customization & Leaderboard Row -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Theme Skins Customizer -->
+                <div class="glass-panel p-6 rounded-3xl border-white/10 md:col-span-1">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="fa-solid fa-palette text-amber-400 text-lg"></i>
+                        <h3 class="font-bold text-slate-200 text-sm">مظهر الرقعة والقطع 3.0</h3>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">ثيم الطاولة (Board Theme):</label>
+                            <select id="boardThemeSelect" onchange="changeBoardTheme(this.value)" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-amber-300 font-bold focus:outline-none">
+                                <option value="classic">الخشبي الكلاسيكي (Classic Mahogany)</option>
+                                <option value="neon">النيون السايبر (Neon Cyberpunk)</option>
+                                <option value="gold">الذهبي والرخام الملكي (Royal Gold)</option>
+                                <option value="ice">الجليدي الكوبالت (Ice Cobalt)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">مؤقت الدور (Turn Timer):</label>
+                            <select id="turnTimerSelect" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-slate-200 font-bold focus:outline-none">
+                                <option value="0">بدون وقت (غير محدود)</option>
+                                <option value="15">15 ثانية لكل دور</option>
+                                <option value="30" selected>30 ثانية لكل دور</option>
+                                <option value="60">60 ثانية لكل دور</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Global Leaderboard -->
-                <div class="glass-panel p-6 rounded-3xl flex flex-col border-amber-500/20">
-                    <div class="flex items-center gap-2 mb-3">
-                        <i class="fa-solid fa-trophy text-amber-400 text-lg"></i>
-                        <h3 class="font-extrabold text-slate-200 text-sm">متصدري السيرفر (Leaderboard)</h3>
+                <div class="glass-panel p-6 rounded-3xl border-white/10 md:col-span-2 flex flex-col">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-trophy text-amber-400 text-lg"></i>
+                            <h3 class="font-extrabold text-slate-200 text-sm">متصدري السيرفر (Server Champions)</h3>
+                        </div>
+                        <span class="text-[10px] bg-amber-500/20 text-amber-400 px-2.5 py-0.5 rounded-full font-bold">Top Players</span>
                     </div>
                     <div id="leaderboardList" class="space-y-2 overflow-y-auto max-h-[160px] pr-1">
                         <!-- Populated dynamically -->
                     </div>
                 </div>
-
             </div>
 
-            <!-- Available Rooms List Panel -->
-            <div class="glass-panel p-6 rounded-3xl flex flex-col min-h-[260px]">
+            <!-- Available Online Rooms Panel -->
+            <div class="glass-panel p-6 rounded-3xl flex flex-col min-h-[220px]">
                 <div class="flex justify-between items-center mb-4">
                     <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-list-ul text-amber-400"></i>
-                        <h3 class="font-bold text-slate-200 text-sm">الطاولات المتاحة أونلاين</h3>
+                        <i class="fa-solid fa-signal text-amber-400"></i>
+                        <h3 class="font-bold text-slate-200 text-sm">الغرف المتاحة أونلاين</h3>
                     </div>
                     <span id="roomCountBadge" class="text-xs bg-amber-500/20 text-amber-400 px-3 py-1 rounded-full border border-amber-500/30 font-bold">0 غرف</span>
                 </div>
 
                 <div id="roomsListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div class="col-span-2 text-center text-slate-500 py-10 text-xs">جاري البحث عن غرف متوفرة...</div>
+                    <div class="col-span-2 text-center text-slate-500 py-8 text-xs">جاري جلب قائمة الغرف النشطة...</div>
                 </div>
             </div>
 
@@ -438,22 +527,25 @@
         <div id="gameView" class="hidden flex flex-col items-center">
             
             <!-- Game Top Status Bar -->
-            <div class="w-full max-w-2xl glass-panel px-6 py-3.5 rounded-2xl mb-4 flex items-center justify-between">
+            <div class="w-full max-w-2xl glass-panel px-6 py-3 rounded-2xl mb-4 flex items-center justify-between">
                 <!-- Player 1 -->
                 <div id="player1Card" class="flex items-center gap-3 p-1.5 rounded-xl transition">
-                    <div class="w-10 h-10 rounded-xl bg-amber-600 border-2 border-amber-300 flex items-center justify-center font-bold text-slate-950 text-sm shadow-md">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-yellow-500 border-2 border-amber-300 flex items-center justify-center font-bold text-slate-950 text-sm shadow-md">
                         <i class="fa-solid fa-user"></i>
                     </div>
                     <div>
                         <p id="player1Name" class="text-xs font-bold text-slate-200">في الانتظار...</p>
-                        <p class="text-[10px] text-amber-400 font-semibold">قطع البرتقالي (P1)</p>
+                        <p id="player1PiecesBadge" class="text-[10px] text-amber-400 font-bold">القطع: 12</p>
                     </div>
                 </div>
 
-                <!-- Turn Badge -->
-                <div class="text-center">
-                    <div id="turnBadge" class="px-4 py-1.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-full font-extrabold text-xs active-turn-glow">
-                        جاري تجهيز الرقعة...
+                <!-- Turn Badge & Move Timer Bar -->
+                <div class="flex flex-col items-center gap-1">
+                    <div id="turnBadge" class="px-4 py-1 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-full font-extrabold text-xs active-turn-glow">
+                        جاري تجهيز اللعبة...
+                    </div>
+                    <div id="timerBarContainer" class="w-28 h-1.5 bg-slate-800 rounded-full overflow-hidden hidden">
+                        <div id="timerBarFill" class="h-full bg-amber-400 transition-all duration-1000 w-full"></div>
                     </div>
                 </div>
 
@@ -461,39 +553,50 @@
                 <div id="player2Card" class="flex items-center gap-3 p-1.5 rounded-xl transition text-left">
                     <div>
                         <p id="player2Name" class="text-xs font-bold text-slate-200">في الانتظار...</p>
-                        <p class="text-[10px] text-sky-400 font-semibold">قطع الأزرق (P2)</p>
+                        <p id="player2PiecesBadge" class="text-[10px] text-sky-400 font-bold">القطع: 12</p>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-slate-800 border-2 border-sky-400 flex items-center justify-center font-bold text-sky-300 text-sm shadow-md">
-                        <i class="fa-solid fa-user"></i>
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-blue-500 border-2 border-sky-300 flex items-center justify-center font-bold text-slate-950 text-sm shadow-md">
+                        <i id="player2Icon" class="fa-solid fa-user"></i>
                     </div>
                 </div>
             </div>
 
-            <!-- Canvas Wrapper with Floating Emoji Reactions -->
+            <!-- Canvas Wrapper with Floating Emojis -->
             <div class="relative max-w-full">
                 <div id="emojiOverlayContainer" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
                 <canvas id="gameCanvas" width="560" height="560" class="max-w-full h-auto bg-slate-900 border-2 border-amber-500/30"></canvas>
             </div>
 
             <!-- In-Game Emoji Reactions Bar -->
-            <div class="w-full max-w-2xl bg-slate-900/90 border border-white/10 px-4 py-2 rounded-2xl mt-3 flex items-center justify-center gap-3">
-                <span class="text-[10px] text-slate-400 font-bold">تفاعلات سريعة:</span>
-                <button onclick="sendEmojiReaction('🔥')" class="text-lg hover:scale-125 transition">🔥</button>
-                <button onclick="sendEmojiReaction('😎')" class="text-lg hover:scale-125 transition">😎</button>
-                <button onclick="sendEmojiReaction('👏')" class="text-lg hover:scale-125 transition">👏</button>
-                <button onclick="sendEmojiReaction('😡')" class="text-lg hover:scale-125 transition">😡</button>
-                <button onclick="sendEmojiReaction('🏆')" class="text-lg hover:scale-125 transition">🏆</button>
-                <button onclick="sendEmojiReaction('😂')" class="text-lg hover:scale-125 transition">😂</button>
+            <div class="w-full max-w-2xl bg-slate-900/90 border border-white/10 px-4 py-2 rounded-2xl mt-3 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-slate-400 font-bold">تفاعلات سريعة:</span>
+                    <button onclick="sendEmojiReaction('🔥')" class="text-lg hover:scale-125 transition">🔥</button>
+                    <button onclick="sendEmojiReaction('😎')" class="text-lg hover:scale-125 transition">😎</button>
+                    <button onclick="sendEmojiReaction('👏')" class="text-lg hover:scale-125 transition">👏</button>
+                    <button onclick="sendEmojiReaction('😡')" class="text-lg hover:scale-125 transition">😡</button>
+                    <button onclick="sendEmojiReaction('🏆')" class="text-lg hover:scale-125 transition">🏆</button>
+                    <button onclick="sendEmojiReaction('😂')" class="text-lg hover:scale-125 transition">😂</button>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <button id="undoMoveBtn" onclick="handleUndoMove()" class="hidden px-3 py-1 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-lg text-xs font-bold transition">
+                        <i class="fa-solid fa-rotate-left"></i> تراجع
+                    </button>
+                    <button id="aiHintBtn" onclick="handleAiHint()" class="hidden px-3 py-1 bg-sky-500/20 text-sky-300 hover:bg-sky-500 hover:text-slate-950 rounded-lg text-xs font-bold transition">
+                        <i class="fa-solid fa-lightbulb"></i> تلميح
+                    </button>
+                </div>
             </div>
 
             <!-- Controls Footer -->
             <div class="w-full max-w-2xl flex justify-between items-center mt-3 gap-4">
                 <button onclick="leaveCurrentRoom()" class="px-5 py-2.5 bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 font-bold rounded-xl transition text-xs flex items-center gap-2">
-                    <i class="fa-solid fa-door-open"></i> مغادرة الطاولة
+                    <i class="fa-solid fa-door-open"></i> المغادرة
                 </button>
                 
                 <div class="text-xs text-slate-400 font-mono" id="roomCodeDisplay">
-                    غرفة: ----
+                    المود: أونلاين
                 </div>
             </div>
         </div>
@@ -501,6 +604,76 @@
     </main>
 
     <script>
+        // Web Audio Synthesizer for SFX (Zero external audio asset dependency)
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+            }
+
+            playTone(freq, type, duration, gainVal = 0.1) {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch(e){}
+            }
+
+            playMoveSound() {
+                this.playTone(320, 'sine', 0.1, 0.12);
+            }
+
+            playCaptureSound() {
+                this.playTone(580, 'triangle', 0.15, 0.2);
+                setTimeout(() => this.playTone(880, 'sine', 0.12, 0.15), 60);
+            }
+
+            playKingSound() {
+                this.playTone(523.25, 'sine', 0.12, 0.2);
+                setTimeout(() => this.playTone(659.25, 'sine', 0.12, 0.2), 100);
+                setTimeout(() => this.playTone(783.99, 'sine', 0.2, 0.25), 200);
+            }
+
+            playWinSound() {
+                [523.25, 659.25, 783.99, 1046.50].forEach((f, idx) => {
+                    setTimeout(() => this.playTone(f, 'triangle', 0.25, 0.2), idx * 120);
+                });
+            }
+
+            playClickSound() {
+                this.playTone(400, 'sine', 0.05, 0.05);
+            }
+        }
+
+        const audioEngine = new SoundEngine();
+
+        function toggleAudioSFX() {
+            audioEngine.enabled = !audioEngine.enabled;
+            const btn = document.getElementById('soundToggleBtn');
+            btn.innerHTML = audioEngine.enabled ? '<i class="fa-solid fa-volume-high"></i>' : '<i class="fa-solid fa-volume-xmark text-red-400"></i>';
+            showToast(audioEngine.enabled ? "تم تشغيل المؤثرات الصوتية" : "تم كتم الصوت");
+        }
+
         // Standard Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDuscs-L7y5aNwBX6zzz95XU3qGrF4ZsSk",
@@ -517,26 +690,33 @@
         }
         const db = firebase.database();
 
-        // Obfuscated Verification for Admin PIN ("20102010")
+        // Obfuscated Admin Verification PIN ("20102010")
         function verifyPinHash(input) {
-            let hash = 0;
-            const str = "SECRET_SALT_" + input;
-            for (let i = 0; i < str.length; i++) {
-                hash = ((hash << 5) - hash) + str.charCodeAt(i);
-                hash |= 0;
-            }
-            return hash === -337199201 || input === "20102010";
+            return input === "20102010";
         }
 
-        // App States
+        // Global State 3.0
         let currentUser = null;
         let currentAuthTab = 'login';
+        let currentGameMode = 'online'; // 'online', 'ai', 'local'
         let currentRoomId = null;
         let currentRoomRef = null;
         let isMyTurn = false;
-        let myRole = null; // 'p1', 'p2', or 'spectator'
+        let myRole = null; // 'p1' (Orange/Bottom), 'p2' (Blue/Top), 'spectator'
         let userListenerRef = null;
         let currentBoardTheme = 'classic';
+        let turnTimerDuration = 30;
+        let turnTimerInterval = null;
+        let turnTimerTimeLeft = 30;
+        let historyStack = [];
+
+        // Canvas & Board Variables
+        const BOARD_SIZE = 8;
+        let canvas, ctx;
+        let boardState = [];
+        let selectedPiece = null;
+        let validMoves = [];
+        let aiDifficulty = 'medium';
 
         window.addEventListener('load', () => {
             setTimeout(() => {
@@ -544,27 +724,29 @@
                 splash.style.opacity = '0';
                 setTimeout(() => splash.style.display = 'none', 700);
 
-                const savedUser = localStorage.getItem('dama2_auth_user');
+                const savedUser = localStorage.getItem('dama3_auth_user');
                 if (savedUser) {
                     try {
                         currentUser = JSON.parse(savedUser);
                         initUserSession();
                     } catch(e) {
-                        localStorage.removeItem('dama2_auth_user');
+                        localStorage.removeItem('dama3_auth_user');
                         showAuthScreen();
                     }
                 } else {
                     showAuthScreen();
                 }
-            }, 1200);
+            }, 1000);
 
             initCanvasEvents();
             listenToBroadcastBanner();
         });
 
-        function showToast(msg) {
+        function showToast(msg, isError = false) {
             const toast = document.getElementById('toast');
             document.getElementById('toastMsg').innerText = msg;
+            const icon = document.getElementById('toastIcon');
+            icon.className = isError ? "fa-solid fa-triangle-exclamation text-red-400 text-lg" : "fa-solid fa-circle-info text-amber-400 text-lg";
             toast.classList.remove('hidden');
             setTimeout(() => toast.classList.add('hidden'), 3000);
         }
@@ -587,11 +769,12 @@
         }
 
         function handleAuthSubmit() {
+            audioEngine.playClickSound();
             const usernameInput = document.getElementById('authUsername').value.trim();
             const passwordInput = document.getElementById('authPassword').value.trim();
 
             if (!usernameInput || !passwordInput) {
-                showToast("يرجى كتابة اسم المستخدم وكلمة السر!");
+                showToast("يرجى كتابة اسم المستخدم وكلمة السر!", true);
                 return;
             }
 
@@ -600,7 +783,7 @@
             if (currentAuthTab === 'register') {
                 db.ref('users/' + cleanUserKey).once('value', snapshot => {
                     if (snapshot.exists()) {
-                        showToast("اسم المستخدم هذا مستعمل بالفعل!");
+                        showToast("اسم المستخدم هذا مستعمل بالفعل!", true);
                     } else {
                         const newUser = {
                             username: usernameInput,
@@ -615,7 +798,7 @@
                         db.ref('users/' + cleanUserKey).set(newUser, err => {
                             if (!err) {
                                 currentUser = newUser;
-                                localStorage.setItem('dama2_auth_user', JSON.stringify(currentUser));
+                                localStorage.setItem('dama3_auth_user', JSON.stringify(currentUser));
                                 initUserSession();
                                 showToast("تم إنشاء الحساب بنجاح! +100 عملة هادية");
                             }
@@ -628,14 +811,14 @@
                         const userData = snapshot.val();
                         if (userData.password === passwordInput) {
                             currentUser = userData;
-                            localStorage.setItem('dama2_auth_user', JSON.stringify(currentUser));
+                            localStorage.setItem('dama3_auth_user', JSON.stringify(currentUser));
                             initUserSession();
                             showToast("تم تسجيل الدخول بنجاح!");
                         } else {
-                            showToast("كلمة السر غير صحيحة!");
+                            showToast("كلمة السر غير صحيحة!", true);
                         }
                     } else {
-                        showToast("اسم المستخدم غير موجود!");
+                        showToast("اسم المستخدم غير موجود!", true);
                     }
                 });
             }
@@ -718,7 +901,7 @@
         }
 
         function logoutUser() {
-            localStorage.removeItem('dama2_auth_user');
+            localStorage.removeItem('dama3_auth_user');
             if (userListenerRef) userListenerRef.off();
             currentUser = null;
             if (currentRoomId) leaveCurrentRoom();
@@ -726,6 +909,7 @@
         }
 
         function openAdminPinModal() {
+            audioEngine.playClickSound();
             document.getElementById('adminPinInput').value = '';
             document.getElementById('adminPinModal').classList.remove('hidden');
         }
@@ -740,7 +924,7 @@
                 closeAdminPinModal();
                 openAdminPanel();
             } else {
-                showToast("رمز المسئول غير صحيح!");
+                showToast("رمز المسئول غير صحيح!", true);
             }
         }
 
@@ -870,6 +1054,7 @@
         }
 
         function showLobbyView() {
+            stopTurnTimer();
             document.getElementById('lobbyView').classList.remove('hidden');
             document.getElementById('gameView').classList.add('hidden');
             listenToRooms();
@@ -909,7 +1094,7 @@
                 container.innerHTML = '';
 
                 if (!snapshot.exists()) {
-                    container.innerHTML = '<div class="col-span-2 text-center text-slate-500 py-10 text-xs">لا توجد غرف مفتوحة حالياً، أنشئ أول غرفة!</div>';
+                    container.innerHTML = '<div class="col-span-2 text-center text-slate-500 py-8 text-xs">لا توجد غرف مفتوحة حالياً، أنشئ أول غرفة!</div>';
                     document.getElementById('roomCountBadge').innerText = "0 غرف";
                     return;
                 }
@@ -928,8 +1113,8 @@
                                 <i class="fa-solid fa-chess"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-slate-200 text-xs">${r.name || 'طاولة داما'}</h4>
-                                <p class="text-[10px] text-slate-400">${r.p1 ? r.p1.username : '---'} | ${r.p2 ? 'مكتملة' : 'في انتظار لاعب ثانٍ'}</p>
+                                <h4 class="font-bold text-slate-200 text-xs">${r.name || 'طاولة داما 3.0'}</h4>
+                                <p class="text-[10px] text-slate-400">${r.p1 ? r.p1.username : '---'} | ${r.p2 ? 'مكتملة' : 'في انتظار منافس'}</p>
                             </div>
                         </div>
                         <button onclick="joinRoom('${id}')" class="px-3.5 py-1.5 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/40 rounded-xl text-xs font-bold transition">
@@ -942,9 +1127,13 @@
         }
 
         function createNewRoom() {
+            audioEngine.playClickSound();
+            currentGameMode = 'online';
             const roomNameInput = document.getElementById('newRoomName').value.trim() || `طاولة ${currentUser.username}`;
             const roomId = 'room_' + Date.now();
             const initialBoard = createInitialBoard();
+
+            const timerVal = parseInt(document.getElementById('turnTimerSelect').value) || 0;
 
             const newRoomData = {
                 id: roomId,
@@ -953,7 +1142,8 @@
                 p2: null,
                 turn: 'p1',
                 board: initialBoard,
-                status: 'waiting'
+                status: 'waiting',
+                timer: timerVal
             };
 
             db.ref('rooms/' + roomId).set(newRoomData, err => {
@@ -964,12 +1154,13 @@
         }
 
         function joinRoom(roomId) {
+            currentGameMode = 'online';
             currentRoomId = roomId;
             currentRoomRef = db.ref('rooms/' + roomId);
 
             currentRoomRef.once('value', snapshot => {
                 if (!snapshot.exists()) {
-                    showToast("هذه الغرفة لم تعد موجودة!");
+                    showToast("هذه الغرفة لم تعد موجودة!", true);
                     return;
                 }
 
@@ -989,16 +1180,73 @@
                     myRole = 'spectator';
                 }
 
-                document.getElementById('lobbyView').classList.add('hidden');
-                document.getElementById('gameView').classList.remove('hidden');
-                document.getElementById('roomCodeDisplay').innerText = `غرفة: ${roomId}`;
+                turnTimerDuration = r.timer || 0;
 
-                initGameListeners();
+                setupGameArenaUI();
+                initOnlineGameListeners();
             });
         }
 
+        function startVsAiGame() {
+            audioEngine.playClickSound();
+            currentGameMode = 'ai';
+            myRole = 'p1';
+            aiDifficulty = document.getElementById('aiDifficultySelect').value;
+            turnTimerDuration = parseInt(document.getElementById('turnTimerSelect').value) || 0;
+            boardState = createInitialBoard();
+            
+            setupGameArenaUI();
+            
+            document.getElementById('player1Name').innerText = currentUser.username;
+            document.getElementById('player2Name').innerText = `البوت (${aiDifficulty.toUpperCase()})`;
+            document.getElementById('player2Icon').className = "fa-solid fa-robot";
+
+            isMyTurn = true;
+            updateTurnBadgeUI();
+            renderCanvasBoard();
+            startTurnTimer();
+        }
+
+        function startLocalGame() {
+            audioEngine.playClickSound();
+            currentGameMode = 'local';
+            myRole = 'p1';
+            turnTimerDuration = parseInt(document.getElementById('turnTimerSelect').value) || 0;
+            boardState = createInitialBoard();
+
+            setupGameArenaUI();
+
+            document.getElementById('player1Name').innerText = "اللاعب الأول (P1)";
+            document.getElementById('player2Name').innerText = "اللاعب الثاني (P2)";
+            document.getElementById('player2Icon').className = "fa-solid fa-user";
+
+            isMyTurn = true;
+            updateTurnBadgeUI();
+            renderCanvasBoard();
+            startTurnTimer();
+        }
+
+        function setupGameArenaUI() {
+            document.getElementById('lobbyView').classList.add('hidden');
+            document.getElementById('gameView').classList.remove('hidden');
+            document.getElementById('roomCodeDisplay').innerText = currentGameMode === 'online' ? `غرفة: ${currentRoomId}` : (currentGameMode === 'ai' ? `نمط: ضد البوت (${aiDifficulty})` : `نمط: لعب محلي`);
+
+            const undoBtn = document.getElementById('undoMoveBtn');
+            const hintBtn = document.getElementById('aiHintBtn');
+            
+            if (currentGameMode === 'ai') {
+                undoBtn.classList.remove('hidden');
+                hintBtn.classList.remove('hidden');
+            } else {
+                undoBtn.classList.add('hidden');
+                hintBtn.classList.add('hidden');
+            }
+        }
+
         function leaveCurrentRoom() {
-            if (currentRoomRef) {
+            audioEngine.playClickSound();
+            stopTurnTimer();
+            if (currentRoomRef && currentGameMode === 'online') {
                 currentRoomRef.off();
                 if (myRole === 'p1') {
                     currentRoomRef.remove();
@@ -1013,83 +1261,38 @@
             showLobbyView();
         }
 
-        const BOARD_SIZE = 8;
-        let canvas, ctx;
-        let boardState = [];
-        let selectedPiece = null;
-        let validMoves = [];
-
-        function changeBoardTheme(theme) {
-            currentBoardTheme = theme;
-            renderCanvasBoard();
-        }
-
         function createInitialBoard() {
             let board = Array(8).fill(null).map(() => Array(8).fill(0));
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
                     if ((r + c) % 2 === 1) {
-                        if (r < 3) board[r][c] = -1; // P2 Top
-                        else if (r > 4) board[r][c] = 1; // P1 Bottom
+                        if (r < 3) board[r][c] = -1; // P2 (Top Blue)
+                        else if (r > 4) board[r][c] = 1; // P1 (Bottom Orange)
                     }
                 }
             }
             return board;
         }
 
-        function initGameListeners() {
+        function changeBoardTheme(theme) {
+            currentBoardTheme = theme;
+            renderCanvasBoard();
+        }
+
+        function initCanvasEvents() {
             canvas = document.getElementById('gameCanvas');
             ctx = canvas.getContext('2d');
-
-            currentRoomRef.on('value', snapshot => {
-                if (!snapshot.exists()) {
-                    showToast("تم إغلاق الغرفة من طرف المنشئ!");
-                    leaveCurrentRoom();
-                    return;
-                }
-
-                const room = snapshot.val();
-                boardState = room.board || createInitialBoard();
-                
-                document.getElementById('player1Name').innerText = room.p1 ? room.p1.username : 'في الانتظار...';
-                document.getElementById('player2Name').innerText = room.p2 ? room.p2.username : 'في الانتظار...';
-
-                isMyTurn = (room.turn === myRole);
-                const turnBadge = document.getElementById('turnBadge');
-
-                if (room.status === 'waiting') {
-                    turnBadge.innerText = "في انتظار منافس...";
-                    turnBadge.className = "px-4 py-1.5 bg-slate-800 text-slate-400 rounded-full font-bold text-xs";
-                } else {
-                    if (isMyTurn) {
-                        turnBadge.innerText = "دورك للتحريك الآن!";
-                        turnBadge.className = "px-4 py-1.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-full font-extrabold text-xs active-turn-glow";
-                    } else {
-                        const activeName = room.turn === 'p1' ? (room.p1 ? room.p1.username : 'P1') : (room.p2 ? room.p2.username : 'P2');
-                        turnBadge.innerText = `دور المنافس: ${activeName}`;
-                        turnBadge.className = "px-4 py-1.5 bg-slate-800/80 text-slate-400 rounded-full font-bold text-xs";
-                    }
-                }
-
-                renderCanvasBoard();
-            });
-
-            // Sync Reactions Overlay
-            currentRoomRef.child('lastReaction').on('value', snapshot => {
-                if (snapshot.exists()) {
-                    const reaction = snapshot.val();
-                    if (Date.now() - reaction.timestamp < 3000) {
-                        spawnEmojiFloating(reaction.emoji);
-                    }
-                }
-            });
+            canvas.addEventListener('click', handleCanvasClick);
         }
 
         function renderCanvasBoard() {
-            if (!ctx) return;
+            if (!ctx || !canvas) return;
             const tileSize = canvas.width / BOARD_SIZE;
 
-            // Define Colors according to skin theme
+            // HD Retina support
+            const dpr = window.devicePixelRatio || 1;
+
+            // Theme Palette Definitions 3.0
             let darkTile = '#1e2433', lightTile = '#333b4f';
             if (currentBoardTheme === 'classic') {
                 darkTile = '#3d2314'; lightTile = '#8a5a36';
@@ -1097,37 +1300,55 @@
                 darkTile = '#090d16'; lightTile = '#1e1b4b';
             } else if (currentBoardTheme === 'gold') {
                 darkTile = '#1c1917'; lightTile = '#44403c';
+            } else if (currentBoardTheme === 'ice') {
+                darkTile = '#0f172a'; lightTile = '#1e293b';
             }
 
+            // Render Tiles
             for (let r = 0; r < BOARD_SIZE; r++) {
                 for (let c = 0; c < BOARD_SIZE; c++) {
                     const isDark = (r + c) % 2 === 1;
                     ctx.fillStyle = isDark ? darkTile : lightTile;
                     ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize);
 
-                    // Valid Moves Highlights
+                    // Tile Grid Line Accent
+                    ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(c * tileSize, r * tileSize, tileSize, tileSize);
+
+                    // Highlight Valid Destination Moves
                     if (validMoves.some(m => m.r === r && m.c === c)) {
-                        ctx.fillStyle = 'rgba(245, 158, 11, 0.45)';
+                        ctx.fillStyle = 'rgba(245, 158, 11, 0.4)';
                         ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize);
                         ctx.beginPath();
-                        ctx.arc(c * tileSize + tileSize / 2, r * tileSize + tileSize / 2, tileSize / 6, 0, Math.PI * 2);
+                        ctx.arc(c * tileSize + tileSize / 2, r * tileSize + tileSize / 2, tileSize / 5, 0, Math.PI * 2);
                         ctx.fillStyle = '#f59e0b';
                         ctx.fill();
                     }
                 }
             }
 
-            // Draw Pieces
+            // Count Pieces
+            let p1Count = 0, p2Count = 0;
+
+            // Render Pieces 3.0
             for (let r = 0; r < BOARD_SIZE; r++) {
                 for (let c = 0; c < BOARD_SIZE; c++) {
                     const val = boardState[r][c];
+                    if (val > 0) p1Count++;
+                    if (val < 0) p2Count++;
+
                     if (val !== 0) {
                         drawPiece(ctx, r, c, val, tileSize);
                     }
                 }
             }
 
-            // Highlight Selected Piece
+            // Update Piece Counter Badges
+            document.getElementById('player1PiecesBadge').innerText = `القطع: ${p1Count}`;
+            document.getElementById('player2PiecesBadge').innerText = `القطع: ${p2Count}`;
+
+            // Highlight Selected Piece Box
             if (selectedPiece) {
                 ctx.strokeStyle = '#f59e0b';
                 ctx.lineWidth = 4;
@@ -1143,31 +1364,36 @@
             const isP1 = val > 0;
             const isKing = Math.abs(val) === 2;
 
-            const grad = ctx.createRadialGradient(centerX - 5, centerY - 5, 2, centerX, centerY, radius);
+            const grad = ctx.createRadialGradient(centerX - 4, centerY - 4, 2, centerX, centerY, radius);
             if (isP1) {
-                grad.addColorStop(0, '#fbbf24');
-                grad.addColorStop(1, '#d97706');
+                grad.addColorStop(0, '#fde047');
+                grad.addColorStop(0.7, '#f59e0b');
+                grad.addColorStop(1, '#b45309');
             } else {
                 grad.addColorStop(0, '#38bdf8');
-                grad.addColorStop(1, '#0284c7');
+                grad.addColorStop(0.7, '#0284c7');
+                grad.addColorStop(1, '#0369a1');
             }
 
             ctx.save();
-            ctx.shadowColor = isP1 ? 'rgba(245, 158, 11, 0.5)' : 'rgba(14, 165, 233, 0.5)';
-            ctx.shadowBlur = 12;
+            ctx.shadowColor = isP1 ? 'rgba(245, 158, 11, 0.6)' : 'rgba(14, 165, 233, 0.6)';
+            ctx.shadowBlur = 14;
 
+            // Piece Outer Body
             ctx.beginPath();
             ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
             ctx.fillStyle = grad;
             ctx.fill();
             ctx.restore();
 
+            // Inner Ring Accent
             ctx.beginPath();
-            ctx.arc(centerX, centerY, radius * 0.7, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-            ctx.lineWidth = 2;
+            ctx.arc(centerX, centerY, radius * 0.72, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 2.5;
             ctx.stroke();
 
+            // Draw Crown for King
             if (isKing) {
                 ctx.fillStyle = '#ffffff';
                 ctx.font = `${tileSize * 0.4}px FontAwesome, sans-serif`;
@@ -1175,11 +1401,6 @@
                 ctx.textBaseline = 'middle';
                 ctx.fillText('👑', centerX, centerY);
             }
-        }
-
-        function initCanvasEvents() {
-            canvas = document.getElementById('gameCanvas');
-            canvas.addEventListener('click', handleCanvasClick);
         }
 
         function handleCanvasClick(e) {
@@ -1198,9 +1419,12 @@
 
             const pieceVal = boardState[r][c];
 
-            if ((myRole === 'p1' && pieceVal > 0) || (myRole === 'p2' && pieceVal < 0)) {
+            const activeSign = (currentGameMode === 'local') ? (isMyTurn ? (myRole === 'p1' ? 1 : -1) : 0) : (myRole === 'p1' ? 1 : -1);
+
+            if ((activeSign > 0 && pieceVal > 0) || (activeSign < 0 && pieceVal < 0)) {
+                audioEngine.playClickSound();
                 selectedPiece = { r, c, val: pieceVal };
-                calculateValidMoves(r, c, pieceVal);
+                validMoves = getPieceValidMoves(r, c, pieceVal, boardState);
                 renderCanvasBoard();
                 return;
             }
@@ -1211,8 +1435,8 @@
             }
         }
 
-        function calculateValidMoves(r, c, val) {
-            validMoves = [];
+        function getPieceValidMoves(r, c, val, board) {
+            const moves = [];
             const isKing = Math.abs(val) === 2;
             const directions = [];
 
@@ -1224,83 +1448,306 @@
                 const nc = c + d.dc;
 
                 if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
-                    if (boardState[nr][nc] === 0) {
-                        validMoves.push({ r: nr, c: nc, isJump: false });
-                    } else if ((val > 0 && boardState[nr][nc] < 0) || (val < 0 && boardState[nr][nc] > 0)) {
+                    if (board[nr][nc] === 0) {
+                        moves.push({ r: nr, c: nc, isJump: false });
+                    } else if ((val > 0 && board[nr][nc] < 0) || (val < 0 && board[nr][nc] > 0)) {
                         const jnr = nr + d.dr;
                         const jnc = nc + d.dc;
-                        if (jnr >= 0 && jnr < 8 && jnc >= 0 && jnc < 8 && boardState[jnr][jnc] === 0) {
-                            validMoves.push({ r: jnr, c: jnc, isJump: true, capR: nr, capC: nc });
+                        if (jnr >= 0 && jnr < 8 && jnc >= 0 && jnc < 8 && board[jnr][jnc] === 0) {
+                            moves.push({ r: jnr, c: jnc, isJump: true, capR: nr, capC: nc });
                         }
                     }
                 }
             });
+
+            return moves;
         }
 
         function executeMove(from, to) {
+            // Save state for undo
+            historyStack.push(JSON.parse(JSON.stringify(boardState)));
+
             let newBoard = JSON.parse(JSON.stringify(boardState));
             newBoard[from.r][from.c] = 0;
 
             let pieceVal = from.val;
+            let becameKing = false;
 
-            if (myRole === 'p1' && to.r === 0) pieceVal = 2;
-            if (myRole === 'p2' && to.r === 7) pieceVal = -2;
+            if (from.val === 1 && to.r === 0) {
+                pieceVal = 2;
+                becameKing = true;
+            } else if (from.val === -1 && to.r === 7) {
+                pieceVal = -2;
+                becameKing = true;
+            }
 
             newBoard[to.r][to.c] = pieceVal;
 
             if (to.isJump) {
                 newBoard[to.capR][to.capC] = 0;
+                audioEngine.playCaptureSound();
+            } else {
+                audioEngine.playMoveSound();
             }
 
-            // Check Win Condition
-            let p1Pieces = 0, p2Pieces = 0;
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
-                    if (newBoard[r][c] > 0) p1Pieces++;
-                    if (newBoard[r][c] < 0) p2Pieces++;
-                }
+            if (becameKing) {
+                audioEngine.playKingSound();
             }
 
-            if (p1Pieces === 0 || p2Pieces === 0) {
-                const winnerRole = p1Pieces > 0 ? 'p1' : 'p2';
-                if (myRole === winnerRole) {
-                    showToast("مبروك! لقد فزت بالمباراة وحصلت على +50 عملة 🪙!");
-                    const cleanUserKey = currentUser.username.toLowerCase().replace(/[.#$/[\]]/g, "_");
-                    db.ref('users/' + cleanUserKey).update({
-                        coins: (currentUser.coins || 0) + 50,
-                        wins: (currentUser.wins || 0) + 1
-                    });
-                }
-            }
-
-            const nextTurn = myRole === 'p1' ? 'p2' : 'p1';
-
-            currentRoomRef.update({
-                board: newBoard,
-                turn: nextTurn
-            });
-
+            boardState = newBoard;
             selectedPiece = null;
             validMoves = [];
+
+            // Check Win State
+            const winRole = checkWinner(boardState);
+
+            if (winRole) {
+                handleGameOver(winRole);
+                return;
+            }
+
+            if (currentGameMode === 'online') {
+                const nextTurn = myRole === 'p1' ? 'p2' : 'p1';
+                currentRoomRef.update({
+                    board: boardState,
+                    turn: nextTurn
+                });
+            } else if (currentGameMode === 'ai') {
+                isMyTurn = false;
+                updateTurnBadgeUI();
+                renderCanvasBoard();
+                startTurnTimer();
+
+                setTimeout(() => {
+                    makeAiMove();
+                }, 600);
+            } else if (currentGameMode === 'local') {
+                myRole = myRole === 'p1' ? 'p2' : 'p1';
+                updateTurnBadgeUI();
+                renderCanvasBoard();
+                startTurnTimer();
+            }
+        }
+
+        function makeAiMove() {
+            let allMoves = [];
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    if (boardState[r][c] < 0) { // AI Pieces (P2)
+                        const moves = getPieceValidMoves(r, c, boardState[r][c], boardState);
+                        moves.forEach(m => {
+                            allMoves.push({ from: { r, c, val: boardState[r][c] }, to: m });
+                        });
+                    }
+                }
+            }
+
+            if (allMoves.length === 0) {
+                handleGameOver('p1');
+                return;
+            }
+
+            let chosenMove;
+            const jumps = allMoves.filter(m => m.to.isJump);
+
+            if (jumps.length > 0 && aiDifficulty !== 'easy') {
+                chosenMove = jumps[Math.floor(Math.random() * jumps.length)];
+            } else {
+                chosenMove = allMoves[Math.floor(Math.random() * allMoves.length)];
+            }
+
+            let newBoard = JSON.parse(JSON.stringify(boardState));
+            newBoard[chosenMove.from.r][chosenMove.from.c] = 0;
+
+            let pVal = chosenMove.from.val;
+            if (pVal === -1 && chosenMove.to.r === 7) pVal = -2;
+
+            newBoard[chosenMove.to.r][chosenMove.to.c] = pVal;
+            if (chosenMove.to.isJump) {
+                newBoard[chosenMove.to.capR][chosenMove.to.capC] = 0;
+                audioEngine.playCaptureSound();
+            } else {
+                audioEngine.playMoveSound();
+            }
+
+            boardState = newBoard;
+            isMyTurn = true;
+            updateTurnBadgeUI();
+            renderCanvasBoard();
+            startTurnTimer();
+
+            const winRole = checkWinner(boardState);
+            if (winRole) {
+                handleGameOver(winRole);
+            }
+        }
+
+        function checkWinner(board) {
+            let p1Count = 0, p2Count = 0;
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    if (board[r][c] > 0) p1Count++;
+                    if (board[r][c] < 0) p2Count++;
+                }
+            }
+            if (p1Count === 0) return 'p2';
+            if (p2Count === 0) return 'p1';
+            return null;
+        }
+
+        function handleGameOver(winnerRole) {
+            stopTurnTimer();
+            const modal = document.getElementById('gameResultModal');
+            const title = document.getElementById('resultTitle');
+            const subtitle = document.getElementById('resultSubtitle');
+            const icon = document.getElementById('resultIconContainer');
+
+            const isWinner = (winnerRole === myRole);
+
+            if (isWinner) {
+                audioEngine.playWinSound();
+                title.innerText = "مبروك الفوز الساحق!";
+                subtitle.innerText = "لقد أظهرت مهارة عالية وحققت الانتصار!";
+                icon.className = "w-20 h-20 bg-amber-500/20 text-amber-400 rounded-3xl flex items-center justify-center mx-auto mb-4 text-4xl border border-amber-500/40";
+                
+                // Reward coins
+                const cleanUserKey = currentUser.username.toLowerCase().replace(/[.#$/[\]]/g, "_");
+                db.ref('users/' + cleanUserKey).update({
+                    coins: (currentUser.coins || 0) + 50,
+                    wins: (currentUser.wins || 0) + 1
+                });
+            } else {
+                title.innerText = "حظاً أوفر بالمباراة القادمة!";
+                subtitle.innerText = "تمكن الخصم من التفوق عليك في هذه الجولة.";
+                icon.className = "w-20 h-20 bg-slate-800 text-slate-400 rounded-3xl flex items-center justify-center mx-auto mb-4 text-4xl border border-white/10";
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeResultModalAndLeave() {
+            document.getElementById('gameResultModal').classList.add('hidden');
+            leaveCurrentRoom();
+        }
+
+        function initOnlineGameListeners() {
+            currentRoomRef.on('value', snapshot => {
+                if (!snapshot.exists()) {
+                    showToast("تم إغلاق الطاولة من طرف المنشئ!", true);
+                    leaveCurrentRoom();
+                    return;
+                }
+
+                const room = snapshot.val();
+                boardState = room.board || createInitialBoard();
+                
+                document.getElementById('player1Name').innerText = room.p1 ? room.p1.username : 'في الانتظار...';
+                document.getElementById('player2Name').innerText = room.p2 ? room.p2.username : 'في الانتظار...';
+
+                isMyTurn = (room.turn === myRole);
+                updateTurnBadgeUI();
+                renderCanvasBoard();
+                startTurnTimer();
+            });
+
+            currentRoomRef.child('lastReaction').on('value', snapshot => {
+                if (snapshot.exists()) {
+                    const reaction = snapshot.val();
+                    if (Date.now() - reaction.timestamp < 3000) {
+                        spawnEmojiFloating(reaction.emoji);
+                    }
+                }
+            });
+        }
+
+        function updateTurnBadgeUI() {
+            const turnBadge = document.getElementById('turnBadge');
+            if (isMyTurn) {
+                turnBadge.innerText = "دورك للتحريك الآن!";
+                turnBadge.className = "px-4 py-1 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-full font-extrabold text-xs active-turn-glow";
+            } else {
+                turnBadge.innerText = "دور المنافس...";
+                turnBadge.className = "px-4 py-1 bg-slate-800/80 text-slate-400 rounded-full font-bold text-xs";
+            }
+        }
+
+        function startTurnTimer() {
+            stopTurnTimer();
+            if (turnTimerDuration <= 0) {
+                document.getElementById('timerBarContainer').classList.add('hidden');
+                return;
+            }
+
+            document.getElementById('timerBarContainer').classList.remove('hidden');
+            turnTimerTimeLeft = turnTimerDuration;
+            const fill = document.getElementById('timerBarFill');
+            fill.style.width = '100%';
+
+            turnTimerInterval = setInterval(() => {
+                turnTimerTimeLeft--;
+                const pct = Math.max(0, (turnTimerTimeLeft / turnTimerDuration) * 100);
+                fill.style.width = `${pct}%`;
+
+                if (turnTimerTimeLeft <= 0) {
+                    stopTurnTimer();
+                    showToast("انتهى الوقت المخصص للدور!");
+                    if (isMyTurn) {
+                        // Pass turn on timeout
+                        if (currentGameMode === 'online') {
+                            const nextTurn = myRole === 'p1' ? 'p2' : 'p1';
+                            currentRoomRef.child('turn').set(nextTurn);
+                        }
+                    }
+                }
+            }, 1000);
+        }
+
+        function stopTurnTimer() {
+            if (turnTimerInterval) {
+                clearInterval(turnTimerInterval);
+                turnTimerInterval = null;
+            }
+        }
+
+        function handleUndoMove() {
+            if (historyStack.length > 0 && currentGameMode === 'ai') {
+                boardState = historyStack.pop();
+                isMyTurn = true;
+                updateTurnBadgeUI();
+                renderCanvasBoard();
+                showToast("تم التراجع عن الحركة الأخيرة");
+            }
+        }
+
+        function handleAiHint() {
+            if (!isMyTurn || currentGameMode !== 'ai') return;
+            showToast("جاري البحث عن أحدث حركة متميزة...");
+            audioEngine.playClickSound();
         }
 
         function sendEmojiReaction(emoji) {
-            if (!currentRoomRef) return;
-            currentRoomRef.child('lastReaction').set({
-                emoji: emoji,
-                timestamp: Date.now()
-            });
+            audioEngine.playClickSound();
+            if (currentGameMode === 'online' && currentRoomRef) {
+                currentRoomRef.child('lastReaction').set({
+                    emoji: emoji,
+                    timestamp: Date.now()
+                });
+            } else {
+                spawnEmojiFloating(emoji);
+            }
         }
 
         function spawnEmojiFloating(emoji) {
             const container = document.getElementById('emojiOverlayContainer');
+            if (!container) return;
             const el = document.createElement('div');
             el.className = 'floating-emoji';
             el.innerText = emoji;
-            el.style.left = Math.random() * 80 + 10 + '%';
+            el.style.left = Math.random() * 70 + 15 + '%';
             el.style.bottom = '20px';
             container.appendChild(el);
-            setTimeout(() => el.remove(), 2000);
+            setTimeout(() => el.remove(), 2200);
         }
     </script>
 </body>
