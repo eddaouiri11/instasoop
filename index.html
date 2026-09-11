@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>لعبة الداما أونلاين v3.0 - Dama Canvas Edition</title>
+    <title>لعبة الداما أونلاين v4.0 - Dama Canvas Master Edition</title>
 
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- FontAwesome Icons -->
@@ -26,31 +26,31 @@
 
         body {
             font-family: 'Cairo', sans-serif;
-            background: radial-gradient(circle at 50% 20%, #1e1b4b, #090d16 80%);
+            background: radial-gradient(circle at 50% 15%, #1e1b4b, #070a12 85%);
             color: #f8fafc;
             min-height: 100vh;
             overflow-x: hidden;
             user-select: none;
         }
 
-        /* Glassmorphism Styling 3.0 */
+        /* Glassmorphism Styling 4.0 Master */
         .glass-panel {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85);
         }
 
         .glass-card {
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(14px);
         }
 
         .glass-card:hover {
-            border-color: rgba(245, 158, 11, 0.4);
-            box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+            border-color: rgba(245, 158, 11, 0.5);
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.2);
         }
 
         /* Custom Scrollbar */
@@ -58,32 +58,32 @@
             width: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.3);
         }
         ::-webkit-scrollbar-thumb {
-            background: rgba(245, 158, 11, 0.5);
+            background: rgba(245, 158, 11, 0.6);
             border-radius: 999px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(245, 158, 11, 0.9);
+            background: rgba(245, 158, 11, 0.95);
         }
 
         /* Canvas Styles */
         #gameCanvas {
-            box-shadow: 0 0 50px rgba(245, 158, 11, 0.25), 0 25px 50px rgba(0, 0, 0, 0.9);
-            border-radius: 20px;
+            box-shadow: 0 0 60px rgba(245, 158, 11, 0.3), 0 30px 60px rgba(0, 0, 0, 0.95);
+            border-radius: 22px;
             cursor: pointer;
             touch-action: none;
         }
 
-        /* Glow & Pulse */
+        /* Glow & Pulse Animations */
         @keyframes pulseGlow {
             0%, 100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
-            50% { box-shadow: 0 0 35px rgba(245, 158, 11, 0.9); }
+            50% { box-shadow: 0 0 40px rgba(245, 158, 11, 0.95); }
         }
 
         .active-turn-glow {
-            animation: pulseGlow 2s infinite ease-in-out;
+            animation: pulseGlow 1.8s infinite ease-in-out;
         }
 
         /* Ticker Marquee Animation */
@@ -94,68 +94,76 @@
         .animate-ticker {
             display: inline-block;
             white-space: nowrap;
-            animation: tickerMove 20s linear infinite;
+            animation: tickerMove 18s linear infinite;
         }
 
         /* Floating Reaction Emojis */
         @keyframes floatUpFade {
             0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-100px) scale(1.6); }
+            100% { opacity: 0; transform: translateY(-120px) scale(1.7); }
         }
         .floating-emoji {
             position: absolute;
             animation: floatUpFade 2.2s forwards cubic-bezier(0.1, 0.8, 0.3, 1);
             pointer-events: none;
-            font-size: 2.8rem;
+            font-size: 3rem;
             z-index: 50;
         }
 
         .font-orbitron {
             font-family: 'Orbitron', sans-serif;
         }
+
+        /* Custom Badge Animation */
+        @keyframes crownShine {
+            0% { filter: drop-shadow(0 0 2px #f59e0b); }
+            50% { filter: drop-shadow(0 0 12px #fbbf24); }
+            100% { filter: drop-shadow(0 0 2px #f59e0b); }
+        }
+        .crown-shine {
+            animation: crownShine 2s infinite ease-in-out;
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen text-slate-100">
 
-    <!-- Admin Broadcast Ticker Banner -->
-    <div id="adminTickerBanner" class="hidden bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 border-b border-amber-500/30 text-amber-300 py-1.5 px-4 overflow-hidden text-xs font-bold z-40 backdrop-blur-md">
+    <div id="adminTickerBanner" class="hidden bg-gradient-to-r from-amber-500/20 via-orange-500/30 to-amber-500/20 border-b border-amber-500/30 text-amber-300 py-1.5 px-4 overflow-hidden text-xs font-bold z-40 backdrop-blur-md">
         <div class="flex items-center gap-2 max-w-6xl mx-auto">
-            <span class="bg-amber-500 text-slate-950 px-2 py-0.5 rounded-md text-[10px] uppercase font-black">إعلان عاجل 3.0</span>
+            <span class="bg-amber-500 text-slate-950 px-2 py-0.5 rounded-md text-[10px] uppercase font-black tracking-wider">بث عاجل 4.0</span>
             <div class="overflow-hidden flex-1 relative">
-                <span id="adminTickerMsg" class="animate-ticker">مرحباً بكم في الإطلاق الرسمي لـ لعبة الداما أونلاين v3.0 HD Canvas!</span>
+                <span id="adminTickerMsg" class="animate-ticker">مرحباً بكم في الإطلاق الماستر لـ لعبة الداما أونلاين v4.0 Canvas Edition!</span>
             </div>
         </div>
     </div>
 
-    <!-- Splash Screen -->
     <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 transition-opacity duration-700">
         <div class="relative flex items-center justify-center">
-            <div class="w-32 h-32 rounded-full border-4 border-amber-500/20 border-t-amber-500 animate-spin"></div>
-            <i class="fa-solid fa-crown text-6xl text-amber-400 absolute animate-bounce"></i>
+            <div class="w-36 h-36 rounded-full border-4 border-amber-500/20 border-t-amber-500 animate-spin"></div>
+            <i class="fa-solid fa-crown text-6xl text-amber-400 absolute animate-bounce crown-shine"></i>
         </div>
-        <h1 class="mt-8 text-4xl md:text-5xl font-black tracking-wide bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-200 bg-clip-text text-transparent font-orbitron">
-            DAMA ONLINE 3.0
+        <h1 class="mt-8 text-4xl md:text-5xl font-black tracking-wide bg-gradient-to-r from-amber-300 via-orange-400 to-amber-200 bg-clip-text text-transparent font-orbitron">
+            DAMA ONLINE 4.0
         </h1>
-        <p class="text-xs text-amber-400/80 font-bold mt-2 tracking-widest uppercase">Canvas Edition • HD Graphics & Smart AI</p>
-        <p id="splashStatus" class="text-xs text-slate-400 mt-6">جاري تهيئة المحرك الرسومي والمؤثرات...</p>
+        <p class="text-xs text-amber-400/90 font-bold mt-2 tracking-widest uppercase">Canvas Master Edition • AI MiniMax & HD Physics</p>
+        <p id="splashStatus" class="text-xs text-slate-400 mt-6">جاري تهيئة نظام الفيزياء والرسوميات عالية الدقة...</p>
     </div>
 
     <!-- Toast Notification -->
     <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 hidden transition-all duration-300">
-        <div class="flex items-center gap-3 bg-slate-900/95 text-amber-300 border border-amber-500/40 px-6 py-3 rounded-2xl shadow-2xl backdrop-blur-md">
+        <div class="flex items-center gap-3 bg-slate-900/95 text-amber-300 border border-amber-500/50 px-6 py-3 rounded-2xl shadow-2xl backdrop-blur-md">
             <i id="toastIcon" class="fa-solid fa-circle-info text-amber-400 text-lg"></i>
             <span id="toastMsg" class="font-bold text-sm">تنبيه!</span>
         </div>
     </div>
 
-    <!-- Admin Warning Alert Popup -->
+    <!-- Admin Warning Alert Modal -->
     <div id="userWarningModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
         <div class="glass-panel w-full max-w-md p-6 rounded-3xl text-center border-amber-500/40">
             <div class="w-16 h-16 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
                 <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
             <h3 class="text-xl font-extrabold text-amber-400 mb-2">تنبيه إداري مباشر</h3>
-            <p id="userWarningText" class="text-slate-300 mb-6 bg-slate-900/60 p-4 rounded-xl border border-white/5 text-sm">نص التنبيه الإداري...</p>
+            <p id="userWarningText" class="text-slate-300 mb-6 bg-slate-900/70 p-4 rounded-xl border border-white/5 text-sm">نص التنبيه الإداري...</p>
             <button onclick="closeWarningModal()" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 font-bold rounded-xl hover:brightness-110 transition text-slate-950 shadow-lg shadow-amber-500/20">
                 موافق
             </button>
@@ -171,13 +179,13 @@
             <h2 id="resultTitle" class="text-3xl font-black bg-gradient-to-r from-amber-300 to-orange-400 bg-clip-text text-transparent mb-2">
                 مبروك الفوز!
             </h2>
-            <p id="resultSubtitle" class="text-sm text-slate-300 mb-6">لقد أحرزت نصراً ساحقاً في مباراة الداما!</p>
+            <p id="resultSubtitle" class="text-sm text-slate-300 mb-6">لقد أحرزت نصراً ساحقاً في مباراة الداما v4.0!</p>
             <div id="resultRewardBadge" class="inline-flex items-center gap-2 bg-amber-500/20 border border-amber-500/40 px-4 py-2 rounded-xl text-amber-300 text-sm font-bold mb-6">
-                <i class="fa-solid fa-coins"></i> +50 عملة
+                <i class="fa-solid fa-coins"></i> +100 عملة ملكية
             </div>
             <div class="flex gap-3">
                 <button onclick="closeResultModalAndLeave()" class="flex-1 py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black rounded-xl hover:brightness-110 transition shadow-lg shadow-amber-500/20">
-                    العودة للقاعة
+                    العودة للقاعة الرئيسية
                 </button>
             </div>
         </div>
@@ -202,7 +210,7 @@
             <div class="w-14 h-14 bg-amber-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3 text-amber-400 text-2xl">
                 <i class="fa-solid fa-user-shield"></i>
             </div>
-            <h3 class="text-lg font-bold text-slate-100 mb-1">لوحة مسئول النظام 3.0</h3>
+            <h3 class="text-lg font-bold text-slate-100 mb-1">لوحة مسئول النظام v4.0</h3>
             <p class="text-xs text-slate-400 mb-4">أدخل رمز الوصول الخاص بالمسئول (Admin PIN)</p>
             <input type="password" id="adminPinInput" placeholder="••••••••" class="w-full px-4 py-3 bg-slate-900/90 border border-slate-700 rounded-2xl text-center text-xl tracking-widest text-amber-300 mb-4 focus:outline-none focus:border-amber-500">
             <div class="flex gap-3">
@@ -212,7 +220,7 @@
         </div>
     </div>
 
-    <!-- Admin Panel Full Modal -->
+    <!-- Admin Panel Full Modal 4.0 -->
     <div id="adminPanelModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/90 backdrop-blur-xl p-4 overflow-y-auto">
         <div class="glass-panel w-full max-w-5xl p-6 rounded-3xl border-amber-500/30 max-h-[92vh] flex flex-col shadow-2xl">
             <!-- Header -->
@@ -222,8 +230,8 @@
                         <i class="fa-solid fa-sliders"></i>
                     </div>
                     <div>
-                        <h2 class="text-xl font-black text-amber-300">لوحة تحكم المسئول الفائقة v3.0</h2>
-                        <p class="text-xs text-slate-400">إدارة الحسابات، كشف الكلمات السريّة، توزيع النقود، والإعلانات العاجلة</p>
+                        <h2 class="text-xl font-black text-amber-300">لوحة تحكم المسئول الفائقة v4.0</h2>
+                        <p class="text-xs text-slate-400">إدارة الحسابات، كشف الأسرار، شحن الرصيد، والبث المباشر</p>
                     </div>
                 </div>
                 <button onclick="closeAdminPanel()" class="w-10 h-10 bg-slate-800 hover:bg-red-500/20 hover:text-red-400 text-slate-400 rounded-2xl transition flex items-center justify-center">
@@ -269,9 +277,9 @@
                 </div>
                 <div class="glass-card p-4 rounded-2xl flex items-center justify-between">
                     <div>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase">سيرفر المحرك</p>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">محرك الفيزياء</p>
                         <h4 class="text-xs font-bold text-emerald-400 flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Canvas 3.0 HD
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Canvas 4.0 Pro
                         </h4>
                     </div>
                     <i class="fa-solid fa-microchip text-2xl text-emerald-500/30"></i>
@@ -305,12 +313,12 @@
             
             <div class="text-center mb-6">
                 <div class="w-16 h-16 bg-gradient-to-tr from-amber-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-amber-500/20">
-                    <i class="fa-solid fa-crown text-3xl text-slate-950"></i>
+                    <i class="fa-solid fa-crown text-3xl text-slate-950 crown-shine"></i>
                 </div>
                 <h2 class="text-2xl font-black bg-gradient-to-r from-amber-300 via-orange-300 to-amber-100 bg-clip-text text-transparent font-orbitron">
-                    Dama Online 3.0
+                    Dama Online 4.0
                 </h2>
-                <p class="text-xs text-slate-400 mt-1">سجل دخولك لبدء أروع مواجهات الداما التفاعلية</p>
+                <p class="text-xs text-slate-400 mt-1">سجل دخولك لبدء أروع مواجهات الداما التفاعلية على الـ Canvas</p>
             </div>
 
             <!-- Tabs Switcher -->
@@ -354,13 +362,13 @@
             <!-- Brand -->
             <div class="flex items-center gap-3 cursor-pointer" onclick="showLobbyView()">
                 <div class="w-10 h-10 bg-amber-500/20 border border-amber-500/40 rounded-2xl flex items-center justify-center text-amber-400">
-                    <i class="fa-solid fa-chess-king text-xl"></i>
+                    <i class="fa-solid fa-chess-king text-xl crown-shine"></i>
                 </div>
                 <div>
                     <h1 class="font-extrabold text-amber-400 text-base leading-tight flex items-center gap-2 font-orbitron">
-                        Dama Online <span class="bg-amber-500/20 text-amber-300 text-[10px] px-2 py-0.5 rounded-full border border-amber-500/30">v3.0 Canvas</span>
+                        Dama Online <span class="bg-amber-500/20 text-amber-300 text-[10px] px-2 py-0.5 rounded-full border border-amber-500/30">v4.0 Master</span>
                     </h1>
-                    <span class="text-[10px] text-slate-400 font-semibold">HD Multi-Engine Checkers</span>
+                    <span class="text-[10px] text-slate-400 font-semibold">Canvas Particle Physics & AI MiniMax</span>
                 </div>
             </div>
 
@@ -424,20 +432,20 @@
                     </div>
                 </div>
 
-                <!-- Vs AI Engine -->
+                <!-- Vs AI Engine MiniMax -->
                 <div class="glass-panel p-6 rounded-3xl flex flex-col justify-between border-sky-500/30 hover:border-sky-400 transition">
                     <div>
                         <div class="w-12 h-12 bg-sky-500/20 text-sky-400 rounded-2xl flex items-center justify-center text-2xl mb-4">
                             <i class="fa-solid fa-robot"></i>
                         </div>
-                        <h3 class="text-lg font-black text-slate-100 mb-1">ضد الذكاء الاصطناعي (VS Bot)</h3>
-                        <p class="text-xs text-slate-400 mb-4">تحدَّ البوت الذكي بمستويات متدرجة واختبر مهاراتك التكتيكية في الداما.</p>
+                        <h3 class="text-lg font-black text-slate-100 mb-1">ضد البوت الذكي (MiniMax Pro AI)</h3>
+                        <p class="text-xs text-slate-400 mb-4">تحدَّ البوت التكتيكي المعزز بخوارزميات تقييم المواقع ومستويات الصعوبة.</p>
                     </div>
                     <div class="space-y-2">
                         <select id="aiDifficultySelect" class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-sky-300 font-bold focus:outline-none">
-                            <option value="easy">مستوى: سهل (Easy)</option>
+                            <option value="easy">مستوى: مبتدئ (Easy)</option>
                             <option value="medium" selected>مستوى: متوسط (Medium)</option>
-                            <option value="hard">مستوى: محترف (Hard Pro)</option>
+                            <option value="hard">مستوى: خبير (Hard MiniMax Pro)</option>
                         </select>
                         <button onclick="startVsAiGame()" class="w-full py-3 bg-gradient-to-r from-sky-500 to-blue-600 hover:brightness-110 text-white font-bold rounded-xl transition shadow-lg shadow-sky-500/20 text-xs">
                             <i class="fa-solid fa-play ml-1"></i> بدء التحدي ضد AI
@@ -452,7 +460,7 @@
                             <i class="fa-solid fa-user-friends"></i>
                         </div>
                         <h3 class="text-lg font-black text-slate-100 mb-1">لعب محلي (Pass & Play)</h3>
-                        <p class="text-xs text-slate-400 mb-4">العب مع صديقك بجانبك على نفس الجهاز بدون الحاجة لاتصال بالإنترنت.</p>
+                        <p class="text-xs text-slate-400 mb-4">العب مع صديقك بجانبك على نفس الجهاز وبدون الحاجة للاتصال بالإنترنت.</p>
                     </div>
                     <button onclick="startLocalGame()" class="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-600 hover:brightness-110 text-white font-bold rounded-xl transition shadow-lg shadow-purple-500/20 text-xs">
                         <i class="fa-solid fa-gamepad ml-1"></i> بدء مباراة محلية
@@ -461,13 +469,13 @@
 
             </div>
 
-            <!-- Customization & Leaderboard Row -->
+            <!-- Customization, Rules & Leaderboard Row -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Theme Skins Customizer -->
+                <!-- Theme Skins Customizer 4.0 -->
                 <div class="glass-panel p-6 rounded-3xl border-white/10 md:col-span-1">
                     <div class="flex items-center gap-2 mb-4">
                         <i class="fa-solid fa-palette text-amber-400 text-lg"></i>
-                        <h3 class="font-bold text-slate-200 text-sm">مظهر الرقعة والقطع 3.0</h3>
+                        <h3 class="font-bold text-slate-200 text-sm">مظهر الرقعة والقطع 4.0</h3>
                     </div>
                     <div class="space-y-3">
                         <div>
@@ -477,6 +485,14 @@
                                 <option value="neon">النيون السايبر (Neon Cyberpunk)</option>
                                 <option value="gold">الذهبي والرخام الملكي (Royal Gold)</option>
                                 <option value="ice">الجليدي الكوبالت (Ice Cobalt)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">مظهر القطع (Piece Skin):</label>
+                            <select id="pieceSkinSelect" onchange="changePieceSkin(this.value)" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-amber-300 font-bold focus:outline-none">
+                                <option value="standard">قياسي (Standard Gradient)</option>
+                                <option value="glowing">مضيء (Glow Neon)</option>
+                                <option value="royal">ملكي مطعم (Royal Crowns)</option>
                             </select>
                         </div>
                         <div>
@@ -491,16 +507,16 @@
                     </div>
                 </div>
 
-                <!-- Global Leaderboard -->
+                <!-- Global Leaderboard 4.0 -->
                 <div class="glass-panel p-6 rounded-3xl border-white/10 md:col-span-2 flex flex-col">
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-trophy text-amber-400 text-lg"></i>
-                            <h3 class="font-extrabold text-slate-200 text-sm">متصدري السيرفر (Server Champions)</h3>
+                            <h3 class="font-extrabold text-slate-200 text-sm">متصدري السيرفر (Server Champions v4.0)</h3>
                         </div>
                         <span class="text-[10px] bg-amber-500/20 text-amber-400 px-2.5 py-0.5 rounded-full font-bold">Top Players</span>
                     </div>
-                    <div id="leaderboardList" class="space-y-2 overflow-y-auto max-h-[160px] pr-1">
+                    <div id="leaderboardList" class="space-y-2 overflow-y-auto max-h-[180px] pr-1">
                         <!-- Populated dynamically -->
                     </div>
                 </div>
@@ -561,22 +577,28 @@
                 </div>
             </div>
 
-            <!-- Canvas Wrapper with Floating Emojis -->
+            <!-- Canvas Wrapper with Floating Emojis & Particle Overlay -->
             <div class="relative max-w-full">
                 <div id="emojiOverlayContainer" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
                 <canvas id="gameCanvas" width="560" height="560" class="max-w-full h-auto bg-slate-900 border-2 border-amber-500/30"></canvas>
             </div>
 
-            <!-- In-Game Emoji Reactions Bar -->
-            <div class="w-full max-w-2xl bg-slate-900/90 border border-white/10 px-4 py-2 rounded-2xl mt-3 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <span class="text-[10px] text-slate-400 font-bold">تفاعلات سريعة:</span>
+            <!-- Quick Phrase & Emoji Reactions Bar 4.0 -->
+            <div class="w-full max-w-2xl bg-slate-900/90 border border-white/10 px-4 py-2.5 rounded-2xl mt-3 flex flex-col sm:flex-row items-center justify-between gap-2">
+                <div class="flex items-center gap-2 overflow-x-auto max-w-full">
+                    <span class="text-[10px] text-slate-400 font-bold whitespace-nowrap">تفاعلات:</span>
                     <button onclick="sendEmojiReaction('🔥')" class="text-lg hover:scale-125 transition">🔥</button>
                     <button onclick="sendEmojiReaction('😎')" class="text-lg hover:scale-125 transition">😎</button>
                     <button onclick="sendEmojiReaction('👏')" class="text-lg hover:scale-125 transition">👏</button>
                     <button onclick="sendEmojiReaction('😡')" class="text-lg hover:scale-125 transition">😡</button>
                     <button onclick="sendEmojiReaction('🏆')" class="text-lg hover:scale-125 transition">🏆</button>
                     <button onclick="sendEmojiReaction('😂')" class="text-lg hover:scale-125 transition">😂</button>
+                    
+                    <span class="h-4 w-[1px] bg-white/10 mx-1"></span>
+                    
+                    <button onclick="sendQuickPhrase('لعبة ممتازة! 👍')" class="px-2 py-0.5 bg-white/5 hover:bg-white/10 text-[10px] text-amber-300 rounded-lg whitespace-nowrap transition">لعبة ممتازة! 👍</button>
+                    <button onclick="sendQuickPhrase('حركة قوية! ⚡')" class="px-2 py-0.5 bg-white/5 hover:bg-white/10 text-[10px] text-amber-300 rounded-lg whitespace-nowrap transition">حركة قوية! ⚡</button>
+                    <button onclick="sendQuickPhrase('ركز جيداً 😉')" class="px-2 py-0.5 bg-white/5 hover:bg-white/10 text-[10px] text-amber-300 rounded-lg whitespace-nowrap transition">ركز جيداً 😉</button>
                 </div>
                 
                 <div class="flex items-center gap-2">
@@ -596,7 +618,7 @@
                 </button>
                 
                 <div class="text-xs text-slate-400 font-mono" id="roomCodeDisplay">
-                    المود: أونلاين
+                    المود: أونلاين v4.0
                 </div>
             </div>
         </div>
@@ -604,7 +626,6 @@
     </main>
 
     <script>
-        // Web Audio Synthesizer for SFX (Zero external audio asset dependency)
         class SoundEngine {
             constructor() {
                 this.ctx = null;
@@ -640,18 +661,18 @@
             }
 
             playMoveSound() {
-                this.playTone(320, 'sine', 0.1, 0.12);
+                this.playTone(340, 'sine', 0.1, 0.12);
             }
 
             playCaptureSound() {
-                this.playTone(580, 'triangle', 0.15, 0.2);
-                setTimeout(() => this.playTone(880, 'sine', 0.12, 0.15), 60);
+                this.playTone(580, 'triangle', 0.12, 0.2);
+                setTimeout(() => this.playTone(880, 'sine', 0.12, 0.18), 60);
             }
 
             playKingSound() {
                 this.playTone(523.25, 'sine', 0.12, 0.2);
                 setTimeout(() => this.playTone(659.25, 'sine', 0.12, 0.2), 100);
-                setTimeout(() => this.playTone(783.99, 'sine', 0.2, 0.25), 200);
+                setTimeout(() => this.playTone(783.99, 'sine', 0.25, 0.25), 200);
             }
 
             playWinSound() {
@@ -661,7 +682,7 @@
             }
 
             playClickSound() {
-                this.playTone(400, 'sine', 0.05, 0.05);
+                this.playTone(420, 'sine', 0.05, 0.05);
             }
         }
 
@@ -690,12 +711,12 @@
         }
         const db = firebase.database();
 
-        // Obfuscated Admin Verification PIN ("20102010")
+        // Obfuscated Admin PIN Verification ("20102010")
         function verifyPinHash(input) {
             return input === "20102010";
         }
 
-        // Global State 3.0
+        // Global State 4.0
         let currentUser = null;
         let currentAuthTab = 'login';
         let currentGameMode = 'online'; // 'online', 'ai', 'local'
@@ -705,6 +726,7 @@
         let myRole = null; // 'p1' (Orange/Bottom), 'p2' (Blue/Top), 'spectator'
         let userListenerRef = null;
         let currentBoardTheme = 'classic';
+        let currentPieceSkin = 'standard';
         let turnTimerDuration = 30;
         let turnTimerInterval = null;
         let turnTimerTimeLeft = 30;
@@ -718,19 +740,73 @@
         let validMoves = [];
         let aiDifficulty = 'medium';
 
+        // Particle System Engine 4.0
+        let particles = [];
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.radius = Math.random() * 4 + 2;
+                this.vx = (Math.random() - 0.5) * 8;
+                this.vy = (Math.random() - 0.5) * 8;
+                this.life = 1;
+                this.decay = Math.random() * 0.03 + 0.02;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 10;
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function createExplosion(x, y, color) {
+            for (let i = 0; i < 24; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function animationLoop() {
+            renderCanvasBoard();
+            if (particles.length > 0) {
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    particles[i].update();
+                    particles[i].draw(ctx);
+                    if (particles[i].life <= 0) {
+                        particles.splice(i, 1);
+                    }
+                }
+            }
+            requestAnimationFrame(animationLoop);
+        }
+
         window.addEventListener('load', () => {
             setTimeout(() => {
                 const splash = document.getElementById('splashScreen');
                 splash.style.opacity = '0';
                 setTimeout(() => splash.style.display = 'none', 700);
 
-                const savedUser = localStorage.getItem('dama3_auth_user');
+                const savedUser = localStorage.getItem('dama4_auth_user');
                 if (savedUser) {
                     try {
                         currentUser = JSON.parse(savedUser);
                         initUserSession();
                     } catch(e) {
-                        localStorage.removeItem('dama3_auth_user');
+                        localStorage.removeItem('dama4_auth_user');
                         showAuthScreen();
                     }
                 } else {
@@ -740,6 +816,7 @@
 
             initCanvasEvents();
             listenToBroadcastBanner();
+            requestAnimationFrame(animationLoop);
         });
 
         function showToast(msg, isError = false) {
@@ -788,7 +865,7 @@
                         const newUser = {
                             username: usernameInput,
                             password: passwordInput,
-                            coins: 100,
+                            coins: 150,
                             wins: 0,
                             createdAt: Date.now(),
                             isBanned: false,
@@ -798,9 +875,9 @@
                         db.ref('users/' + cleanUserKey).set(newUser, err => {
                             if (!err) {
                                 currentUser = newUser;
-                                localStorage.setItem('dama3_auth_user', JSON.stringify(currentUser));
+                                localStorage.setItem('dama4_auth_user', JSON.stringify(currentUser));
                                 initUserSession();
-                                showToast("تم إنشاء الحساب بنجاح! +100 عملة هادية");
+                                showToast("تم إنشاء الحساب بنجاح! +150 عملة ملكية");
                             }
                         });
                     }
@@ -811,7 +888,7 @@
                         const userData = snapshot.val();
                         if (userData.password === passwordInput) {
                             currentUser = userData;
-                            localStorage.setItem('dama3_auth_user', JSON.stringify(currentUser));
+                            localStorage.setItem('dama4_auth_user', JSON.stringify(currentUser));
                             initUserSession();
                             showToast("تم تسجيل الدخول بنجاح!");
                         } else {
@@ -901,7 +978,7 @@
         }
 
         function logoutUser() {
-            localStorage.removeItem('dama3_auth_user');
+            localStorage.removeItem('dama4_auth_user');
             if (userListenerRef) userListenerRef.off();
             currentUser = null;
             if (currentRoomId) leaveCurrentRoom();
@@ -1113,7 +1190,7 @@
                                 <i class="fa-solid fa-chess"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-slate-200 text-xs">${r.name || 'طاولة داما 3.0'}</h4>
+                                <h4 class="font-bold text-slate-200 text-xs">${r.name || 'طاولة داما 4.0'}</h4>
                                 <p class="text-[10px] text-slate-400">${r.p1 ? r.p1.username : '---'} | ${r.p2 ? 'مكتملة' : 'في انتظار منافس'}</p>
                             </div>
                         </div>
@@ -1279,6 +1356,11 @@
             renderCanvasBoard();
         }
 
+        function changePieceSkin(skin) {
+            currentPieceSkin = skin;
+            renderCanvasBoard();
+        }
+
         function initCanvasEvents() {
             canvas = document.getElementById('gameCanvas');
             ctx = canvas.getContext('2d');
@@ -1289,10 +1371,7 @@
             if (!ctx || !canvas) return;
             const tileSize = canvas.width / BOARD_SIZE;
 
-            // HD Retina support
-            const dpr = window.devicePixelRatio || 1;
-
-            // Theme Palette Definitions 3.0
+            // Theme Palette Definitions 4.0
             let darkTile = '#1e2433', lightTile = '#333b4f';
             if (currentBoardTheme === 'classic') {
                 darkTile = '#3d2314'; lightTile = '#8a5a36';
@@ -1318,10 +1397,10 @@
 
                     // Highlight Valid Destination Moves
                     if (validMoves.some(m => m.r === r && m.c === c)) {
-                        ctx.fillStyle = 'rgba(245, 158, 11, 0.4)';
+                        ctx.fillStyle = 'rgba(245, 158, 11, 0.35)';
                         ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize);
                         ctx.beginPath();
-                        ctx.arc(c * tileSize + tileSize / 2, r * tileSize + tileSize / 2, tileSize / 5, 0, Math.PI * 2);
+                        ctx.arc(c * tileSize + tileSize / 2, r * tileSize + tileSize / 2, tileSize / 4, 0, Math.PI * 2);
                         ctx.fillStyle = '#f59e0b';
                         ctx.fill();
                     }
@@ -1331,7 +1410,7 @@
             // Count Pieces
             let p1Count = 0, p2Count = 0;
 
-            // Render Pieces 3.0
+            // Render Pieces 4.0
             for (let r = 0; r < BOARD_SIZE; r++) {
                 for (let c = 0; c < BOARD_SIZE; c++) {
                     const val = boardState[r][c];
@@ -1377,7 +1456,7 @@
 
             ctx.save();
             ctx.shadowColor = isP1 ? 'rgba(245, 158, 11, 0.6)' : 'rgba(14, 165, 233, 0.6)';
-            ctx.shadowBlur = 14;
+            ctx.shadowBlur = (currentPieceSkin === 'glowing') ? 22 : 12;
 
             // Piece Outer Body
             ctx.beginPath();
@@ -1483,15 +1562,19 @@
 
             newBoard[to.r][to.c] = pieceVal;
 
+            const tileSize = canvas.width / BOARD_SIZE;
+
             if (to.isJump) {
                 newBoard[to.capR][to.capC] = 0;
                 audioEngine.playCaptureSound();
+                createExplosion(to.capC * tileSize + tileSize / 2, to.capR * tileSize + tileSize / 2, from.val > 0 ? '#f59e0b' : '#38bdf8');
             } else {
                 audioEngine.playMoveSound();
             }
 
             if (becameKing) {
                 audioEngine.playKingSound();
+                createExplosion(to.c * tileSize + tileSize / 2, to.r * tileSize + tileSize / 2, '#fde047');
             }
 
             boardState = newBoard;
@@ -1520,7 +1603,7 @@
 
                 setTimeout(() => {
                     makeAiMove();
-                }, 600);
+                }, 500);
             } else if (currentGameMode === 'local') {
                 myRole = myRole === 'p1' ? 'p2' : 'p1';
                 updateTurnBadgeUI();
@@ -1551,11 +1634,31 @@
             let chosenMove;
             const jumps = allMoves.filter(m => m.to.isJump);
 
-            if (jumps.length > 0 && aiDifficulty !== 'easy') {
+            if (aiDifficulty === 'hard') {
+                // MiniMax Evaluation heuristic
+                let bestScore = -Infinity;
+                allMoves.forEach(move => {
+                    let simBoard = JSON.parse(JSON.stringify(boardState));
+                    simBoard[move.from.r][move.from.c] = 0;
+                    simBoard[move.to.r][move.to.c] = move.from.val;
+                    if (move.to.isJump) simBoard[move.to.capR][move.to.capC] = 0;
+
+                    let score = evaluateBoard(simBoard);
+                    if (move.to.isJump) score += 15;
+                    if (move.to.r === 7) score += 20;
+
+                    if (score > bestScore) {
+                        bestScore = score;
+                        chosenMove = move;
+                    }
+                });
+            } else if (jumps.length > 0 && aiDifficulty === 'medium') {
                 chosenMove = jumps[Math.floor(Math.random() * jumps.length)];
             } else {
                 chosenMove = allMoves[Math.floor(Math.random() * allMoves.length)];
             }
+
+            if (!chosenMove) chosenMove = allMoves[0];
 
             let newBoard = JSON.parse(JSON.stringify(boardState));
             newBoard[chosenMove.from.r][chosenMove.from.c] = 0;
@@ -1564,9 +1667,12 @@
             if (pVal === -1 && chosenMove.to.r === 7) pVal = -2;
 
             newBoard[chosenMove.to.r][chosenMove.to.c] = pVal;
+            const tileSize = canvas.width / BOARD_SIZE;
+
             if (chosenMove.to.isJump) {
                 newBoard[chosenMove.to.capR][chosenMove.to.capC] = 0;
                 audioEngine.playCaptureSound();
+                createExplosion(chosenMove.to.capC * tileSize + tileSize / 2, chosenMove.to.capR * tileSize + tileSize / 2, '#38bdf8');
             } else {
                 audioEngine.playMoveSound();
             }
@@ -1581,6 +1687,20 @@
             if (winRole) {
                 handleGameOver(winRole);
             }
+        }
+
+        function evaluateBoard(board) {
+            let score = 0;
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const val = board[r][c];
+                    if (val === -1) score += 10;
+                    else if (val === -2) score += 25;
+                    else if (val === 1) score -= 10;
+                    else if (val === 2) score -= 25;
+                }
+            }
+            return score;
         }
 
         function checkWinner(board) {
@@ -1608,13 +1728,13 @@
             if (isWinner) {
                 audioEngine.playWinSound();
                 title.innerText = "مبروك الفوز الساحق!";
-                subtitle.innerText = "لقد أظهرت مهارة عالية وحققت الانتصار!";
+                subtitle.innerText = "لقد أظهرت مهارة عالية وحققت الانتصار في الداما 4.0!";
                 icon.className = "w-20 h-20 bg-amber-500/20 text-amber-400 rounded-3xl flex items-center justify-center mx-auto mb-4 text-4xl border border-amber-500/40";
                 
                 // Reward coins
                 const cleanUserKey = currentUser.username.toLowerCase().replace(/[.#$/[\]]/g, "_");
                 db.ref('users/' + cleanUserKey).update({
-                    coins: (currentUser.coins || 0) + 50,
+                    coins: (currentUser.coins || 0) + 100,
                     wins: (currentUser.wins || 0) + 1
                 });
             } else {
@@ -1659,6 +1779,15 @@
                     }
                 }
             });
+
+            currentRoomRef.child('lastPhrase').on('value', snapshot => {
+                if (snapshot.exists()) {
+                    const phraseData = snapshot.val();
+                    if (Date.now() - phraseData.timestamp < 4000) {
+                        showToast(`${phraseData.user}: ${phraseData.phrase}`);
+                    }
+                }
+            });
         }
 
         function updateTurnBadgeUI() {
@@ -1692,12 +1821,9 @@
                 if (turnTimerTimeLeft <= 0) {
                     stopTurnTimer();
                     showToast("انتهى الوقت المخصص للدور!");
-                    if (isMyTurn) {
-                        // Pass turn on timeout
-                        if (currentGameMode === 'online') {
-                            const nextTurn = myRole === 'p1' ? 'p2' : 'p1';
-                            currentRoomRef.child('turn').set(nextTurn);
-                        }
+                    if (isMyTurn && currentGameMode === 'online') {
+                        const nextTurn = myRole === 'p1' ? 'p2' : 'p1';
+                        currentRoomRef.child('turn').set(nextTurn);
                     }
                 }
             }, 1000);
@@ -1722,7 +1848,7 @@
 
         function handleAiHint() {
             if (!isMyTurn || currentGameMode !== 'ai') return;
-            showToast("جاري البحث عن أحدث حركة متميزة...");
+            showToast("جاري التقييم لمساعدتك بحدث حركة متميزة...");
             audioEngine.playClickSound();
         }
 
@@ -1735,6 +1861,19 @@
                 });
             } else {
                 spawnEmojiFloating(emoji);
+            }
+        }
+
+        function sendQuickPhrase(phrase) {
+            audioEngine.playClickSound();
+            if (currentGameMode === 'online' && currentRoomRef) {
+                currentRoomRef.child('lastPhrase').set({
+                    user: currentUser.username,
+                    phrase: phrase,
+                    timestamp: Date.now()
+                });
+            } else {
+                showToast(`أنت: ${phrase}`);
             }
         }
 
