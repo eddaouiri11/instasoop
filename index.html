@@ -1,532 +1,404 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kicko - Live Streaming Platform</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Instasoop | Luxy Pro Edition</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        kick: {
-                            green: '#53FC18',
-                            hover: '#42ca13',
-                            dark: '#0e1015',
-                            card: '#191b1f',
-                            panel: '#1f232b',
-                            border: '#2a2e38'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
     
-    <!-- FontAwesome & Google Fonts -->
+    <!-- Firebase Legacy SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    
+    <!-- FontAwesome Icons & Google Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-
-    <!-- Firebase Compat Libraries -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
-    <!-- Custom Aesthetics CSS -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
+        :root {
+            --luxy-gold: linear-gradient(135deg, #d4af37 0%, #fcf6ba 45%, #aa771c 100%);
+            --luxy-dark: #090a0f;
+            --luxy-card: rgba(18, 20, 29, 0.75);
+            --luxy-border: rgba(212, 175, 55, 0.22);
+            --gold-accent: #d4af37;
+        }
+
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        .cinzel { font-family: 'Cinzel', serif; }
+
         body {
-            background-color: #0b0e14;
-            color: #efeff1;
-            font-family: 'Inter', sans-serif;
-            overflow-x: hidden;
+            background-color: var(--luxy-dark);
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(212, 175, 55, 0.1) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(138, 43, 226, 0.08) 0%, transparent 45%);
+            color: #f1f5f9;
+            height: 100dvh;
+            overflow: hidden;
         }
 
-        /* Custom Scrollbars */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0b0e14;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #272c38;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #53FC18;
+        /* Glassmorphism Styles */
+        .glass-panel {
+            background: var(--luxy-card);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--luxy-border);
         }
 
-        .kick-glow {
-            box-shadow: 0 0 15px rgba(83, 252, 24, 0.35);
-        }
-        .kick-glow-sm {
-            box-shadow: 0 0 8px rgba(83, 252, 24, 0.25);
-        }
-
-        .chat-message:hover {
-            background-color: rgba(255, 255, 255, 0.03);
+        .gold-text {
+            background: var(--luxy-gold);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
         }
 
-        @keyframes alertSlideIn {
-            0% { transform: translateY(-30px) scale(0.9); opacity: 0; }
-            100% { transform: translateY(0) scale(1); opacity: 1; }
+        .gold-btn {
+            background: var(--luxy-gold);
+            color: #000;
+            font-weight: 700;
+            transition: all 0.3s ease;
         }
 
-        .alert-anim {
-            animation: alertSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        .gold-btn:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.35);
         }
 
-        .canvas-hud {
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(212, 175, 55, 0.6); }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.2); }
+            50% { box-shadow: 0 0 30px rgba(212, 175, 55, 0.5); }
+        }
+
+        .gold-glow { animation: pulseGlow 3s infinite; }
+
+        .chat-bubble-sent {
+            background: linear-gradient(135deg, #1e2638 0%, #111622 100%);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-bottom-left-radius: 18px;
+            border-bottom-right-radius: 4px;
+            border-top-left-radius: 18px;
+            border-top-right-radius: 18px;
+        }
+
+        .chat-bubble-recv {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 18px;
+            border-top-left-radius: 18px;
+            border-top-right-radius: 18px;
         }
     </style>
 </head>
-<body class="bg-[#0b0e14] text-gray-100 flex flex-col h-screen overflow-hidden select-none">
+<body class="flex flex-col h-screen w-screen overflow-hidden">
 
-    <!-- TOP NAVIGATION BAR -->
-    <header class="h-14 bg-[#141822] border-b border-[#232836] flex items-center justify-between px-4 z-30 shrink-0">
-        <!-- Left: Logo & Nav Links -->
-        <div class="flex items-center space-x-6">
-            <a href="#" class="flex items-center space-x-2 group">
-                <div class="bg-[#53FC18] text-black font-extrabold px-2.5 py-1 rounded text-xl tracking-tighter group-hover:bg-white transition-colors duration-200">
-                    KICKO
-                </div>
-            </a>
-            <nav class="hidden md:flex items-center space-x-5 text-sm font-semibold">
-                <a href="#" class="text-[#53FC18] flex items-center space-x-1.5"><i class="fa-solid fa-[#53FC18] fa-compass"></i> <span>Browse</span></a>
-                <a href="#" class="text-gray-400 hover:text-white transition">Following</a>
-                <a href="#" class="text-gray-400 hover:text-white transition">Esports</a>
-            </nav>
+    <!-- Splash Screen -->
+    <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#090a0f] transition-opacity duration-700">
+        <div class="cinzel text-5xl font-extrabold gold-text tracking-widest mb-4 animate-pulse">LUXY</div>
+        <p class="text-xs text-amber-200/60 uppercase tracking-widest mb-8">Ultra Private Chat Network</p>
+        <div class="w-40 h-1 bg-white/10 rounded-full overflow-hidden relative">
+            <div class="h-full bg-gradient-to-r from-amber-500 to-amber-200 w-1/2 absolute animate-[loading_1.5s_infinite_ease-in-out]"></div>
         </div>
+    </div>
 
-        <!-- Center: Search Bar -->
-        <div class="hidden sm:flex items-center w-80 lg:w-96 relative">
-            <input type="text" placeholder="Search streamers or games..." 
-                class="w-full bg-[#0b0e14] border border-[#232836] text-sm text-gray-200 rounded-lg pl-9 pr-4 py-1.5 focus:outline-none focus:border-[#53FC18] transition">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 text-gray-500 text-sm"></i>
-        </div>
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 hidden bg-amber-400 text-black px-6 py-3 rounded-full font-bold text-sm shadow-2xl transition-all border border-amber-200">
+        <span id="toastMsg">إشعار</span>
+    </div>
 
-        <!-- Right: Auth Controls, Go Live & Secret Admin Button -->
-        <div class="flex items-center space-x-3">
-            <!-- Secret Admin Dashboard Quick Access Button -->
-            <button onclick="promptAdminAccess()" title="Secret Admin Dashboard (Key Code)"
-                class="p-2 rounded-lg bg-[#1f2431] hover:bg-[#2c3345] text-yellow-400 border border-yellow-500/30 hover:border-yellow-400 transition flex items-center space-x-1 text-xs font-bold">
-                <i class="fa-solid fa-shield-halved text-sm"></i>
-                <span class="hidden lg:inline">Admin 20102010</span>
-            </button>
+    <!-- Auth Screen (Login / Register) -->
+    <div id="authScreen" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-[#090a0f]/95 backdrop-blur-md">
+        <div class="glass-panel w-full max-w-md p-8 rounded-3xl shadow-2xl relative border border-amber-500/20">
+            <div class="text-center mb-8">
+                <h1 class="cinzel text-4xl font-extrabold gold-text tracking-wider mb-2">LUXY PRO</h1>
+                <p class="text-xs text-gray-400">سجل دخولك أو أنشئ حساباً جديداً للدردشة الخاصة</p>
+            </div>
 
-            <!-- Go Live Button -->
-            <button id="goLiveBtn" onclick="toggleGoLiveModal()" class="hidden px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold text-xs flex items-center space-x-2 transition shadow-lg shadow-red-900/30">
-                <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
-                <i class="fa-solid fa-[#53FC18] fa-broadcast-tower"></i>
-                <span id="goLiveBtnText">GO LIVE</span>
-            </button>
+            <!-- Tab Buttons -->
+            <div class="flex bg-black/40 p-1 rounded-xl mb-6 border border-white/5">
+                <button id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 py-2 rounded-lg text-sm font-semibold text-amber-400 bg-white/10 transition-all">دخول</button>
+                <button id="tabRegisterBtn" onclick="switchAuthTab('register')" class="flex-1 py-2 rounded-lg text-sm font-semibold text-gray-400 transition-all">تسجيل جديد</button>
+            </div>
 
-            <!-- User Auth Profile Area -->
-            <div id="authArea" class="flex items-center space-x-2">
-                <!-- Logged Out View -->
-                <div id="loggedOutButtons" class="flex items-center space-x-2">
-                    <button onclick="openAuthModal('login')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold hover:bg-[#1f2431] text-gray-200 transition">Log In</button>
-                    <button onclick="openAuthModal('signup')" class="px-3.5 py-1.5 rounded-lg bg-[#53FC18] hover:bg-[#42ca13] text-black text-xs font-extrabold transition">Sign Up</button>
-                </div>
-
-                <!-- Logged In View -->
-                <div id="loggedInUser" class="hidden flex items-center space-x-3">
-                    <div class="relative group cursor-pointer" onclick="toggleUserDropdown()">
-                        <div class="flex items-center space-x-2 bg-[#1f2431] border border-[#2d3446] rounded-lg px-2.5 py-1">
-                            <img id="userAvatar" src="https://placehold.co/100x100/101010/53FC18?text=USER" class="w-7 h-7 rounded-full object-cover border border-[#53FC18]">
-                            <span id="userNameDisplay" class="text-xs font-bold text-gray-200 max-w-[100px] truncate">Streamer</span>
-                            <span id="userRoleBadge" class="text-[10px] bg-[#53FC18]/20 text-[#53FC18] px-1.5 py-0.5 rounded font-extrabold border border-[#53FC18]/40">USER</span>
-                        </div>
+            <!-- Form -->
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-amber-300/80 mb-1">اسم المستخدم</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute right-4 top-3.5 text-gray-500 text-sm"></i>
+                        <input type="text" id="authUsername" placeholder="أدخل اسم المستخدم..." class="w-full pr-11 pl-4 py-3 bg-black/50 rounded-xl border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-amber-500/50 text-sm">
                     </div>
-                    <button onclick="logoutUser()" title="Logout" class="p-2 rounded-lg bg-[#1f2431] hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-amber-300/80 mb-1">كلمة السر</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-key absolute right-4 top-3.5 text-gray-500 text-sm"></i>
+                        <input type="password" id="authPassword" placeholder="••••••••" class="w-full pr-11 pl-4 py-3 bg-black/50 rounded-xl border border-white/10 text-white placeholder-gray-600 focus:outline-none focus:border-amber-500/50 text-sm">
+                    </div>
+                </div>
+
+                <button id="authSubmitBtn" onclick="handleAuthSubmit()" class="w-full gold-btn py-3.5 rounded-xl text-sm mt-4 shadow-lg">
+                    دخول الحساب
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application View -->
+    <div id="mainApp" class="flex h-full w-full relative overflow-hidden hidden">
+        
+        <!-- Sidebar (Contacts & Direct Messages) -->
+        <aside id="sidebar" class="w-full md:w-80 lg:w-96 glass-panel flex flex-col h-full border-l border-white/10 z-20 transition-all duration-300">
+            <!-- User Header -->
+            <div class="p-4 border-b border-white/10 flex items-center justify-between bg-black/40">
+                <div class="flex items-center gap-3 cursor-pointer group" onclick="openProfileModal()">
+                    <div class="relative">
+                        <img id="myAvatar" src="" class="w-11 h-11 rounded-full border-2 border-amber-500/50 object-cover group-hover:border-amber-400 transition-all">
+                        <span class="w-3 h-3 bg-green-500 border-2 border-black rounded-full absolute bottom-0 right-0"></span>
+                    </div>
+                    <div>
+                        <h3 id="myName" class="font-bold text-sm text-white group-hover:text-amber-300 transition-all">---</h3>
+                        <span class="text-[10px] text-amber-400/80 tracking-wider flex items-center gap-1">
+                            <i class="fa-solid fa-pen text-[9px]"></i> تعديل البروفايل
+                        </span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button onclick="openProfileModal()" title="إعدادات البروفايل" class="w-9 h-9 rounded-full bg-white/5 hover:bg-amber-500/20 hover:text-amber-300 text-gray-400 flex items-center justify-center transition-all">
+                        <i class="fa-solid fa-gear text-sm"></i>
+                    </button>
+                    <button onclick="logout()" title="تسجيل خروج" class="w-9 h-9 rounded-full bg-white/5 hover:bg-red-500/20 hover:text-red-400 text-gray-400 flex items-center justify-center transition-all">
                         <i class="fa-solid fa-right-from-bracket text-sm"></i>
                     </button>
                 </div>
             </div>
-        </div>
-    </header>
 
-    <!-- MAIN WORKSPACE LAYOUT -->
-    <div class="flex-1 flex overflow-hidden relative">
-
-        <!-- LEFT SIDEBAR: RECOMMENDED CHANNELS -->
-        <aside id="sidebar" class="w-16 lg:w-60 bg-[#10131b] border-r border-[#1f2431] flex flex-col shrink-0 transition-all duration-300">
-            <div class="p-3 border-b border-[#1f2431] flex items-center justify-between">
-                <span class="hidden lg:block text-xs font-extrabold tracking-wider text-gray-400 uppercase">Recommended</span>
-                <i class="fa-solid fa-video text-[#53FC18] lg:hidden mx-auto text-sm"></i>
-            </div>
-            
-            <!-- Streamers list -->
-            <div id="recommendedStreamers" class="flex-1 overflow-y-auto p-2 space-y-1">
-                <!-- Populated dynamically -->
-            </div>
-
-            <!-- Bot Controls Quick Box -->
-            <div class="hidden lg:block p-3 border-t border-[#1f2431] bg-[#141822]">
-                <div class="flex items-center justify-between text-xs mb-2">
-                    <span class="text-gray-400 font-bold"><i class="fa-solid fa-robot text-[#53FC18] mr-1"></i> AI Bots Engine</span>
-                    <span id="botEngineStatus" class="text-[10px] text-green-400 font-bold bg-green-900/40 px-1.5 py-0.5 rounded">ACTIVE</span>
+            <!-- Online / Total Users Badge -->
+            <div class="p-4 pb-2">
+                <div class="flex items-center justify-between bg-amber-500/10 border border-amber-500/20 p-3 rounded-2xl">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-users text-amber-400 text-sm"></i>
+                        <span class="text-xs font-semibold text-amber-200">الأعضاء المسجلين</span>
+                    </div>
+                    <span id="userCountBadge" class="bg-amber-400 text-black px-2.5 py-0.5 rounded-full text-xs font-bold">0</span>
                 </div>
-                <p class="text-[11px] text-gray-400 leading-tight">Simulates viewers, dynamic chat messages & sub goals automatically.</p>
+            </div>
+
+            <!-- Search Contacts -->
+            <div class="px-4 py-2">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3 text-gray-500 text-xs"></i>
+                    <input type="text" id="contactSearch" oninput="filterContacts()" placeholder="بحث عن صديق..." class="w-full pr-9 pl-3 py-2 bg-black/30 rounded-xl border border-white/5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/30">
+                </div>
+            </div>
+
+            <!-- Contacts List -->
+            <div class="flex-1 overflow-y-auto p-3 space-y-1" id="contactsList">
+                <!-- User items dynamically injected -->
             </div>
         </aside>
 
-        <!-- CENTER: LIVE STREAM PLAYER & DETAILS -->
-        <main class="flex-1 bg-[#0b0e14] flex flex-col overflow-y-auto relative">
+        <!-- Chat Area -->
+        <main id="chatArea" class="flex-1 flex flex-col h-full bg-black/20 relative w-full">
             
-            <!-- STREAM PLAYER CANVAS CONTAINER -->
-            <div class="relative bg-black aspect-video max-h-[68vh] w-full group overflow-hidden flex items-center justify-center border-b border-[#1f2431]">
-                
-                <!-- Canvas Video Feed -->
-                <canvas id="streamCanvas" class="w-full h-full object-contain"></canvas>
+            <!-- Default Placeholder when no user selected -->
+            <div id="noChatSelected" class="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                <div class="w-20 h-20 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-4 gold-glow">
+                    <i class="fa-regular fa-comments text-3xl text-amber-400"></i>
+                </div>
+                <h2 class="cinzel text-2xl font-bold gold-text mb-2">LUXY PRIVATE CHAT</h2>
+                <p class="text-xs text-gray-400 max-w-sm">اختر أي مستخدم من قائمة المتصلين لبدء المحادثة المشفرة المباشرة.</p>
+            </div>
 
-                <!-- On-Screen Stream Overlay Alerts (Follower / Sub Popups) -->
-                <div id="alertOverlay" class="absolute top-6 left-1/2 -translate-x-1/2 hidden z-20 pointer-events-none">
-                    <div class="alert-anim bg-gradient-to-r from-[#191b1f] via-[#20271b] to-[#191b1f] border-2 border-[#53FC18] rounded-xl px-6 py-3 flex items-center space-x-4 shadow-2xl kick-glow">
-                        <div class="w-12 h-12 bg-[#53FC18] rounded-full flex items-center justify-center text-black text-2xl font-black shadow-lg">
-                            <i id="alertIcon" class="fa-solid fa-star"></i>
+            <!-- Active Chat View -->
+            <div id="activeChatContainer" class="flex-1 flex flex-col h-full hidden">
+                
+                <!-- Chat Header -->
+                <div class="p-4 border-b border-white/10 glass-panel flex items-center justify-between z-10">
+                    <div class="flex items-center gap-3">
+                        <button onclick="closeChatMobile()" class="md:hidden text-gray-400 hover:text-white pl-2">
+                            <i class="fa-solid fa-arrow-right text-lg"></i>
+                        </button>
+                        <div class="relative">
+                            <img id="chatTargetAvatar" src="" class="w-10 h-10 rounded-full border border-amber-500/40 object-cover bg-black/40">
+                            <span id="chatTargetStatusDot" class="w-2.5 h-2.5 bg-green-500 rounded-full absolute bottom-0 right-0 border border-black"></span>
                         </div>
                         <div>
-                            <div id="alertTitle" class="text-[#53FC18] font-black text-sm tracking-wider uppercase">NEW SUBSCRIBER!</div>
-                            <div id="alertBody" class="text-white text-base font-bold">GamerBotX just subscribed at Tier 1!</div>
+                            <h3 id="chatTargetName" class="font-bold text-sm text-white">---</h3>
+                            <span id="chatTargetBio" class="text-[10px] text-gray-400 block max-w-[150px] truncate">خاص وشفاف</span>
                         </div>
                     </div>
-                </div>
-
-                <!-- Live Tag Overlay -->
-                <div class="absolute top-4 left-4 z-10 flex items-center space-x-2">
-                    <span id="streamStatusBadge" class="bg-red-600 text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded uppercase tracking-wider flex items-center space-x-1 shadow-md">
-                        <span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse mr-1"></span> LIVE
-                    </span>
-                    <span id="gameTag" class="bg-[#191b1f]/80 backdrop-blur-md text-gray-200 border border-white/10 text-xs font-semibold px-2.5 py-0.5 rounded">
-                        Just Chatting
-                    </span>
-                </div>
-
-                <!-- Canvas Control Bar Hover -->
-                <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between text-white z-10">
-                    <div class="flex items-center space-x-4">
-                        <button id="playPauseBtn" onclick="togglePlayPause()" class="hover:text-[#53FC18] transition text-lg"><i class="fa-solid fa-pause"></i></button>
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-solid fa-volume-high text-sm"></i>
-                            <input id="volumeSlider" type="range" min="0" max="1" step="0.05" value="0.5" class="w-20 accent-[#53FC18] cursor-pointer">
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-4 text-xs font-bold">
-                        <span class="flex items-center space-x-1 text-red-500 bg-red-950/60 border border-red-800/50 px-2 py-0.5 rounded">
-                            <i class="fa-solid fa-user text-[10px]"></i>
-                            <span id="canvasViewerCount">1,240</span>
+                    <div class="flex items-center gap-3">
+                        <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-full font-semibold">
+                            <i class="fa-solid fa-lock text-[9px] ml-1"></i> مشفر 1-to-1
                         </span>
-                        <button onclick="toggleFullscreen()" class="hover:text-[#53FC18] transition text-base"><i class="fa-solid fa-expand"></i></button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- STREAM INFO & METRICS HEADER -->
-            <div class="p-4 bg-[#10131b] border-b border-[#1f2431] flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div class="flex items-start space-x-4">
-                    <img id="channelAvatar" src="https://placehold.co/120x120/191b1f/53FC18?text=KICKO" class="w-14 h-14 rounded-full border-2 border-[#53FC18] object-cover">
-                    <div>
-                        <div class="flex items-center space-x-2">
-                            <h1 id="channelTitle" class="text-lg font-black text-white">Official Kicko Stream</h1>
-                            <i class="fa-solid fa-circle-check text-[#53FC18] text-sm" title="Verified Streamer"></i>
-                        </div>
-                        <p id="streamCategoryText" class="text-xs font-semibold text-[#53FC18]">Playing GTA V - RP Server Mode</p>
-                        <div class="flex items-center space-x-3 mt-1.5 text-xs text-gray-400">
-                            <span><strong id="channelFollowersCount" class="text-white font-bold">0</strong> Followers</span>
-                            <span>•</span>
-                            <span><strong id="channelSubsCount" class="text-white font-bold">0</strong> Subs</span>
-                        </div>
                     </div>
                 </div>
 
-                <!-- Interaction Action Buttons -->
-                <div class="flex items-center space-x-2">
-                    <button id="followChannelBtn" onclick="handleFollowToggle()" class="px-4 py-2 bg-[#53FC18] hover:bg-[#42ca13] text-black font-extrabold text-xs rounded-lg transition flex items-center space-x-2 shadow-lg">
-                        <i class="fa-solid fa-[#53FC18] fa-heart"></i>
-                        <span id="followBtnText">Follow</span>
-                    </button>
-                    <button onclick="triggerSubModal()" class="px-4 py-2 bg-[#1f2431] hover:bg-[#2b3244] border border-[#2f374a] text-white font-bold text-xs rounded-lg transition flex items-center space-x-2">
-                        <i class="fa-solid fa-star text-yellow-400"></i>
-                        <span>Subscribe</span>
-                    </button>
-                    <button onclick="shareStream()" class="p-2 bg-[#1f2431] hover:bg-[#2b3244] border border-[#2f374a] text-gray-300 rounded-lg text-xs">
-                        <i class="fa-solid fa-[#53FC18] fa-share-nodes"></i>
-                    </button>
+                <!-- Messages Feed -->
+                <div id="messagesBox" class="flex-1 overflow-y-auto p-4 space-y-3">
+                    <!-- Messages dynamically loaded here -->
                 </div>
-            </div>
 
-            <!-- STREAM DESCRIPTION & STATS CARDS -->
-            <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-[#141822] border border-[#1f2431] p-4 rounded-xl">
-                    <div class="text-xs font-bold text-gray-400 mb-1">Peak Viewers</div>
-                    <div id="statPeakViewers" class="text-2xl font-black text-[#53FC18]">1,482</div>
-                    <p class="text-[11px] text-gray-500 mt-1">Realtime Viewer Ramp Enabled</p>
-                </div>
-                <div class="bg-[#141822] border border-[#1f2431] p-4 rounded-xl">
-                    <div class="text-xs font-bold text-gray-400 mb-1">Chat Speed</div>
-                    <div id="statChatSpeed" class="text-2xl font-black text-white">42 msg/min</div>
-                    <p class="text-[11px] text-gray-500 mt-1">AI Chat Engine Active</p>
-                </div>
-                <div class="bg-[#141822] border border-[#1f2431] p-4 rounded-xl">
-                    <div class="text-xs font-bold text-gray-400 mb-1">Channel Status</div>
-                    <div id="statRoleStatus" class="text-2xl font-black text-yellow-400">Moderated</div>
-                    <p class="text-[11px] text-gray-500 mt-1">Admin Code: <span class="text-yellow-400 font-mono">20102010</span></p>
+                <!-- Input Footer -->
+                <div class="p-3 border-t border-white/10 glass-panel">
+                    <form onsubmit="sendMessage(event)" class="flex items-center gap-2">
+                        <input type="text" id="messageInput" placeholder="اكتب رسالتك السرية..." autocomplete="off" class="flex-1 bg-black/50 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/50">
+                        <button type="submit" class="gold-btn w-11 h-11 rounded-2xl flex items-center justify-center text-black shrink-0">
+                            <i class="fa-solid fa-paper-plane text-sm"></i>
+                        </button>
+                    </form>
                 </div>
             </div>
         </main>
-
-        <!-- RIGHT COLUMN: STREAM CHAT PANEL -->
-        <aside class="w-80 lg:w-96 bg-[#0e1118] border-l border-[#1f2431] flex flex-col shrink-0 z-20">
-            <!-- Chat Header -->
-            <div class="h-12 border-b border-[#1f2431] px-4 flex items-center justify-between bg-[#141822]">
-                <div class="flex items-center space-x-2 text-xs font-extrabold uppercase tracking-wider text-gray-300">
-                    <i class="fa-solid fa-[#53FC18] fa-comments text-[#53FC18]"></i>
-                    <span>Stream Chat</span>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <button onclick="clearChatMessages()" title="Clear Chat" class="p-1.5 text-gray-400 hover:text-red-400 transition text-xs">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Chat Stream Feed -->
-            <div id="chatFeed" class="flex-1 overflow-y-auto p-3 space-y-2 text-xs font-sans">
-                <!-- Dynamic Chat Items inserting here -->
-            </div>
-
-            <!-- Emotes Quick Selector Row -->
-            <div id="emotesBar" class="px-3 py-1.5 bg-[#12151e] border-t border-[#1f2431] flex items-center space-x-2 overflow-x-auto text-base">
-                <button onclick="insertEmote('🔥')" class="hover:scale-125 transition">🔥</button>
-                <button onclick="insertEmote('🎮')" class="hover:scale-125 transition">🎮</button>
-                <button onclick="insertEmote('😎')" class="hover:scale-125 transition">😎</button>
-                <button onclick="insertEmote('POG')" class="bg-[#53FC18]/20 text-[#53FC18] text-[10px] font-black px-1.5 py-0.5 rounded hover:bg-[#53FC18] hover:text-black transition">POG</button>
-                <button onclick="insertEmote('KEKW')" class="bg-yellow-500/20 text-yellow-400 text-[10px] font-black px-1.5 py-0.5 rounded hover:bg-yellow-500 hover:text-black transition">KEKW</button>
-                <button onclick="insertEmote('L_BRO')" class="bg-red-500/20 text-red-400 text-[10px] font-black px-1.5 py-0.5 rounded hover:bg-red-500 hover:text-black transition">L</button>
-                <button onclick="insertEmote('GG')" class="bg-purple-500/20 text-purple-300 text-[10px] font-black px-1.5 py-0.5 rounded hover:bg-purple-500 hover:text-black transition">GG</button>
-            </div>
-
-            <!-- Chat Input Box -->
-            <div class="p-3 border-t border-[#1f2431] bg-[#141822]">
-                <form id="chatForm" onsubmit="handleSendChat(event)" class="relative flex items-center">
-                    <input id="chatInput" type="text" placeholder="Send a message..." 
-                        class="w-full bg-[#0b0e14] border border-[#272c38] text-xs text-gray-200 rounded-lg pl-3 pr-16 py-2.5 focus:outline-none focus:border-[#53FC18] transition">
-                    <button type="submit" class="absolute right-1 px-3 py-1.5 bg-[#53FC18] hover:bg-[#42ca13] text-black font-extrabold text-xs rounded-md transition">
-                        Send
-                    </button>
-                </form>
-            </div>
-        </aside>
-
     </div>
 
-    <!-- MODAL 1: AUTHENTICATION MODAL (LOGIN / SIGNUP) -->
-    <div id="authModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-[#141822] border border-[#272c38] rounded-2xl w-full max-w-md p-6 relative shadow-2xl">
-            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg">
+    <!-- Edit Profile Modal -->
+    <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
+        <div class="glass-panel w-full max-w-md p-6 rounded-3xl border border-amber-500/40 relative">
+            <button onclick="closeProfileModal()" class="absolute top-4 left-4 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
                 <i class="fa-solid fa-xmark"></i>
             </button>
-            
             <div class="text-center mb-6">
-                <div class="inline-block bg-[#53FC18] text-black font-black px-3 py-1 rounded text-2xl tracking-tighter mb-2">KICKO</div>
-                <h2 id="authModalTitle" class="text-xl font-bold text-white">Log in to Kicko</h2>
-                <p class="text-xs text-gray-400 mt-1">Join the ultimate live streaming community</p>
+                <h3 class="cinzel font-bold text-xl gold-text mb-1">تعديل الملف الشخصي</h3>
+                <p class="text-xs text-gray-400">تحديث صورتك الرمزية ومعلومات حسابك</p>
             </div>
 
-            <!-- Tabs -->
-            <div class="flex border-b border-[#272c38] mb-4">
-                <button id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 py-2 text-xs font-extrabold text-[#53FC18] border-b-2 border-[#53FC18]">Log In</button>
-                <button id="tabSignupBtn" onclick="switchAuthTab('signup')" class="flex-1 py-2 text-xs font-bold text-gray-400 hover:text-white">Sign Up</button>
-            </div>
-
-            <!-- Form -->
-            <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1">Username</label>
-                    <input id="authUsername" type="text" required placeholder="e.g. GamerPro99" 
-                        class="w-full bg-[#0b0e14] border border-[#272c38] text-xs text-white rounded-lg p-2.5 focus:outline-none focus:border-[#53FC18]">
+            <!-- Avatar Preview & Change -->
+            <div class="flex flex-col items-center mb-6">
+                <div class="relative group cursor-pointer mb-3" onclick="generateNewAvatar()">
+                    <img id="editAvatarPreview" src="" class="w-24 h-24 rounded-full border-2 border-amber-500/60 object-cover bg-black/60 shadow-xl">
+                    <div class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <i class="fa-solid fa-arrows-rotate text-amber-400 text-xl"></i>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1">Password</label>
-                    <input id="authPassword" type="password" required placeholder="••••••••" 
-                        class="w-full bg-[#0b0e14] border border-[#272c38] text-xs text-white rounded-lg p-2.5 focus:outline-none focus:border-[#53FC18]">
-                </div>
-                
-                <div id="signupRoleContainer" class="hidden">
-                    <label class="block text-xs font-bold text-gray-400 mb-1">Account Role</label>
-                    <select id="authRole" class="w-full bg-[#0b0e14] border border-[#272c38] text-xs text-white rounded-lg p-2.5 focus:outline-none focus:border-[#53FC18]">
-                        <option value="user">Standard Streamer / Viewer</option>
-                        <option value="moderator">Community Moderator</option>
-                        <option value="admin">Platform Admin</option>
-                    </select>
-                </div>
-
-                <button type="submit" id="authSubmitBtn" class="w-full py-2.5 bg-[#53FC18] hover:bg-[#42ca13] text-black font-extrabold text-xs rounded-lg transition kick-glow">
-                    Log In
+                <button onclick="generateNewAvatar()" class="text-xs text-amber-300 hover:text-amber-200 bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/30">
+                    <i class="fa-solid fa-dice ml-1"></i> تغيير الصورة عشوائياً
                 </button>
-            </form>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-amber-300/80 mb-1">الاسم المعروض (Profile Name)</label>
+                    <input type="text" id="editDisplayName" placeholder="أدخل اسمك المعروض..." class="w-full px-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500/50">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-amber-300/80 mb-1">الحالة / البايو (Bio)</label>
+                    <input type="text" id="editBio" placeholder="اكتب عبارة تصفك..." class="w-full px-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500/50">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-amber-300/80 mb-1">رابط صورة مخصص (URL)</label>
+                    <input type="text" id="editAvatarUrl" placeholder="https://..." oninput="updateAvatarFromUrl()" class="w-full px-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500/50">
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button onclick="closeProfileModal()" class="flex-1 py-3 bg-white/10 text-xs font-semibold rounded-xl text-gray-300">إلغاء</button>
+                    <button onclick="saveProfileChanges()" class="flex-1 gold-btn py-3 text-xs rounded-xl shadow-lg">حفظ التغييرات</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- MODAL 2: SECRET ADMIN DASHBOARD (CODE: 20102010) -->
-    <div id="adminModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-[#10131b] border-2 border-yellow-500/50 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+    <!-- Admin Pin Verification Modal -->
+    <div id="adminPinModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
+        <div class="glass-panel w-full max-w-xs p-6 rounded-3xl text-center border border-amber-500/40">
+            <div class="w-12 h-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto mb-3">
+                <i class="fa-solid fa-user-shield text-xl"></i>
+            </div>
+            <h3 class="cinzel font-bold text-lg gold-text mb-1">منطقة المسؤول</h3>
+            <p class="text-xs text-gray-400 mb-4">أدخل الرمز السري للولوج للوحة الأدمن</p>
+            <input type="password" id="adminPinInput" maxlength="10" placeholder="••••••••" class="w-full text-center tracking-widest text-lg bg-black/60 border border-amber-500/30 rounded-xl py-2.5 text-white mb-4 focus:outline-none">
+            <div class="flex gap-2">
+                <button onclick="closeAdminPinModal()" class="flex-1 py-2 bg-white/10 text-xs font-semibold rounded-xl text-gray-300">إلغاء</button>
+                <button onclick="verifyAdminPin()" class="flex-1 gold-btn py-2 text-xs rounded-xl">تأكيد</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel Full Dashboard Modal -->
+    <div id="adminPanelModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 bg-black/90 backdrop-blur-lg hidden">
+        <div class="glass-panel w-full max-w-4xl h-[90vh] rounded-3xl border border-amber-500/30 flex flex-col overflow-hidden shadow-2xl">
+            
             <!-- Admin Header -->
-            <div class="p-4 bg-[#181d28] border-b border-[#272c38] flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="p-2 bg-yellow-500/20 text-yellow-400 rounded-lg">
-                        <i class="fa-solid fa-shield-halved text-xl"></i>
+            <div class="p-5 border-b border-white/10 flex items-center justify-between bg-black/50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+                        <i class="fa-solid fa-crown text-lg"></i>
                     </div>
                     <div>
-                        <h2 class="text-lg font-black text-white flex items-center gap-2">
-                            Kicko Secret Control Panel 
-                            <span class="text-xs bg-yellow-500 text-black px-2 py-0.5 rounded font-extrabold">20102010</span>
-                        </h2>
-                        <p class="text-xs text-gray-400">Full Realtime Database Override & Stream Manipulation</p>
+                        <h2 class="cinzel font-bold text-lg gold-text">لوحة التحكم الملكية (Admin Area)</h2>
+                        <span class="text-[10px] text-gray-400">مراقبة المستخدمين والمحادثات المباشرة</span>
                     </div>
                 </div>
-                <button onclick="closeAdminModal()" class="text-gray-400 hover:text-white text-xl">
+                <button onclick="closeAdminPanelModal()" class="w-8 h-8 rounded-full bg-white/10 text-gray-400 hover:text-white flex items-center justify-center">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <!-- Admin Body Grid -->
-            <div class="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                <!-- Quick Stream Stats Controller -->
-                <div class="bg-[#151922] border border-[#272c38] p-4 rounded-xl space-y-4">
-                    <h3 class="text-xs font-extrabold text-yellow-400 uppercase tracking-wider border-b border-[#272c38] pb-2">
-                        <i class="fa-solid fa-sliders mr-1"></i> Live Metric Overrides
-                    </h3>
-                    
-                    <div>
-                        <label class="block text-xs font-bold text-gray-300 mb-1">Inject Viewers Count</label>
-                        <div class="flex space-x-2">
-                            <input id="adminViewerInput" type="number" value="2500" class="flex-1 bg-[#0b0e14] border border-[#272c38] text-xs p-2 rounded text-white">
-                            <button onclick="adminApplyViewers()" class="px-3 py-2 bg-yellow-500 text-black font-extrabold text-xs rounded hover:bg-yellow-400">Set</button>
-                        </div>
-                    </div>
+            <!-- Navigation Tabs -->
+            <div class="flex border-b border-white/10 bg-black/30 px-5 pt-3 gap-3">
+                <button id="adminTabUsersBtn" onclick="switchAdminTab('users')" class="py-2.5 px-4 text-xs font-bold text-amber-400 border-b-2 border-amber-400 flex items-center gap-2">
+                    <i class="fa-solid fa-users"></i> قاعدة حسابات المستخدمين
+                </button>
+                <button id="adminTabSpyBtn" onclick="switchAdminTab('spy')" class="py-2.5 px-4 text-xs font-bold text-gray-400 hover:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-eye text-red-400"></i> المراقبة المباشرة (Spectator Mode)
+                </button>
+            </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-gray-300 mb-1">Add Dynamic Followers</label>
-                        <div class="flex space-x-2">
-                            <input id="adminFollowerInput" type="number" value="100" class="flex-1 bg-[#0b0e14] border border-[#272c38] text-xs p-2 rounded text-white">
-                            <button onclick="adminAddFollowers()" class="px-3 py-2 bg-yellow-500 text-black font-extrabold text-xs rounded hover:bg-yellow-400">+ Add</button>
-                        </div>
-                    </div>
+            <!-- Tab Content 1: User Accounts -->
+            <div id="adminTabUsers" class="flex-1 overflow-y-auto p-5 space-y-3">
+                <div class="text-xs text-gray-400 mb-2">قائمة بجميع الحسابات المسجلة مع كلمات السر الصريحة:</div>
+                <div id="adminUsersList" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- Admin user cards injected dynamically -->
+                </div>
+            </div>
 
-                    <div class="pt-2 border-t border-[#272c38] flex items-center justify-between">
-                        <span class="text-xs font-bold text-gray-300">AI Chat Bots Spammer</span>
-                        <button id="adminBotToggleBtn" onclick="adminToggleBots()" class="px-3 py-1.5 bg-green-600 text-white font-extrabold text-xs rounded hover:bg-green-500">
-                            RUNNING
-                        </button>
+            <!-- Tab Content 2: Live Spectator Mode -->
+            <div id="adminTabSpy" class="flex-1 overflow-hidden flex flex-col md:flex-row hidden">
+                <!-- Active Chats List Sidebar -->
+                <div class="w-full md:w-64 border-b md:border-b-0 md:border-l border-white/10 p-3 overflow-y-auto bg-black/20">
+                    <div class="text-[11px] font-bold text-amber-300 mb-2">المحادثات النشطة للمراقبة:</div>
+                    <div id="adminActiveChatsList" class="space-y-1">
+                        <!-- Dynamic active chat list -->
                     </div>
                 </div>
 
-                <!-- Trigger Alerts & Sound Effects -->
-                <div class="bg-[#151922] border border-[#272c38] p-4 rounded-xl space-y-4">
-                    <h3 class="text-xs font-extrabold text-yellow-400 uppercase tracking-wider border-b border-[#272c38] pb-2">
-                        <i class="fa-solid fa-bullhorn mr-1"></i> Trigger Realtime Alerts
-                    </h3>
-
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="triggerCustomAlert('SUB', 'AdminVIP subscribed at Tier 3!')" class="p-2 bg-[#1f2431] hover:bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded text-xs font-bold">
-                            <i class="fa-solid fa-star block text-lg mb-1"></i> Sub Alert
-                        </button>
-                        <button onclick="triggerCustomAlert('FOLLOW', 'SuperFan99 just followed!')" class="p-2 bg-[#1f2431] hover:bg-green-500/20 text-green-400 border border-green-500/30 rounded text-xs font-bold">
-                            <i class="fa-solid fa-heart block text-lg mb-1"></i> Follow Alert
-                        </button>
-                        <button onclick="triggerCustomAlert('HOST', 'xQc is now hosting for 45,000 viewers!')" class="p-2 bg-[#1f2431] hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded text-xs font-bold">
-                            <i class="fa-solid fa-tower-cell block text-lg mb-1"></i> Host Alert
-                        </button>
-                        <button onclick="adminClearDatabase()" class="p-2 bg-red-950/60 hover:bg-red-900 border border-red-700 text-red-300 rounded text-xs font-bold">
-                            <i class="fa-solid fa-triangle-exclamation block text-lg mb-1"></i> Reset DB
-                        </button>
+                <!-- Chat Monitor Stream -->
+                <div class="flex-1 flex flex-col h-full bg-black/40 p-4">
+                    <div class="pb-3 border-b border-white/10 flex items-center justify-between">
+                        <span id="spyChatTitle" class="text-xs font-bold text-red-400 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span> اختر محادثة لمراقبتها في الوقت الفعلي
+                        </span>
+                    </div>
+                    <div id="spyMessagesBox" class="flex-1 overflow-y-auto py-3 space-y-2 text-xs">
+                        <div class="text-center text-gray-500 my-auto">لم يتم تحديد أي محادثة بعد.</div>
                     </div>
                 </div>
-
-                <!-- Database Live Users Table -->
-                <div class="md:col-span-2 bg-[#151922] border border-[#272c38] p-4 rounded-xl">
-                    <h3 class="text-xs font-extrabold text-yellow-400 uppercase tracking-wider border-b border-[#272c38] pb-2 mb-3">
-                        <i class="fa-solid fa-users mr-1"></i> Realtime Registered Users & Roles
-                    </h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-[#0b0e14] text-gray-400 font-extrabold border-b border-[#272c38]">
-                                <tr>
-                                    <th class="p-2">User</th>
-                                    <th class="p-2">Role</th>
-                                    <th class="p-2">Status</th>
-                                    <th class="p-2 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminUsersTable" class="divide-y divide-[#272c38] text-gray-300">
-                                <!-- Dynamic Users Rows -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
             </div>
         </div>
     </div>
 
-    <!-- MODAL 3: GO LIVE SETUP MODAL -->
-    <div id="goLiveModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-[#141822] border border-[#272c38] rounded-2xl w-full max-w-md p-6 relative shadow-2xl">
-            <button onclick="toggleGoLiveModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-
-            <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-tower-broadcast text-red-500"></i> Go Live Broadcast Setup
-            </h2>
-
-            <form onsubmit="handleStartStream(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1">Stream Title</label>
-                    <input id="streamTitleInput" type="text" required value="Road to Radiant / Grandmaster | Chill Vibing" 
-                        class="w-full bg-[#0b0e14] border border-[#272c38] text-xs text-white rounded-lg p-2.5 focus:outline-none focus:border-[#53FC18]">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1">Category / Game</label>
-                    <select id="streamCategorySelect" class="w-full bg-[#0b0e14] border border-[#272c38] text-xs text-white rounded-lg p-2.5 focus:outline-none focus:border-[#53FC18]">
-                        <option value="GTA V RP">GTA V - RP</option>
-                        <option value="Valorant">Valorant</option>
-                        <option value="Just Chatting">Just Chatting</option>
-                        <option value="Counter-Strike 2">Counter-Strike 2</option>
-                        <option value="Fortnite">Fortnite</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="w-full py-2.5 bg-red-600 hover:bg-red-500 text-white font-extrabold text-xs rounded-lg transition shadow-lg shadow-red-900/30">
-                    START STREAMING NOW
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- CUSTOM TOAST NOTIFICATIONS CONTAINER -->
-    <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
-
-    <!-- JAVASCRIPT APP ENGINE -->
     <script>
-        // Security & Admin Configuration
+        // Security & Configuration
         const ADMIN_CODE = "20102010";
-
-        // Standard Firebase Configuration as specified by user
+        
+        // Standard Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDuscs-L7y5aNwBX6zzz95XU3qGrF4ZsSk",
             authDomain: "instasoop-230e0.firebaseapp.com",
@@ -538,696 +410,468 @@
         };
 
         // Initialize Firebase
-        let firebaseApp, db;
-        try {
-            if (!firebase.apps.length) {
-                firebaseApp = firebase.initializeApp(firebaseConfig);
-            } else {
-                firebaseApp = firebase.app();
-            }
-            db = firebase.database();
-            console.log("Firebase Realtime DB initialized successfully");
-        } catch(e) {
-            console.warn("Firebase initialization warning (fallback mode active):", e);
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
         }
+        const db = firebase.database();
 
-        // Core Application State
+        // State Variables
         let currentUser = null;
-        let isLive = true;
-        let currentViewerCount = 1240;
-        let followerCount = 8450;
-        let subCount = 312;
+        let activeTargetUser = null;
         let currentAuthTab = 'login';
-        let botsActive = true;
-        let botInterval = null;
-        let audioCtx = null;
+        let allRegisteredUsers = {};
+        let activeChatListener = null;
+        let activeSpyListener = null;
+        let tempAvatarUrl = '';
 
-        // Default Recommended Channels
-        const recommendedData = [
-            { id: 'kicko_official', name: 'KickoOfficial', game: 'Just Chatting', viewers: '14.2K', avatar: 'https://placehold.co/100x100/101010/53FC18?text=K', verified: true },
-            { id: 'tarik_pro', name: 'Tarik_Gaming', game: 'Valorant', viewers: '8.9K', avatar: 'https://placehold.co/100x100/101010/3b82f6?text=T', verified: true },
-            { id: 'adadin_rp', name: 'Adadin_RP', game: 'GTA V RP', viewers: '5.1K', avatar: 'https://placehold.co/100x100/101010/eab308?text=A', verified: false },
-            { id: 'xqc_live', name: 'xQc_Kick', game: 'Counter-Strike 2', viewers: '32.1K', avatar: 'https://placehold.co/100x100/101010/a855f7?text=X', verified: true },
-            { id: 'ninja_boost', name: 'NinjaStream', game: 'Fortnite', viewers: '3.4K', avatar: 'https://placehold.co/100x100/101010/ec4899?text=N', verified: true }
-        ];
+        // 5 Clicks Trigger Secret Admin Prompt
+        let clickCount = 0;
+        let clickTimer = null;
 
-        // AI Chat Messages Dictionary
-        const aiBotNames = ['GamerPro_X', 'NinjaKick99', 'MoroccanStreamer', 'VibeCheck', 'PogChamp_99', 'ShadowRider', 'Alpha_Gamer', 'UltraViewer'];
-        const aiBotMessages = [
-            'POG POG POG!', 'GG bro insane play!!', 'L bro what was that shot 😂', 'Hahaha epic stream!', 
-            'W streamer!', 'Can you check my message in discord?', 'KEKW KEKW', 'Nice gameplay man!', 
-            'What game is this?', 'Kicko platform is clean 🔥'
-        ];
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#adminPinModal') || e.target.closest('#adminPanelModal') || e.target.closest('#profileModal')) return;
 
-        // Web Audio Synthesizer for Alerts and Clicks
-        function getAudioContext() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            clickCount++;
+            clearTimeout(clickTimer);
+
+            if (clickCount >= 5) {
+                clickCount = 0;
+                openAdminPinModal();
+            } else {
+                clickTimer = setTimeout(() => {
+                    clickCount = 0;
+                }, 1500);
             }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            return audioCtx;
-        }
-
-        function playAlertSound() {
-            try {
-                const ctx = getAudioContext();
-                const now = ctx.currentTime;
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(440, now); // A4
-                osc.frequency.exponentialRampToValueAtTime(880, now + 0.2); // A5
-
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-
-                osc.start(now);
-                osc.stop(now + 0.4);
-            } catch(e) {}
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            initCanvasStream();
-            initRecommendedSidebar();
-            restoreUserSession();
-            bindFirebaseListeners();
-            startBotEngine();
-            updateMetricDisplays();
         });
 
-        // LocalStorage Session Restoration
-        function restoreUserSession() {
-            const savedUser = localStorage.getItem('kicko_user');
-            if (savedUser) {
-                try {
-                    currentUser = JSON.parse(savedUser);
-                    updateUIForLoggedInUser();
-                    showToast(`Welcome back, ${currentUser.username}!`, 'success');
-                } catch(e) {
-                    localStorage.removeItem('kicko_user');
-                }
-            }
-        }
-
-        function updateUIForLoggedInUser() {
-            if (currentUser) {
-                document.getElementById('loggedOutButtons').classList.add('hidden');
-                document.getElementById('loggedInUser').classList.remove('hidden');
-                document.getElementById('goLiveBtn').classList.remove('hidden');
-                
-                document.getElementById('userNameDisplay').textContent = currentUser.username;
-                document.getElementById('userAvatar').src = `https://placehold.co/100x100/101010/53FC18?text=${currentUser.username.substring(0, 2).toUpperCase()}`;
-                
-                const roleBadge = document.getElementById('userRoleBadge');
-                roleBadge.textContent = currentUser.role ? currentUser.role.toUpperCase() : 'USER';
-                if (currentUser.role === 'admin') {
-                    roleBadge.className = "text-[10px] bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded font-extrabold border border-yellow-500/40";
-                } else if (currentUser.role === 'moderator') {
-                    roleBadge.className = "text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded font-extrabold border border-blue-500/40";
-                }
-            } else {
-                document.getElementById('loggedOutButtons').classList.remove('hidden');
-                document.getElementById('loggedInUser').classList.add('hidden');
-                document.getElementById('goLiveBtn').classList.add('hidden');
-            }
-        }
-
-        // Canvas Simulated Game/Video Feed Engine
-        let canvas, ctxAnim;
-        let animationFrameId;
-
-        function initCanvasStream() {
-            canvas = document.getElementById('streamCanvas');
-            ctxAnim = canvas.getContext('2d');
-            
-            // Set high resolution
-            canvas.width = 1280;
-            canvas.height = 720;
-
-            let particles = Array.from({ length: 40 }, () => ({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                radius: Math.random() * 3 + 1,
-                dx: (Math.random() - 0.5) * 2,
-                dy: (Math.random() - 0.5) * 2,
-                color: Math.random() > 0.5 ? '#53FC18' : '#ffffff'
-            }));
-
-            let angle = 0;
-
-            function render() {
-                // Background dark gradient
-                const grad = ctxAnim.createLinearGradient(0, 0, canvas.width, canvas.height);
-                grad.addColorStop(0, '#0a0d14');
-                grad.addColorStop(0.5, '#121722');
-                grad.addColorStop(1, '#080a0f');
-                ctxAnim.fillStyle = grad;
-                ctxAnim.fillRect(0, 0, canvas.width, canvas.height);
-
-                if (isLive) {
-                    // Draw 3D-like futuristic neon grids
-                    ctxAnim.strokeStyle = 'rgba(83, 252, 24, 0.15)';
-                    ctxAnim.lineWidth = 1;
-                    const gridSize = 40;
-                    for (let x = 0; x < canvas.width; x += gridSize) {
-                        ctxAnim.beginPath();
-                        ctxAnim.moveTo(x, 0);
-                        ctxAnim.lineTo(x, canvas.height);
-                        ctxAnim.stroke();
-                    }
-                    for (let y = 0; y < canvas.height; y += gridSize) {
-                        ctxAnim.beginPath();
-                        ctxAnim.moveTo(0, y);
-                        ctxAnim.lineTo(canvas.width, y);
-                        ctxAnim.stroke();
-                    }
-
-                    // Render moving glowing particles
-                    particles.forEach(p => {
-                        p.x += p.dx;
-                        p.y += p.dy;
-                        if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
-                        if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
-
-                        ctxAnim.beginPath();
-                        ctxAnim.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                        ctxAnim.fillStyle = p.color;
-                        ctxAnim.shadowBlur = 10;
-                        ctxAnim.shadowColor = p.color;
-                        ctxAnim.fill();
-                        ctxAnim.shadowBlur = 0;
-                    });
-
-                    // Animated HUD Central Element
-                    angle += 0.02;
-                    ctxAnim.save();
-                    ctxAnim.translate(canvas.width / 2, canvas.height / 2);
-                    ctxAnim.rotate(angle);
-                    ctxAnim.strokeStyle = '#53FC18';
-                    ctxAnim.lineWidth = 3;
-                    ctxAnim.shadowBlur = 15;
-                    ctxAnim.shadowColor = '#53FC18';
-                    ctxAnim.strokeRect(-80, -80, 160, 160);
-                    ctxAnim.restore();
-
-                    // HUD Text
-                    ctxAnim.fillStyle = '#ffffff';
-                    ctxAnim.font = 'bold 36px Inter';
-                    ctxAnim.textAlign = 'center';
-                    ctxAnim.fillText('KICKO LIVE BROADCAST', canvas.width / 2, canvas.height / 2 + 10);
-
-                    ctxAnim.fillStyle = '#53FC18';
-                    ctxAnim.font = '600 16px Inter';
-                    ctxAnim.fillText('1080p60 FPS • HIGH QUALITY SIMULATION', canvas.width / 2, canvas.height / 2 + 45);
-                } else {
-                    // Stream Offline Display
-                    ctxAnim.fillStyle = '#ff3333';
-                    ctxAnim.font = 'bold 42px Inter';
-                    ctxAnim.textAlign = 'center';
-                    ctxAnim.fillText('STREAM IS OFFLINE', canvas.width / 2, canvas.height / 2);
-                }
-
-                animationFrameId = requestAnimationFrame(render);
-            }
-
-            render();
-        }
-
-        // Firebase Realtime Listener Engine
-        function bindFirebaseListeners() {
-            if (!db) return;
-
-            // Listen for global chat messages
-            db.ref('messages').limitToLast(50).on('value', (snapshot) => {
-                const messagesData = snapshot.val();
-                if (messagesData) {
-                    const chatFeed = document.getElementById('chatFeed');
-                    chatFeed.innerHTML = '';
-                    Object.values(messagesData).forEach(msg => {
-                        appendChatMessageUI(msg);
-                    });
-                    chatFeed.scrollTop = chatFeed.scrollHeight;
-                }
-            });
-
-            // Listen for stream state updates
-            db.ref('stream_state').on('value', (snapshot) => {
-                const state = snapshot.val();
-                if (state) {
-                    if (state.viewers !== undefined) {
-                        currentViewerCount = state.viewers;
-                        document.getElementById('canvasViewerCount').textContent = currentViewerCount.toLocaleString();
-                        document.getElementById('statPeakViewers').textContent = currentViewerCount.toLocaleString();
-                    }
-                    if (state.followers !== undefined) {
-                        followerCount = state.followers;
-                        document.getElementById('channelFollowersCount').textContent = followerCount.toLocaleString();
-                    }
-                    if (state.subs !== undefined) {
-                        subCount = state.subs;
-                        document.getElementById('channelSubsCount').textContent = subCount.toLocaleString();
-                    }
-                }
-            });
-
-            // Sync registered users for admin
-            db.ref('users').on('value', (snapshot) => {
-                const users = snapshot.val() || {};
-                renderAdminUsersTable(users);
-            });
-        }
-
-        // Send Message
-        function handleSendChat(e) {
-            e.preventDefault();
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-            if (!message) return;
-
-            const username = currentUser ? currentUser.username : 'GuestGamer';
-            const role = currentUser ? (currentUser.role || 'user') : 'user';
-
-            const msgObject = {
-                username: username,
-                role: role,
-                text: message,
-                timestamp: Date.now()
-            };
-
-            if (db) {
-                db.ref('messages').push(msgObject);
-            } else {
-                appendChatMessageUI(msgObject);
-            }
-
-            input.value = '';
-        }
-
-        function insertEmote(emoteStr) {
-            const input = document.getElementById('chatInput');
-            input.value += ` ${emoteStr} `;
-            input.focus();
-        }
-
-        function appendChatMessageUI(msg) {
-            const chatFeed = document.getElementById('chatFeed');
-            const msgEl = document.createElement('div');
-            msgEl.className = "chat-message p-1.5 rounded flex items-start space-x-2 transition";
-
-            // Role Badge Render
-            let badgeHTML = '';
-            if (msg.role === 'admin') {
-                badgeHTML = `<span class="bg-yellow-500/20 text-yellow-400 text-[9px] font-black px-1 rounded border border-yellow-500/40">ADMIN</span>`;
-            } else if (msg.role === 'moderator') {
-                badgeHTML = `<span class="bg-blue-500/20 text-blue-400 text-[9px] font-black px-1 rounded border border-blue-500/40">MOD</span>`;
-            } else if (msg.role === 'bot') {
-                badgeHTML = `<span class="bg-green-500/20 text-green-400 text-[9px] font-black px-1 rounded border border-green-500/40">BOT</span>`;
-            }
-
-            msgEl.innerHTML = `
-                <div class="flex items-center space-x-1 shrink-0 mt-0.5">
-                    ${badgeHTML}
-                    <span class="font-extrabold text-[#53FC18] cursor-pointer hover:underline" onclick="handleUserClick('${msg.username}')">${msg.username}:</span>
-                </div>
-                <div class="text-gray-200 break-words font-medium leading-relaxed">${escapeHTML(msg.text)}</div>
-            `;
-
-            chatFeed.appendChild(msgEl);
-            chatFeed.scrollTop = chatFeed.scrollHeight;
-        }
-
-        function clearChatMessages() {
-            if (db) {
-                db.ref('messages').remove();
-            } else {
-                document.getElementById('chatFeed').innerHTML = '';
-            }
-            showToast('Chat cleared', 'info');
-        }
-
-        // AI Bot Engine
-        function startBotEngine() {
-            if (botInterval) clearInterval(botInterval);
-
-            botInterval = setInterval(() => {
-                if (!botsActive || !isLive) return;
-
-                // 1. Dynamic Viewer Fluctuation
-                const delta = Math.floor(Math.random() * 15) - 6;
-                currentViewerCount = Math.max(10, currentViewerCount + delta);
-                document.getElementById('canvasViewerCount').textContent = currentViewerCount.toLocaleString();
-                document.getElementById('statPeakViewers').textContent = currentViewerCount.toLocaleString();
-
-                // 2. Random AI Bot Chat Message
-                if (Math.random() > 0.6) {
-                    const randomName = aiBotNames[Math.floor(Math.random() * aiBotNames.length)];
-                    const randomMsg = aiBotMessages[Math.floor(Math.random() * aiBotMessages.length)];
-                    
-                    const botMsg = {
-                        username: randomName,
-                        role: 'bot',
-                        text: randomMsg,
-                        timestamp: Date.now()
-                    };
-
-                    if (db) {
-                        db.ref('messages').push(botMsg);
-                    } else {
-                        appendChatMessageUI(botMsg);
-                    }
-                }
-
-                // 3. Random Follower Gain
-                if (Math.random() > 0.85) {
-                    followerCount++;
-                    document.getElementById('channelFollowersCount').textContent = followerCount.toLocaleString();
-                }
-
-            }, 3500);
-        }
-
-        // Secret Admin Access Prompt
-        function promptAdminAccess() {
-            const code = prompt("🔑 ENTER SECRET ADMIN PASSKEY:");
-            if (code === ADMIN_CODE) {
-                document.getElementById('adminModal').classList.remove('hidden');
-                playAlertSound();
-                showToast("Secret Admin Dashboard Unlocked!", "success");
-            } else if (code !== null) {
-                showToast("Invalid Admin Passkey!", "error");
-            }
-        }
-
-        function closeAdminModal() {
-            document.getElementById('adminModal').classList.add('hidden');
-        }
-
-        function adminApplyViewers() {
-            const val = parseInt(document.getElementById('adminViewerInput').value);
-            if (!isNaN(val)) {
-                currentViewerCount = val;
-                if (db) db.ref('stream_state').update({ viewers: val });
-                document.getElementById('canvasViewerCount').textContent = val.toLocaleString();
-                showToast(`Viewer count set to ${val}`, 'success');
-            }
-        }
-
-        function adminAddFollowers() {
-            const val = parseInt(document.getElementById('adminFollowerInput').value);
-            if (!isNaN(val)) {
-                followerCount += val;
-                if (db) db.ref('stream_state').update({ followers: followerCount });
-                document.getElementById('channelFollowersCount').textContent = followerCount.toLocaleString();
-                showToast(`Added ${val} followers`, 'success');
-            }
-        }
-
-        function adminToggleBots() {
-            botsActive = !botsActive;
-            const btn = document.getElementById('adminBotToggleBtn');
-            const status = document.getElementById('botEngineStatus');
-            if (botsActive) {
-                btn.textContent = "RUNNING";
-                btn.className = "px-3 py-1.5 bg-green-600 text-white font-extrabold text-xs rounded hover:bg-green-500";
-                status.textContent = "ACTIVE";
-                status.className = "text-[10px] text-green-400 font-bold bg-green-900/40 px-1.5 py-0.5 rounded";
-            } else {
-                btn.textContent = "STOPPED";
-                btn.className = "px-3 py-1.5 bg-red-600 text-white font-extrabold text-xs rounded hover:bg-red-500";
-                status.textContent = "OFFLINE";
-                status.className = "text-[10px] text-red-400 font-bold bg-red-900/40 px-1.5 py-0.5 rounded";
-            }
-        }
-
-        function adminClearDatabase() {
-            if (confirm("Are you sure you want to purge messages and state?")) {
-                if (db) {
-                    db.ref('messages').remove();
-                    db.ref('stream_state').set({ viewers: 1000, followers: 5000, subs: 100 });
-                }
-                showToast("Database reset performed", "info");
-            }
-        }
-
-        function renderAdminUsersTable(usersMap) {
-            const tbody = document.getElementById('adminUsersTable');
-            tbody.innerHTML = '';
-
-            const userKeys = Object.keys(usersMap);
-            if (userKeys.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-gray-500">No registered users in Realtime DB yet.</td></tr>`;
-                return;
-            }
-
-            userKeys.forEach(key => {
-                const u = usersMap[key];
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="p-2 font-bold">${escapeHTML(u.username || key)}</td>
-                    <td class="p-2"><span class="bg-gray-800 text-gray-300 px-1.5 py-0.5 rounded">${u.role || 'user'}</span></td>
-                    <td class="p-2 text-green-400">Online</td>
-                    <td class="p-2 text-right space-x-1">
-                        <button onclick="adminChangeRole('${key}', 'moderator')" class="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded">Make Mod</button>
-                        <button onclick="adminChangeRole('${key}', 'admin')" class="px-2 py-0.5 bg-yellow-600 text-white text-[10px] font-bold rounded">Make Admin</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function adminChangeRole(userId, newRole) {
-            if (db) {
-                db.ref(`users/${userId}`).update({ role: newRole });
-                showToast(`Role updated to ${newRole}`, 'success');
-            }
-        }
-
-        // Custom Alert Overlay Trigger
-        function triggerCustomAlert(type, text) {
-            playAlertSound();
-            const overlay = document.getElementById('alertOverlay');
-            const title = document.getElementById('alertTitle');
-            const body = document.getElementById('alertBody');
-            const icon = document.getElementById('alertIcon');
-
-            if (type === 'SUB') {
-                title.textContent = "NEW SUBSCRIBER!";
-                icon.className = "fa-solid fa-star";
-            } else if (type === 'FOLLOW') {
-                title.textContent = "NEW FOLLOWER!";
-                icon.className = "fa-solid fa-heart";
-            } else {
-                title.textContent = "RAID / HOST!";
-                icon.className = "fa-solid fa-tower-cell";
-            }
-
-            body.textContent = text;
-            overlay.classList.remove('hidden');
-
+        // Application Startup
+        window.addEventListener('load', () => {
             setTimeout(() => {
-                overlay.classList.add('hidden');
-            }, 4000);
-        }
+                const splash = document.getElementById('splashScreen');
+                splash.style.opacity = '0';
+                setTimeout(() => splash.style.display = 'none', 700);
 
-        function openAuthModal(tab) {
-            currentAuthTab = tab;
-            switchAuthTab(tab);
-            document.getElementById('authModal').classList.remove('hidden');
-        }
+                // Auto Login check
+                const savedUser = localStorage.getItem('luxy_auth_user');
+                if (savedUser) {
+                    try {
+                        currentUser = JSON.parse(savedUser);
+                        initApp();
+                    } catch(e) {
+                        localStorage.removeItem('luxy_auth_user');
+                    }
+                }
+            }, 1800);
+        });
 
-        function closeAuthModal() {
-            document.getElementById('authModal').classList.add('hidden');
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
         }
 
         function switchAuthTab(tab) {
             currentAuthTab = tab;
             const loginBtn = document.getElementById('tabLoginBtn');
-            const signupBtn = document.getElementById('tabSignupBtn');
-            const title = document.getElementById('authModalTitle');
+            const regBtn = document.getElementById('tabRegisterBtn');
             const submitBtn = document.getElementById('authSubmitBtn');
-            const roleContainer = document.getElementById('signupRoleContainer');
 
             if (tab === 'login') {
-                loginBtn.className = "flex-1 py-2 text-xs font-extrabold text-[#53FC18] border-b-2 border-[#53FC18]";
-                signupBtn.className = "flex-1 py-2 text-xs font-bold text-gray-400 hover:text-white border-none";
-                title.textContent = "Log in to Kicko";
-                submitBtn.textContent = "Log In";
-                roleContainer.classList.add('hidden');
+                loginBtn.className = "flex-1 py-2 rounded-lg text-sm font-semibold text-amber-400 bg-white/10 transition-all";
+                regBtn.className = "flex-1 py-2 rounded-lg text-sm font-semibold text-gray-400 transition-all";
+                submitBtn.innerText = "دخول الحساب";
             } else {
-                signupBtn.className = "flex-1 py-2 text-xs font-extrabold text-[#53FC18] border-b-2 border-[#53FC18]";
-                loginBtn.className = "flex-1 py-2 text-xs font-bold text-gray-400 hover:text-white border-none";
-                title.textContent = "Create a Kicko Account";
-                submitBtn.textContent = "Sign Up";
-                roleContainer.classList.remove('hidden');
+                regBtn.className = "flex-1 py-2 rounded-lg text-sm font-semibold text-amber-400 bg-white/10 transition-all";
+                loginBtn.className = "flex-1 py-2 rounded-lg text-sm font-semibold text-gray-400 transition-all";
+                submitBtn.innerText = "إنشاء حساب جديد";
             }
         }
 
-        function handleAuthSubmit(e) {
-            e.preventDefault();
-            const username = document.getElementById('authUsername').value.trim();
+        function handleAuthSubmit() {
+            const username = document.getElementById('authUsername').value.trim().toLowerCase();
             const password = document.getElementById('authPassword').value.trim();
-            const role = document.getElementById('authRole').value;
 
-            if (!username) return;
+            if (!username || username.length < 3) return showToast("اسم المستخدم يجب أن يكون 3 أحرف على الأقل");
+            if (!password || password.length < 4) return showToast("كلمة السر يجب أن تكون 4 أحرف على الأقل");
 
-            currentUser = {
-                uid: 'user_' + Date.now(),
-                username: username,
-                role: currentAuthTab === 'signup' ? role : 'user'
-            };
+            const userRef = db.ref('users/' + username);
 
-            // Save to LocalStorage for auto-login
-            localStorage.setItem('kicko_user', JSON.stringify(currentUser));
-
-            // Sync with Firebase users
-            if (db) {
-                db.ref(`users/${currentUser.uid}`).set(currentUser);
-            }
-
-            updateUIForLoggedInUser();
-            closeAuthModal();
-            showToast(`Logged in successfully as ${username}`, 'success');
-        }
-
-        function logoutUser() {
-            localStorage.removeItem('kicko_user');
-            currentUser = null;
-            updateUIForLoggedInUser();
-            showToast("Logged out of Kicko", "info");
-        }
-
-        function toggleGoLiveModal() {
-            const modal = document.getElementById('goLiveModal');
-            modal.classList.toggle('hidden');
-        }
-
-        function handleStartStream(e) {
-            e.preventDefault();
-            const title = document.getElementById('streamTitleInput').value;
-            const category = document.getElementById('streamCategorySelect').value;
-
-            document.getElementById('channelTitle').textContent = title;
-            document.getElementById('streamCategoryText').textContent = `Playing ${category}`;
-            
-            isLive = true;
-            document.getElementById('streamStatusBadge').className = "bg-red-600 text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded uppercase tracking-wider flex items-center space-x-1 shadow-md";
-            document.getElementById('streamStatusBadge').innerHTML = `<span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse mr-1"></span> LIVE`;
-
-            toggleGoLiveModal();
-            triggerCustomAlert('HOST', `${currentUser ? currentUser.username : 'You'} started broadcasting live!`);
-            showToast("Your broadcast is now LIVE on Kicko!", "success");
-        }
-
-        function handleFollowToggle() {
-            const btnText = document.getElementById('followBtnText');
-            if (btnText.textContent === 'Follow') {
-                btnText.textContent = 'Following';
-                followerCount++;
-                document.getElementById('channelFollowersCount').textContent = followerCount.toLocaleString();
-                showToast("You are now following this channel!", "success");
+            if (currentAuthTab === 'register') {
+                userRef.once('value', (snap) => {
+                    if (snap.exists()) {
+                        showToast("اسم المستخدم هذا مأخوذ بالفعل!");
+                    } else {
+                        const newUser = {
+                            username: username,
+                            displayName: username,
+                            bio: "عضو في LUXY PRO Network",
+                            password: password,
+                            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`,
+                            createdAt: Date.now()
+                        };
+                        userRef.set(newUser).then(() => {
+                            showToast("تم إنشاء الحساب بنجاح! جاري الدخول...");
+                            currentUser = newUser;
+                            localStorage.setItem('luxy_auth_user', JSON.stringify(currentUser));
+                            initApp();
+                        });
+                    }
+                });
             } else {
-                btnText.textContent = 'Follow';
-                followerCount--;
-                document.getElementById('channelFollowersCount').textContent = followerCount.toLocaleString();
+                userRef.once('value', (snap) => {
+                    const userData = snap.val();
+                    if (userData && userData.password === password) {
+                        currentUser = userData;
+                        localStorage.setItem('luxy_auth_user', JSON.stringify(currentUser));
+                        showToast(`مرحباً بعودتك ${userData.displayName || username}`);
+                        initApp();
+                    } else {
+                        showToast("اسم المستخدم أو كلمة السر غير صحيحة!");
+                    }
+                });
             }
         }
 
-        function triggerSubModal() {
-            subCount++;
-            document.getElementById('channelSubsCount').textContent = subCount.toLocaleString();
-            triggerCustomAlert('SUB', `${currentUser ? currentUser.username : 'A Supporter'} subscribed to the channel!`);
-        }
-
-        function shareStream() {
-            navigator.clipboard?.writeText(window.location.href);
-            showToast("Stream link copied to clipboard!", "info");
-        }
-
-        function togglePlayPause() {
-            isLive = !isLive;
-            const icon = document.getElementById('playPauseBtn');
-            if (isLive) {
-                icon.innerHTML = `<i class="fa-solid fa-pause"></i>`;
-            } else {
-                icon.innerHTML = `<i class="fa-solid fa-play"></i>`;
+        function logout() {
+            if (currentUser) {
+                db.ref('presence/' + currentUser.username).remove();
             }
+            localStorage.removeItem('luxy_auth_user');
+            location.reload();
         }
 
-        function toggleFullscreen() {
-            const elem = document.getElementById('streamCanvas');
-            if (!document.fullscreenElement) {
-                elem.requestFullscreen?.();
-            } else {
-                document.exitFullscreen?.();
-            }
+        function initApp() {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+
+            updateProfileUI();
+
+            // Set presence online
+            db.ref('presence/' + currentUser.username).set({
+                online: true,
+                lastSeen: Date.now()
+            });
+            db.ref('presence/' + currentUser.username).onDisconnect().remove();
+
+            // Sync all users
+            listenToUsers();
         }
 
-        // Recommended Sidebar Generator
-        function initRecommendedSidebar() {
-            const container = document.getElementById('recommendedStreamers');
-            container.innerHTML = '';
+        function updateProfileUI() {
+            document.getElementById('myName').innerText = currentUser.displayName || currentUser.username;
+            document.getElementById('myAvatar').src = currentUser.avatar;
+        }
 
-            recommendedData.forEach(st => {
-                const div = document.createElement('div');
-                div.className = "flex items-center justify-between p-2 rounded-lg hover:bg-[#1f2431] cursor-pointer transition group";
-                div.onclick = () => {
-                    document.getElementById('channelTitle').textContent = `${st.name}'s Stream`;
-                    document.getElementById('streamCategoryText').textContent = `Playing ${st.game}`;
-                    document.getElementById('channelAvatar').src = st.avatar;
-                    showToast(`Switched to ${st.name}`, 'info');
-                };
+        function listenToUsers() {
+            db.ref('users').on('value', (snap) => {
+                allRegisteredUsers = snap.val() || {};
+                
+                // Keep current user updated
+                if (currentUser && allRegisteredUsers[currentUser.username]) {
+                    currentUser = allRegisteredUsers[currentUser.username];
+                    localStorage.setItem('luxy_auth_user', JSON.stringify(currentUser));
+                    updateProfileUI();
+                }
 
-                div.innerHTML = `
-                    <div class="flex items-center space-x-2 min-w-0">
-                        <img src="${st.avatar}" class="w-8 h-8 rounded-full border border-gray-700 object-cover shrink-0">
-                        <div class="hidden lg:block min-w-0">
-                            <div class="text-xs font-bold text-gray-200 truncate group-hover:text-[#53FC18] transition flex items-center gap-1">
-                                ${st.name} ${st.verified ? '<i class="fa-solid fa-circle-check text-[#53FC18] text-[10px]"></i>' : ''}
-                            </div>
-                            <div class="text-[11px] text-gray-500 truncate">${st.game}</div>
-                        </div>
-                    </div>
-                    <div class="hidden lg:flex items-center space-x-1 text-red-500 text-xs font-extrabold">
-                        <span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-ping"></span>
-                        <span>${st.viewers}</span>
-                    </div>
-                `;
-                container.appendChild(div);
+                renderContacts();
+                updateBadge();
             });
         }
 
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
+        function updateBadge() {
+            const count = Object.keys(allRegisteredUsers).length;
+            document.getElementById('userCountBadge').innerText = count;
+        }
+
+        function renderContacts(filter = '') {
+            const list = document.getElementById('contactsList');
+            list.innerHTML = '';
+
+            Object.values(allRegisteredUsers).forEach(u => {
+                if (u.username === currentUser.username) return; // Skip myself
+                if (filter && !u.username.includes(filter.toLowerCase()) && !(u.displayName && u.displayName.toLowerCase().includes(filter.toLowerCase()))) return;
+
+                const isSelected = activeTargetUser && activeTargetUser.username === u.username;
+
+                const card = document.createElement('div');
+                card.className = `p-3 rounded-2xl flex items-center justify-between cursor-pointer transition-all ${isSelected ? 'bg-amber-500/20 border border-amber-500/40' : 'hover:bg-white/5 border border-transparent'}`;
+                card.onclick = () => selectChatUser(u);
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <div class="relative shrink-0">
+                            <img src="${u.avatar}" class="w-10 h-10 rounded-full border border-white/10 object-cover bg-black/40">
+                            <span class="w-2.5 h-2.5 bg-green-500 rounded-full absolute bottom-0 right-0 border border-black"></span>
+                        </div>
+                        <div class="truncate">
+                            <div class="font-bold text-xs text-white truncate">${u.displayName || u.username}</div>
+                            <div class="text-[10px] text-gray-400 truncate">${u.bio || 'أنقر للدردشة المباشرة'}</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-left text-xs text-gray-600 shrink-0 mr-2"></i>
+                `;
+
+                list.appendChild(card);
+            });
+        }
+
+        function filterContacts() {
+            const q = document.getElementById('contactSearch').value.trim();
+            renderContacts(q);
+        }
+
+        function selectChatUser(user) {
+            activeTargetUser = user;
+            renderContacts();
+
+            document.getElementById('noChatSelected').classList.add('hidden');
+            document.getElementById('activeChatContainer').classList.remove('hidden');
+
+            document.getElementById('chatTargetName').innerText = user.displayName || user.username;
+            document.getElementById('chatTargetBio').innerText = user.bio || 'دردشة مشفرة خاصة';
+            document.getElementById('chatTargetAvatar').src = user.avatar;
+
+            // Generate unique 1-to-1 chat channel ID
+            const chatId = getChatId(currentUser.username, user.username);
+            listenToMessages(chatId);
+        }
+
+        function closeChatMobile() {
+            document.getElementById('activeChatContainer').classList.add('hidden');
+            document.getElementById('noChatSelected').classList.remove('hidden');
+        }
+
+        function getChatId(userA, userB) {
+            return [userA, userB].sort().join('_chat_');
+        }
+
+        function listenToMessages(chatId) {
+            const box = document.getElementById('messagesBox');
+            box.innerHTML = '';
+
+            if (activeChatListener) {
+                activeChatListener.off();
+            }
+
+            activeChatListener = db.ref('chats/' + chatId);
+            activeChatListener.limitToLast(100).on('value', (snap) => {
+                box.innerHTML = '';
+                const msgs = snap.val() || {};
+
+                Object.values(msgs).forEach(m => {
+                    const isMe = m.sender === currentUser.username;
+                    const div = document.createElement('div');
+                    div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} my-1`;
+
+                    const timeStr = new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                    div.innerHTML = `
+                        <div class="max-w-[80%] px-4 py-2.5 text-xs text-white ${isMe ? 'chat-bubble-sent' : 'chat-bubble-recv'}">
+                            ${m.text}
+                        </div>
+                        <span class="text-[9px] text-gray-500 mt-1 px-1">${timeStr}</span>
+                    `;
+                    box.appendChild(div);
+                });
+
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+
+        function sendMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+
+            if (!text || !activeTargetUser) return;
+
+            const chatId = getChatId(currentUser.username, activeTargetUser.username);
+            const msgObj = {
+                sender: currentUser.username,
+                receiver: activeTargetUser.username,
+                text: text,
+                timestamp: Date.now()
+            };
+
+            db.ref('chats/' + chatId).push(msgObj);
+            input.value = '';
+        }
+
+        // Profile Editing Modal Functions
+        function openProfileModal() {
+            if (!currentUser) return;
+            tempAvatarUrl = currentUser.avatar;
+            document.getElementById('editDisplayName').value = currentUser.displayName || currentUser.username;
+            document.getElementById('editBio').value = currentUser.bio || '';
+            document.getElementById('editAvatarUrl').value = currentUser.avatar.startsWith('http') ? currentUser.avatar : '';
+            document.getElementById('editAvatarPreview').src = currentUser.avatar;
+            document.getElementById('profileModal').classList.remove('hidden');
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profileModal').classList.add('hidden');
+        }
+
+        function generateNewAvatar() {
+            const randomSeed = Math.random().toString(36).substring(7);
+            const avatarStyles = ['bottts', 'avataaars', 'identicon', 'fun-emoji', 'thumbs'];
+            const randomStyle = avatarStyles[Math.floor(Math.random() * avatarStyles.length)];
+            tempAvatarUrl = `https://api.dicebear.com/7.x/${randomStyle}/svg?seed=${randomSeed}`;
+            document.getElementById('editAvatarPreview').src = tempAvatarUrl;
+            document.getElementById('editAvatarUrl').value = '';
+        }
+
+        function updateAvatarFromUrl() {
+            const url = document.getElementById('editAvatarUrl').value.trim();
+            if (url) {
+                tempAvatarUrl = url;
+                document.getElementById('editAvatarPreview').src = tempAvatarUrl;
+            }
+        }
+
+        function saveProfileChanges() {
+            const newName = document.getElementById('editDisplayName').value.trim() || currentUser.username;
+            const newBio = document.getElementById('editBio').value.trim();
             
-            let bg = 'bg-[#191b1f] border-gray-700 text-white';
-            if (type === 'success') bg = 'bg-[#191b1f] border-[#53FC18] text-[#53FC18]';
-            if (type === 'error') bg = 'bg-[#191b1f] border-red-500 text-red-400';
+            const updates = {
+                displayName: newName,
+                bio: newBio,
+                avatar: tempAvatarUrl
+            };
 
-            toast.className = `p-3 rounded-lg border text-xs font-bold shadow-xl flex items-center space-x-2 animate-bounce transition ${bg}`;
-            toast.innerHTML = `<i class="fa-solid fa-bell"></i> <span>${message}</span>`;
-
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
+            db.ref('users/' + currentUser.username).update(updates).then(() => {
+                showToast("تم تحديث البروفايل بنجاح!");
+                currentUser = { ...currentUser, ...updates };
+                localStorage.setItem('luxy_auth_user', JSON.stringify(currentUser));
+                updateProfileUI();
+                closeProfileModal();
+            }).catch(err => {
+                showToast("حدث خطأ أثناء الحفظ!");
+            });
         }
 
-        function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, 
-                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-            );
+        // Secret Admin Panel
+        function openAdminPinModal() {
+            document.getElementById('adminPinModal').classList.remove('hidden');
+            document.getElementById('adminPinInput').value = '';
+            document.getElementById('adminPinInput').focus();
         }
 
-        function updateMetricDisplays() {
-            document.getElementById('channelFollowersCount').textContent = followerCount.toLocaleString();
-            document.getElementById('channelSubsCount').textContent = subCount.toLocaleString();
+        function closeAdminPinModal() {
+            document.getElementById('adminPinModal').classList.add('hidden');
+        }
+
+        function verifyAdminPin() {
+            const val = document.getElementById('adminPinInput').value.trim();
+            if (val === ADMIN_CODE) {
+                closeAdminPinModal();
+                openAdminPanel();
+            } else {
+                showToast("الرمز السري غير صحيح!");
+            }
+        }
+
+        function openAdminPanel() {
+            document.getElementById('adminPanelModal').classList.remove('hidden');
+            renderAdminUsers();
+            listenToAdminActiveChats();
+        }
+
+        function closeAdminPanelModal() {
+            document.getElementById('adminPanelModal').classList.add('hidden');
+            if (activeSpyListener) activeSpyListener.off();
+        }
+
+        function switchAdminTab(tab) {
+            const usersBtn = document.getElementById('adminTabUsersBtn');
+            const spyBtn = document.getElementById('adminTabSpyBtn');
+            const usersTab = document.getElementById('adminTabUsers');
+            const spyTab = document.getElementById('adminTabSpy');
+
+            if (tab === 'users') {
+                usersBtn.className = "py-2.5 px-4 text-xs font-bold text-amber-400 border-b-2 border-amber-400 flex items-center gap-2";
+                spyBtn.className = "py-2.5 px-4 text-xs font-bold text-gray-400 hover:text-white flex items-center gap-2";
+                usersTab.classList.remove('hidden');
+                spyTab.classList.add('hidden');
+            } else {
+                spyBtn.className = "py-2.5 px-4 text-xs font-bold text-amber-400 border-b-2 border-amber-400 flex items-center gap-2";
+                usersBtn.className = "py-2.5 px-4 text-xs font-bold text-gray-400 hover:text-white flex items-center gap-2";
+                spyTab.classList.remove('hidden');
+                usersTab.classList.add('hidden');
+            }
+        }
+
+        function renderAdminUsers() {
+            const container = document.getElementById('adminUsersList');
+            container.innerHTML = '';
+
+            Object.values(allRegisteredUsers).forEach(u => {
+                const card = document.createElement('div');
+                card.className = "bg-black/40 border border-white/10 rounded-2xl p-4 flex items-center justify-between";
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <img src="${u.avatar}" class="w-10 h-10 rounded-full border border-amber-500/30 object-cover bg-black">
+                        <div>
+                            <div class="font-bold text-xs text-white">${u.displayName || u.username} <span class="text-[10px] text-gray-500">(@${u.username})</span></div>
+                            <div class="text-[10px] text-amber-300">كلمة السر: <code class="bg-black/60 px-1.5 py-0.5 rounded text-amber-400">${u.password}</code></div>
+                        </div>
+                    </div>
+                    <span class="text-[9px] text-gray-500">${new Date(u.createdAt || Date.now()).toLocaleDateString()}</span>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function listenToAdminActiveChats() {
+            db.ref('chats').on('value', (snap) => {
+                const chats = snap.val() || {};
+                const list = document.getElementById('adminActiveChatsList');
+                list.innerHTML = '';
+
+                Object.keys(chats).forEach(chatKey => {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full text-right p-2 rounded-xl text-xs bg-white/5 hover:bg-amber-500/20 hover:text-amber-300 text-gray-300 mb-1 border border-white/5 flex items-center justify-between";
+                    btn.onclick = () => spyOnChat(chatKey);
+                    
+                    const names = chatKey.split('_chat_');
+                    btn.innerHTML = `
+                        <span class="truncate"><i class="fa-regular fa-comments ml-1"></i> ${names[0]} & ${names[1]}</span>
+                        <i class="fa-solid fa-eye text-[10px] text-red-400"></i>
+                    `;
+                    list.appendChild(btn);
+                });
+            });
+        }
+
+        function spyOnChat(chatKey) {
+            const spyTitle = document.getElementById('spyChatTitle');
+            const spyBox = document.getElementById('spyMessagesBox');
+
+            const names = chatKey.split('_chat_');
+            spyTitle.innerHTML = `<i class="fa-solid fa-eye text-red-500 animate-pulse ml-1"></i> مراقبة محادثة: <span class="text-white">${names[0]}</span> مع <span class="text-white">${names[1]}</span>`;
+
+            if (activeSpyListener) activeSpyListener.off();
+
+            activeSpyListener = db.ref('chats/' + chatKey);
+            activeSpyListener.on('value', (snap) => {
+                spyBox.innerHTML = '';
+                const msgs = snap.val() || {};
+
+                Object.values(msgs).forEach(m => {
+                    const div = document.createElement('div');
+                    div.className = "bg-white/5 p-2 rounded-xl border border-white/5";
+                    div.innerHTML = `
+                        <div class="flex items-center justify-between text-[10px] text-amber-400 mb-1">
+                            <span class="font-bold">${m.sender}</span>
+                            <span class="text-gray-500">${new Date(m.timestamp).toLocaleTimeString()}</span>
+                        </div>
+                        <div class="text-gray-200 text-xs">${m.text}</div>
+                    `;
+                    spyBox.appendChild(div);
+                });
+                spyBox.scrollTop = spyBox.scrollHeight;
+            });
         }
     </script>
 </body>
