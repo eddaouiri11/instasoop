@@ -3,52 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رفع وحفظ الملفات</title>
-    <!-- Firebase Libraries -->
+    <title>رفع وحفظ الملفات في السيرفر</title>
+    <!-- Firebase Libraries (v8) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
     
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 20px; text-align: center; }
-        .container { max-width: 500px; background: white; padding: 25px; margin: 0 auto; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        input, button { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        button { background-color: #007bff; color: white; font-weight: bold; cursor: pointer; border: none; }
-        button:hover { background-color: #0056b3; }
-        .admin-btn { background-color: #28a745; }
-        .admin-btn:hover { background-color: #218838; }
-        #filesList { margin-top: 20px; text-align: right; display: none; }
-        .file-card { background: #eef2f5; padding: 10px; border-radius: 5px; margin-bottom: 10px; }
+        * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: #f0f2f5; padding: 20px; direction: rtl; }
+        .card { max-width: 450px; background: white; padding: 20px; margin: 20px auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2, h3 { margin-top: 0; text-align: center; color: #333; }
+        input[type="file"], input[type="text"] { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; }
+        button { width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; transition: 0.2s; }
+        .btn-upload { background-color: #007bff; color: white; }
+        .btn-upload:hover { background-color: #0056b3; }
+        .btn-admin { background-color: #28a745; color: white; }
+        .btn-admin:hover { background-color: #1e7e34; }
+        #status { text-align: center; font-weight: bold; margin: 10px 0; color: #555; }
+        .file-item { background: #f8f9fa; border-right: 4px solid #007bff; padding: 12px; margin-bottom: 12px; border-radius: 4px; text-align: right; }
+        .file-item p { margin: 5px 0; font-size: 14px; }
+        .pin-tag { background: #ffc107; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+        .download-btn { display: inline-block; padding: 6px 12px; background: #17a2b8; color: white; text-decoration: none; border-radius: 4px; margin-top: 5px; font-size: 13px; }
+        #adminSection { display: none; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>رفع وحفظ الملفات</h2>
-
+<div class="card">
+    <h2>رفع وصور وملفات (PDF)</h2>
+    
     <!-- قسم رفع الملفات للزائر -->
-    <div id="uploadSection">
-        <input type="file" id="fileInput" accept="image/*,application/pdf">
-        <input type="text" id="userPin" placeholder="أدخل رمزًا أو كودًا خاصًا بك">
-        <button onclick="uploadAndSave()">حفظ ورَفْع الملف</button>
-    </div>
+    <input type="file" id="fileInput" accept="image/*,.pdf">
+    <input type="text" id="userPin" placeholder="أدخل كود / رمز من اختيارك (مثال: 1234)">
+    <button class="btn-upload" onclick="uploadFile()">حفظ ورفع الملف</button>
+    <div id="status"></div>
 
-    <hr style="margin: 20px 0;">
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
 
-    <!-- زر الأدمن لرؤية التحميلات -->
-    <button class="admin-btn" onclick="accessAdminDownloads()">Downloads Stuff (خاص بالمشرف)</button>
+    <!-- قسم الأدمن -->
+    <button class="btn-admin" onclick="openAdmin()">Downloads Stuff</button>
 
-    <!-- قائمة عرض الملفات المرفوعة -->
-    <div id="filesList">
-        <h3>قائمة الملفات المرفوعة:</h3>
-        <div id="itemsContainer"></div>
+    <div id="adminSection">
+        <h3>الملفات المرفوعة</h3>
+        <div id="filesContainer"></div>
     </div>
 </div>
 
 <script>
-    // Configuration
     const ADMIN_CODE = "20102010";
-    
+
     const firebaseConfig = {
         apiKey: "AIzaSyDuscs-L7y5aNwBX6zzz95XU3qGrF4ZsSk",
         authDomain: "instasoop-230e0.firebaseapp.com",
@@ -66,81 +70,88 @@
     const db = firebase.database();
     const storage = firebase.storage();
 
-    // 1. وظيفة الرفع والتخزين للزوار
-    async function uploadAndSave() {
+    // 1. رفع الملف إلى Firebase Storage وحفظ الكود في Database
+    function uploadFile() {
         const fileInput = document.getElementById('fileInput');
         const userPin = document.getElementById('userPin').value.trim();
-        const file = fileInput.files[0];
+        const status = document.getElementById('status');
 
-        if (!file) {
-            alert("يرجى اختيار ملف أولاً (صورة أو PDF)!");
+        if (!fileInput.files[0]) {
+            alert('المرجو اختيار ملف (صورة أو PDF)');
             return;
         }
         if (!userPin) {
-            alert("يرجى إدخال رمز أو كود خاص بك!");
+            alert('المرجو إدخال كود/رمز خاص بك');
             return;
         }
 
-        try {
-            // رفع الملف إلى Firebase Storage
-            const storageRef = storage.ref('uploads/' + Date.now() + '_' + file.name);
-            const uploadTask = await storageRef.put(file);
-            const downloadURL = await uploadTask.ref.getDownloadURL();
+        const file = fileInput.files[0];
+        status.innerText = 'جاري الرفع إلى السيرفر... ⏳';
 
-            // حفظ بيانات الملف والرمز في Firebase Realtime Database
-            const newFileRef = db.ref('user_uploads').push();
-            await newFileRef.set({
-                pin: userPin,
-                fileName: file.name,
-                fileUrl: downloadURL,
-                uploadedAt: new Date().toLocaleString()
-            });
+        // اسم الملف في التخزين
+        const storageRef = storage.ref('my_uploads/' + Date.now() + '_' + file.name);
+        
+        // عملية الرفع
+        const uploadTask = storageRef.put(file);
 
-            alert("تم حفظ الملف بنجاح!");
-            fileInput.value = '';
-            document.getElementById('userPin').value = '';
-        } catch (error) {
-            console.error(error);
-            alert("حدث خطأ أثناء الرفع: " + error.message);
+        uploadTask.on('state_changed', 
+            null, 
+            (error) => {
+                console.error(error);
+                status.innerText = '❌ حدث خطأ! تحقق من إعدادات القواعد Rules في Firebase';
+            }, 
+            () => {
+                // عند اكتمال الرفع: نجلب الرابط المباشر
+                uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                    // حفظ البيانات في Realtime Database
+                    db.ref('uploads_list').push({
+                        pin: userPin,
+                        fileName: file.name,
+                        fileUrl: downloadURL,
+                        timestamp: new Date().toLocaleString()
+                    }).then(() => {
+                        status.innerText = '✅ تم رفع الملف وحفظه بنجاح!';
+                        fileInput.value = '';
+                        document.getElementById('userPin').value = '';
+                    });
+                });
+            }
+        );
+    }
+
+    // 2. الدخول لصفحة التحميلات بالرمز
+    function openAdmin() {
+        const pass = prompt("أدخل كود الأدمن لدخول Downloads Stuff:");
+        if (pass === ADMIN_CODE) {
+            document.getElementById('adminSection').style.display = 'block';
+            fetchFiles();
+        } else if (pass !== null) {
+            alert("الكود خاطئ!");
         }
     }
 
-    // 2. وظيفة الأدمن لرؤية وتحميل ملفات جميع المستخدمين
-    function accessAdminDownloads() {
-        const inputCode = prompt("أدخل كود الأدمن للدخول إلى Downloads Stuff:");
-        
-        if (inputCode === ADMIN_CODE) {
-            alert("تم التحقق بنجاح!");
-            loadUploadedFiles();
-        } else if (inputCode !== null) {
-            alert("الرمز غير صحيح!");
-        }
-    }
+    // 3. جلب البيانات من السيرفر وعرضها
+    function fetchFiles() {
+        const container = document.getElementById('filesContainer');
+        container.innerHTML = 'جاري التحميل...';
 
-    // 3. جلب وعرض القائمة للأدمن
-    function loadUploadedFiles() {
-        const filesListDiv = document.getElementById('filesList');
-        const container = document.getElementById('itemsContainer');
-        
-        db.ref('user_uploads').once('value', (snapshot) => {
+        db.ref('uploads_list').on('value', (snapshot) => {
             container.innerHTML = '';
             if (snapshot.exists()) {
-                snapshot.forEach((childSnapshot) => {
-                    const data = childSnapshot.val();
-                    const card = document.createElement('div');
-                    card.className = 'file-card';
-                    card.innerHTML = `
-                        <p><strong>اسم الملف:</strong> ${data.fileName}</p>
-                        <p><strong>رمز المستخدم (PIN):</strong> <span style="color:red; font-weight:bold;">${data.pin}</span></p>
-                        <p><small>تاريخ الرفع: ${data.uploadedAt}</small></p>
-                        <a href="${data.fileUrl}" target="_blank" download>تحميل الملف</a>
+                snapshot.forEach((child) => {
+                    const item = child.val();
+                    const div = document.createElement('div');
+                    div.className = 'file-item';
+                    div.innerHTML = `
+                        <p><strong>الملف:</strong> ${item.fileName}</p>
+                        <p><strong>الرمز (PIN):</strong> <span class="pin-tag">${item.pin}</span></p>
+                        <p><small>التاريخ: ${item.timestamp}</small></p>
+                        <a href="${item.fileUrl}" target="_blank" class="download-btn">تحميل / عرض الملف 📥</a>
                     `;
-                    container.appendChild(card);
+                    container.appendChild(div);
                 });
-                filesListDiv.style.display = 'block';
             } else {
-                container.innerHTML = '<p>لا توجد ملفات مرفوعة حالياً.</p>';
-                filesListDiv.style.display = 'block';
+                container.innerHTML = '<p style="text-align:center;">لا توجد ملفات مرفوعة حالياً</p>';
             }
         });
     }
