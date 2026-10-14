@@ -77,12 +77,12 @@
       
       <div class="flex flex-col gap-1">
         <label class="text-xs font-semibold text-amber-200/80">البريد الإلكتروني:</label>
-        <input type="email5" id="authEmail" class="custom-input rounded-xl px-4 py-3 text-sm" placeholder="name@example.com" value="anas@game.com">
+        <input type="email" id="authEmail" class="custom-input rounded-xl px-4 py-3 text-sm" placeholder="name@example.com">
       </div>
 
       <div class="flex flex-col gap-1">
         <label class="text-xs font-semibold text-amber-200/80">كلمة المرور:</label>
-        <input type="password" id="authPass" class="custom-input rounded-xl px-4 py-3 text-sm" placeholder="••••••••" value="123456">
+        <input type="password" id="authPass" class="custom-input rounded-xl px-4 py-3 text-sm" placeholder="••••••••">
       </div>
 
       <button id="authActionBtn" class="gold-btn w-full py-3.5 rounded-xl text-base tracking-wide mt-2">دخول إلى اللعبة</button>
@@ -107,29 +107,46 @@
       <div>
         <label class="text-xs font-semibold text-amber-200/80 block mb-1">رمز الغرفة (Room Code):</label>
         <div class="flex gap-2">
-          <input type="text" id="roomCodeInput" class="custom-input rounded-xl px-4 py-3 text-sm flex-1 font-mono uppercase font-bold text-amber-300" value="ROOM123">
-          <button id="randomRoomBtn" class="bg-amber-500/20 border border-amber-500/40 px-4 rounded-xl text-xs font-bold text-amber-300 hover:bg-amber-500/30">عشوائي</button>
+          <input type="text" id="roomCodeInput" class="custom-input rounded-xl px-4 py-3 text-sm flex-1 font-mono uppercase font-bold text-amber-300" placeholder="أدخل رمز الغرفة">
+          <button id="randomRoomBtn" class="bg-amber-500/20 border border-amber-500/40 px-4 rounded-xl text-xs font-bold text-amber-300 hover:bg-amber-500/30">توليد</button>
         </div>
       </div>
 
-      <div>
-        <label class="text-xs font-semibold text-amber-200/80 block mb-1">اختر لون القطع الخاص بك:</label>
-        <select id="playerColorSelect" class="custom-input rounded-xl px-4 py-3 text-sm w-full">
-          <option value="0">🔴 أحمر (Red)</option>
-          <option value="1">🟢 أخضر (Green)</option>
-          <option value="2">🔵 أزرق (Blue)</option>
-          <option value="3">🟡 أصفر (Yellow)</option>
-        </select>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs font-semibold text-amber-200/80 block mb-1">عدد اللاعبين:</label>
+          <select id="maxPlayersSelect" class="custom-input rounded-xl px-3 py-3 text-sm w-full">
+            <option value="4">4 لاعبين</option>
+            <option value="3">3 لاعبين</option>
+            <option value="2">2 لاعبين</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-amber-200/80 block mb-1">اختر لون القطع:</label>
+          <select id="playerColorSelect" class="custom-input rounded-xl px-3 py-3 text-sm w-full">
+            <option value="0">🔴 أحمر</option>
+            <option value="1">🟢 أخضر</option>
+            <option value="2">🔵 أزرق</option>
+            <option value="3">🟡 أصفر</option>
+          </select>
+        </div>
       </div>
 
-      <button id="joinRoomBtn" class="gold-btn w-full py-3.5 rounded-xl text-base tracking-wide mt-2">دخول الغرفة أونلاين 🚀</button>
+      <div class="flex gap-2 mt-2">
+        <button id="createRoomBtn" class="gold-btn flex-1 py-3.5 rounded-xl text-sm font-bold tracking-wide">إنشاء غرفة جديدة 🎮</button>
+        <button id="joinRoomBtn" class="bg-blue-600/30 border border-blue-400/40 hover:bg-blue-600/50 text-blue-200 flex-1 py-3.5 rounded-xl text-sm font-bold tracking-wide">انضمام برمز 🔗</button>
+      </div>
     </div>
   </div>
 
   <div id="gameCard" class="hidden flex-col items-center gap-4 w-full max-w-lg">
     <div id="chipsContainer" class="flex gap-2 flex-wrap justify-center w-full"></div>
 
-    <div class="p-3 rounded-2xl bg-gradient-to-br from-amber-600 to-amber-800 shadow-2xl w-full max-w-[460px]">
+    <div class="p-3 rounded-2xl bg-gradient-to-br from-amber-600 to-amber-800 shadow-2xl w-full max-w-[460px] relative">
+      <div id="roomPlayersBox" class="absolute top-4 right-4 bg-black/60 backdrop-blur-md border border-amber-500/30 rounded-xl px-3 py-2 text-xs flex flex-col gap-1 z-10 shadow-lg pointer-events-none">
+        <div class="text-amber-300 font-bold border-b border-amber-500/20 pb-1 mb-1">اللاعبين في الغرفة</div>
+        <div id="roomPlayersList" class="flex flex-col gap-0.5"></div>
+      </div>
       <canvas id="boardCanvas" width="1200" height="1200" class="w-full aspect-square rounded-xl bg-[#f7efd9] shadow-inner block cursor-pointer"></canvas>
     </div>
 
@@ -155,7 +172,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
-    // إعدادات Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAUWtuXHbcKxGd6O823oCudLJkVLhIGXJo",
       authDomain: "fir-config-5938d.firebaseapp.com",
@@ -170,17 +186,16 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // الحالة العامة للنظام والتطبيق
     let isRegisterMode = false;
     let currentUser = null;
     let currentRoom = null;
     let myColor = 0;
     let gameState = null;
     let roomUnsub = null;
+    let maxPlayersConfig = 4;
 
     const $ = id => document.getElementById(id);
 
-    // إدارة نظام التخزين المحلي (LocalStorage) وتسجيل الدخول
     function checkLocalAuth() {
       const savedUser = localStorage.getItem('parchisi_user');
       if (savedUser) {
@@ -206,6 +221,9 @@
         $('authSwitchText').textContent = 'ليس لديك حساب؟';
         $('authSwitchBtn').textContent = 'انشاء حساب جديد';
       }
+      $('authEmail').value = '';
+      $('authPass').value = '';
+      $('regName').value = '';
     };
 
     $('authActionBtn').onclick = () => {
@@ -219,23 +237,15 @@
       }
 
       if (isRegisterMode) {
+        if (!name) {
+          alert('المرجو إدخال الاسم الكامل.');
+          return;
+        }
         currentUser = { email, pass, name };
         localStorage.setItem('parchisi_user', JSON.stringify(currentUser));
-        alert('تم إنشاء الحساب بنجاح وتم حفظه في LocalStorage!');
       } else {
-        const localData = localStorage.getItem('parchisi_user');
-        if (localData) {
-          const userObj = JSON.parse(localData);
-          if (userObj.email === email && userObj.pass === pass) {
-            currentUser = userObj;
-          } else {
-            // السماح بالدخول حتى لو لم يتطابق تماما مع المحلي لتجربة سلسة
-            currentUser = { email, pass, name: email.split('@')[0] };
-          }
-        } else {
-          currentUser = { email, pass, name: name || email.split('@')[0] };
-          localStorage.setItem('parchisi_user', JSON.stringify(currentUser));
-        }
+        currentUser = { email, pass, name: name || email.split('@')[0] };
+        localStorage.setItem('parchisi_user', JSON.stringify(currentUser));
       }
       showSetupScreen();
     };
@@ -245,6 +255,9 @@
       currentUser = null;
       $('authCard').classList.remove('hidden');
       $('setupCard').classList.add('hidden');
+      $('authEmail').value = '';
+      $('authPass').value = '';
+      $('regName').value = '';
     };
 
     function showSetupScreen() {
@@ -258,41 +271,97 @@
       $('roomCodeInput').value = rand;
     };
 
-    // الانتقال للعبة وإنشاء/الانضمام للغرفة أونلاين عبر Firebase
-    $('joinRoomBtn').onclick = async () => {
-      const roomName = $('roomCodeInput').value.trim().toUpperCase() || 'ROOM123';
+    // إنشاء غرفة جديدة
+    $('createRoomBtn').onclick = async () => {
+      const roomName = $('roomCodeInput').value.trim().toUpperCase();
+      if (!roomName) {
+        alert('المرجو إدخال أو توليد رمز الغرفة أولاً!');
+        return;
+      }
       myColor = parseInt($('playerColorSelect').value);
+      maxPlayersConfig = parseInt($('maxPlayersSelect').value);
       currentRoom = roomName;
 
-      $('setupCard').classList.add('hidden');
-      $('gameCard').classList.remove('flex');
-      $('gameCard').classList.add('flex');
-      $('winModal').style.display = 'none';
+      const roomRef = ref(db, 'rooms/' + currentRoom);
+      const snap = await get(roomRef);
+      if (snap.exists()) {
+        alert('هذه الغرفة موجودة مسبقاً! يمكنك الضغط على انضمام برمز.');
+        return;
+      }
+
+      let initialPlayers = {};
+      initialPlayers[myColor] = currentUser.name;
+
+      // تعبئة المقاعد الفارغة ببوتات إذا كان عدد اللاعبين المحدد أقل من 4 أو للأماكن الفارغة
+      for (let c = 0; c < 4; c++) {
+        if (c < maxPlayersConfig) {
+          if (c !== myColor) initialPlayers[c] = `لاعب منتظر (${NAME[c]})`;
+        } else {
+          initialPlayers[c] = null; // مقعد غير فعال
+        }
+      }
+
+      await set(roomRef, {
+        turn: 0,
+        dice: null,
+        maxPlayers: maxPlayersConfig,
+        pegs: [[-1,-1,-1,-1],[-1,-1,-1,-1],[-1,-1,-1,-1],[-1,-1,-1,-1]],
+        players: initialPlayers,
+        over: false
+      });
+
+      enterGameView();
+    };
+
+    // انضمام إلى غرفة موجودة عبر الرمز
+    $('joinRoomBtn').onclick = async () => {
+      const roomName = $('roomCodeInput').value.trim().toUpperCase();
+      if (!roomName) {
+        alert('المرجو إدخال رمز الغرفة الصحيح للانضمام!');
+        return;
+      }
+      myColor = parseInt($('playerColorSelect').value);
+      currentRoom = roomName;
 
       const roomRef = ref(db, 'rooms/' + currentRoom);
       const snap = await get(roomRef);
 
       if (!snap.exists()) {
-        await set(roomRef, {
-          turn: 0,
-          dice: null,
-          pegs: [[-1,-1,-1,-1],[-1,-1,-1,-1],[-1,-1,-1,-1],[-1,-1,-1,-1]],
-          players: { [myColor]: currentUser.name },
-          over: false
-        });
-      } else {
-        let players = snap.val().players || {};
-        players[myColor] = currentUser.name;
-        await update(roomRef, { players });
+        alert('عذراً، هذه الغرفة غير موجودة! تأكد من الرمز أو أنشئ غرفة جديدة.');
+        return;
       }
 
+      let roomData = snap.val();
+      let players = roomData.players || {};
+      maxPlayersConfig = roomData.maxPlayers || 4;
+
+      if (players[myColor] && players[myColor] !== currentUser.name && !players[myColor].includes('لاعب منتظر')) {
+        alert('هذا اللون محجوز بالفعل لشخص آخر في الغرفة!');
+        return;
+      }
+
+      players[myColor] = currentUser.name;
+      await update(roomRef, { players });
+
+      enterGameView();
+    };
+
+    function enterGameView() {
+      $('setupCard').classList.add('hidden');
+      $('gameCard').classList.remove('hidden');
+      $('gameCard').classList.add('flex');
+      $('winModal').style.display = 'none';
+
+      const roomRef = ref(db, 'rooms/' + currentRoom);
       if (roomUnsub) roomUnsub();
       roomUnsub = onValue(roomRef, snapshot => {
         if (!snapshot.exists()) return;
         gameState = snapshot.val();
+        if (gameState.maxPlayers) maxPlayersConfig = gameState.maxPlayers;
         updateGameUI();
+        runBotLogicIfNeeded();
       });
-    };
+    }
 
     $('exitRoomBtn').onclick = () => {
       if (roomUnsub) roomUnsub();
@@ -301,7 +370,6 @@
       $('setupCard').classList.remove('hidden');
     };
 
-    // القواعد والمنطق للعبة Parchisi
     const COL = ['#dc2626', '#16a34a', '#2563eb', '#ca8a04'];
     const DARK = ['#991b1b', '#166534', '#1e40af', '#854d0e'];
     const NAME = ['Red', 'Green', 'Blue', 'Yellow'];
@@ -333,13 +401,24 @@
       const d = 1 + Math.floor(Math.random() * 6);
       const moves = legalMoves(myColor, d);
       
+      let nextTurn = gameState.turn;
       if (moves.length === 0) {
-        let nextTurn = (myColor + 1) % 4;
+        nextTurn = getNextActiveTurn((myColor + 1) % 4);
         await update(ref(db, `rooms/${currentRoom}`), { dice: d, turn: nextTurn });
+        setTimeout(() => update(ref(db, `rooms/${currentRoom}`), { dice: null }), 800);
       } else {
         await update(ref(db, `rooms/${currentRoom}`), { dice: d });
       }
     };
+
+    function getNextActiveTurn(start) {
+      let t = start;
+      for (let i = 0; i < 4; i++) {
+        let idx = (t + i) % 4;
+        if (idx < maxPlayersConfig) return idx;
+      }
+      return 0;
+    }
 
     async function makeMove(pegIndex) {
       if (!gameState || gameState.turn !== myColor || gameState.dice === null) return;
@@ -353,7 +432,7 @@
       checkCaptures(c, np).forEach(([o, k]) => { newPegs[o][k] = -1; });
 
       let isOver = newPegs[c].every(x => x === 56);
-      let nextTurn = (d === 6) ? c : (c + 1) % 4;
+      let nextTurn = (d === 6) ? c : getNextActiveTurn((c + 1) % 4);
 
       await update(ref(db, `rooms/${currentRoom}`), {
         pegs: newPegs,
@@ -363,21 +442,76 @@
       });
     }
 
+    async function runBotLogicIfNeeded() {
+      if (!gameState || gameState.over) return;
+      const currentTurnPlayer = gameState.turn;
+      const playerName = gameState.players && gameState.players[currentTurnPlayer] ? gameState.players[currentTurnPlayer] : '';
+      
+      if (playerName.includes('لاعب منتظر')) {
+        setTimeout(async () => {
+          if (!gameState || gameState.turn !== currentTurnPlayer || gameState.over) return;
+          const d = 1 + Math.floor(Math.random() * 6);
+          const moves = legalMoves(currentTurnPlayer, d);
+          
+          let nextTurn = currentTurnPlayer;
+          if (moves.length === 0) {
+            nextTurn = getNextActiveTurn((currentTurnPlayer + 1) % 4);
+            await update(ref(db, `rooms/${currentRoom}`), { dice: d, turn: nextTurn });
+            setTimeout(() => { if (gameState) update(ref(db, `rooms/${currentRoom}`), { dice: null }); }, 800);
+          } else {
+            const chosenPeg = moves[Math.floor(Math.random() * moves.length)];
+            const p = gameState.pegs[currentTurnPlayer][chosenPeg];
+            const np = p === -1 ? 0 : p + d;
+            
+            let newPegs = JSON.parse(JSON.stringify(gameState.pegs));
+            if (p === -1) newPegs[currentTurnPlayer][chosenPeg] = 0;
+            else newPegs[currentTurnPlayer][chosenPeg] = np;
+
+            checkCaptures(currentTurnPlayer, np).forEach(([o, k]) => { newPegs[o][k] = -1; });
+
+            let isOver = newPegs[currentTurnPlayer].every(x => x === 56);
+            let nextTurnCalc = (d === 6) ? currentTurnPlayer : getNextActiveTurn((currentTurnPlayer + 1) % 4);
+
+            await update(ref(db, `rooms/${currentRoom}`), {
+              pegs: newPegs,
+              dice: d,
+              turn: nextTurnCalc,
+              over: isOver
+            });
+
+            setTimeout(() => {
+              if (gameState) update(ref(db, `rooms/${currentRoom}`), { dice: null });
+            }, 1000);
+          }
+        }, 1200);
+      }
+    }
+
     function updateGameUI() {
       if (!gameState) return;
       const isMyTurn = gameState.turn === myColor && !gameState.over;
       $('rollBtn').disabled = !isMyTurn || gameState.dice !== null;
       
       let chipsHtml = '';
-      for (let i = 0; i < 4; i++) {
+      let roomPlayersHtml = '';
+      
+      for (let i = 0; i < maxPlayersConfig; i++) {
         const active = gameState.turn === i && !gameState.over;
         const count = gameState.pegs[i].filter(x => x === 56).length;
+        const pName = gameState.players && gameState.players[i] ? gameState.players[i] : NAME[i];
+        
         chipsHtml += `<div class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold ${active ? 'bg-amber-500/20 border border-amber-400 shadow-lg' : 'bg-slate-900/60'}">
           <span class="w-3.5 h-3.5 rounded-full" style="background:${COL[i]}"></span>
           <span>${NAME[i]} (${count}/4)</span>
         </div>`;
+
+        roomPlayersHtml += `<div class="flex items-center gap-1.5 ${active ? 'text-amber-300 font-bold' : 'text-slate-300'}">
+          <span class="w-2 h-2 rounded-full" style="background:${COL[i]}"></span>
+          <span class="truncate max-w-[110px]">${pName}</span>
+        </div>`;
       }
       $('chipsContainer').innerHTML = chipsHtml;
+      $('roomPlayersList').innerHTML = roomPlayersHtml;
 
       if (gameState.over) {
         $('winnerTitle').textContent = `${NAME[gameState.turn]} الفائز!`;
@@ -385,7 +519,8 @@
       } else if (isMyTurn) {
         $('msgBox').textContent = gameState.dice === null ? "دورك الآن! اضغط على رمي النرد." : `رقم النرد: ${gameState.dice}. انقر على قطعتك المضيئة للتحريك.`;
       } else {
-        $('msgBox').textContent = `في انتظار دور اللاعب ${NAME[gameState.turn]}...`;
+        const currentName = gameState.players && gameState.players[gameState.turn] ? gameState.players[gameState.turn] : NAME[gameState.turn];
+        $('msgBox').textContent = `في انتظار دور ${currentName}...`;
       }
 
       showDieFace(gameState.dice);
@@ -399,10 +534,14 @@
     function getPegList() {
       if (!gameState) return [];
       const seen = {}, out = [];
-      gameState.pegs.forEach((arr, c) => arr.forEach((p, i) => { 
-        const [x, y] = cellOf(c, p, i); 
-        (seen[x+','+y] = seen[x+','+y] || []).push({ c, i, p, x, y }); 
-      }));
+      gameState.pegs.forEach((arr, c) => {
+        if (c < maxPlayersConfig) {
+          arr.forEach((p, i) => { 
+            const [x, y] = cellOf(c, p, i); 
+            (seen[x+','+y] = seen[x+','+y] || []).push({ c, i, p, x, y }); 
+          });
+        }
+      });
       Object.values(seen).forEach(list => list.forEach((o, n) => {
         const off = list.length > 1 ? (n - (list.length - 1) / 2) * 10 : 0;
         o.px = o.x * S + S/2 + off; o.py = o.y * S + S/2 + off / 2; out.push(o);
@@ -434,26 +573,31 @@
       ctx.fillStyle = '#f7efd9'; ctx.fillRect(0, 0, 600, 600);
       
       [[0,0],[9,0],[9,9],[0,9]].forEach(([cx, cy], c) => {
-        ctx.fillStyle = COL[c]; ctx.fillRect(cx*S, cy*S, 6*S, 6*S);
-        ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.fillRect(cx*S, cy*S, 6*S, 6*S);
-        ctx.fillStyle = COL[c]; ctx.fillRect(cx*S + 6, cy*S + 6, 6*S - 12, 6*S - 12);
-        ctx.fillStyle = '#f7efd9'; ctx.fillRect((cx+1)*S, (cy+1)*S, 4*S, 4*S);
-        BASE[c].forEach(([x, y]) => {
-          ctx.beginPath(); ctx.arc(x*S + S/2, y*S + S/2, 17, 0, 7);
-          ctx.fillStyle = COL[c] + '40'; ctx.fill();
-          ctx.lineWidth = 2; ctx.strokeStyle = COL[c]; ctx.stroke();
-        });
+        if (c < maxPlayersConfig) {
+          ctx.fillStyle = COL[c]; ctx.fillRect(cx*S, cy*S, 6*S, 6*S);
+          ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.fillRect(cx*S, cy*S, 6*S, 6*S);
+          ctx.fillStyle = COL[c]; ctx.fillRect(cx*S + 6, cy*S + 6, 6*S - 12, 6*S - 12);
+          ctx.fillStyle = '#f7efd9'; ctx.fillRect((cx+1)*S, (cy+1)*S, 4*S, 4*S);
+          BASE[c].forEach(([x, y]) => {
+            ctx.beginPath(); ctx.arc(x*S + S/2, y*S + S/2, 17, 0, 7);
+            ctx.fillStyle = COL[c] + '40'; ctx.fill();
+            ctx.lineWidth = 2; ctx.strokeStyle = COL[c]; ctx.stroke();
+          });
+        } else {
+          ctx.fillStyle = '#e2d5bd'; ctx.fillRect(cx*S, cy*S, 6*S, 6*S);
+        }
       });
 
       track.forEach(([x, y], i) => {
         const s = [0,13,26,39].indexOf(i);
-        ctx.fillStyle = s >= 0 ? COL[s] : '#fffaf0'; ctx.fillRect(x*S, y*S, S, S);
+        ctx.fillStyle = s >= 0 && s < maxPlayersConfig ? COL[s] : '#fffaf0'; 
+        ctx.fillRect(x*S, y*S, S, S);
         ctx.strokeStyle = 'rgba(165,142,95,0.4)'; ctx.lineWidth = 1; ctx.strokeRect(x*S + .5, y*S + .5, S - 1, S - 1);
-        if (s >= 0) drawStar(x*S + S/2, y*S + S/2, 11, 'rgba(255,255,255,0.7)');
+        if (s >= 0 && s < maxPlayersConfig) drawStar(x*S + S/2, y*S + S/2, 11, 'rgba(255,255,255,0.7)');
         else if (SAFE.has(i)) drawStar(x*S + S/2, y*S + S/2, 11, '#ca8a04');
       });
 
-      for (let c = 0; c < 4; c++) for (let k = 0; k < 5; k++) {
+      for (let c = 0; c < maxPlayersConfig; c++) for (let k = 0; k < 5; k++) {
         const [x, y] = lane(c, k);
         ctx.fillStyle = COL[c] + 'cc'; ctx.fillRect(x*S, y*S, S, S);
         ctx.strokeStyle = 'rgba(165,142,95,0.4)'; ctx.lineWidth = 1; ctx.strokeRect(x*S + .5, y*S + .5, S - 1, S - 1);
@@ -461,9 +605,11 @@
 
       const m = 7.5 * S;
       [[6,6,9,6],[9,6,9,9],[9,9,6,9],[6,9,6,6]].forEach(([ax, ay, bx, by], c) => {
-        ctx.beginPath(); ctx.moveTo(m, m); ctx.lineTo(ax*S, ay*S); ctx.lineTo(bx*S, by*S); ctx.closePath();
-        ctx.fillStyle = COL[c]; ctx.fill();
-        ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 1.5; ctx.stroke();
+        if (c < maxPlayersConfig) {
+          ctx.beginPath(); ctx.moveTo(m, m); ctx.lineTo(ax*S, ay*S); ctx.lineTo(bx*S, by*S); ctx.closePath();
+          ctx.fillStyle = COL[c]; ctx.fill();
+          ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 1.5; ctx.stroke();
+        }
       });
 
       if (gameState) {
@@ -488,7 +634,6 @@
 
     $('playAgainBtn').onclick = () => { $('winModal').style.display = 'none'; };
 
-    // بدء الفحص المحلي عند التحميل
     checkLocalAuth();
     showDieFace(null);
     requestAnimationFrame(renderBoard);
