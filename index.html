@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Parchisi Royale - Online Multiplayer</title>
 <style>
 :root{--ds:72px;--ink:#f6ecd6;--mut:#c9b793;--gold:#e6b957;--g:#e6b957}
 *{box-sizing:border-box}
-body{margin:0;position:fixed;inset:0;width:100%;height:100%;overscroll-behavior:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));color:var(--ink);font-family:Georgia,'Palatino Linotype',serif;display:flex;flex-direction:column;align-items:center;gap:8px;overflow:hidden;
+body{margin:0;position:fixed;inset:0;width:100%;height:100vh;height:100dvh;overscroll-behavior:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));color:var(--ink);font-family:Georgia,'Palatino Linotype',serif;display:flex;flex-direction:column;align-items:center;gap:8px;overflow:hidden;
 background:radial-gradient(ellipse at 50% 35%,#0000 0%,#000a 100%),repeating-linear-gradient(92deg,#3b2414 0 6px,#442a17 6px 9px,#38210f 9px 16px,#4a2f1a 16px 18px),#3b2414}
 #bg,#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}#bg{z-index:0}#fx{z-index:60}
 header,main{position:relative;z-index:1;width:100%;max-width:1000px}main{flex:1;min-height:0;display:flex;flex-direction:column}header{flex:none}
@@ -22,8 +22,9 @@ button.ic{width:46px;height:46px;padding:0;font-size:1.3rem;background:#ffffff1c
 .glass{background:linear-gradient(145deg,#ffffff26,#ffffff0d);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px);border:1px solid #ffffff3a;border-radius:20px;box-shadow:0 18px 50px #000a}
 
 /* Auth & Room Screens */
-.panel-screen{padding:18px;width:100%;max-width:440px;margin:auto;display:flex;flex-direction:column;gap:10px;text-align:center;}
-.panel-screen input{font:inherit;padding:10px;border-radius:10px;background:#1b120acc;color:var(--ink);border:1px solid #e6b95766;width:100%;text-align:center;}
+.panel-screen{padding:18px;width:100%;max-width:440px;max-height:100%;overflow-y:auto;margin:auto;display:flex;flex-direction:column;gap:10px;text-align:center;}
+.panel-screen input{font:inherit;padding:10px;border-radius:10px;background:#1b120acc;color:var(--ink);border:1px solid #e6b95766;width:100%;text-align:center;user-select:text;-webkit-user-select:text;}
+.panel-screen input:focus{outline:2px solid var(--gold);outline-offset:2px}
 .panel-screen button{width:100%;margin-top:5px;}
 
 #room-lobby-screen, #setup, #game{display:none;}
@@ -63,17 +64,19 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
 
 @media(max-height:640px){:root{--ds:54px}.face{padding:8px}.face i{width:9px;height:9px}.ctl{padding:6px 16px;gap:14px}button{padding:10px 16px}#roll{min-width:110px;font-size:1rem}.chip{font-size:.75rem}.av{width:28px;height:28px}h1{font-size:1.2rem}button.ic{width:38px;height:38px}}
 @media(min-aspect-ratio:13/10){#game{flex-direction:row;justify-content:center;gap:16px}#side{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;width:min(34vw,270px);flex:none}#chips{flex-direction:column;flex-wrap:nowrap;width:100%}.chip{width:100%}#stage{width:auto}.ctl{flex-direction:column;border-radius:26px}}
+@media(max-width:420px){body{gap:5px;padding-left:max(5px,env(safe-area-inset-left));padding-right:max(5px,env(safe-area-inset-right))}h1{letter-spacing:.12em}.hb{gap:5px}.chip{gap:5px;padding:4px 8px 4px 4px}.frame{border-radius:18px}.ctl{gap:12px;padding:7px 14px}}
+@media(max-height:520px){:root{--ds:48px}body{gap:3px;padding-top:max(4px,env(safe-area-inset-top));padding-bottom:max(4px,env(safe-area-inset-bottom))}header h1{font-size:1rem}.chip{padding-top:2px;padding-bottom:2px}.ctl{padding:4px 10px}}
 </style>
 </head>
 <body>
 <canvas id="bg"></canvas><canvas id="fx"></canvas>
-<header><h1>PARCHISI</h1><div class="hb"><button class="ic" id="mute" aria-label="Mute sound">🔊</button><button class="ic" id="again" aria-label="New game">↺</button></div></header>
+<header><h1>PARCHISI</h1><div class="hb"><button class="ic" id="mute" aria-label="Mute sound">🔊</button><button class="ic" id="again" aria-label="Start a new game" disabled>↺</button></div></header>
 <main>
 <!-- Auth Screen -->
 <section class="glass panel-screen" id="auth-screen">
   <h2>Login / Register</h2>
-  <input type="text" id="auth-username" placeholder="Username">
-  <input type="password" id="auth-password" placeholder="Password">
+  <input type="text" id="auth-username" placeholder="Username" autocomplete="username" autocapitalize="none">
+  <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password">
   <button id="btn-login">Login</button>
   <button id="btn-register" style="background:linear-gradient(#7ac3f4,#328ec7); color:#fff;">Register Account</button>
   <p id="auth-msg" style="font-size:0.85rem; color:var(--mut); margin:0;"></p>
@@ -85,7 +88,7 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
   <p style="color:var(--mut); font-size:0.9rem;">Create a game room or enter a room code to join friends.</p>
   <button id="btn-create-room">Create New Room</button>
   <div style="display:flex; gap:8px; margin-top:10px;">
-    <input type="text" id="join-code-input" placeholder="ROOM CODE" style="letter-spacing:2px; font-weight:bold;">
+    <input type="text" id="join-code-input" placeholder="ROOM CODE" inputmode="numeric" maxlength="6" autocomplete="off" style="letter-spacing:2px; font-weight:bold;">
     <button id="btn-join-room" style="flex:none; width:auto; margin:0;">Join</button>
   </div>
   <p id="menu-msg" style="font-size:0.85rem; color:var(--mut); margin:0;"></p>
@@ -110,7 +113,7 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
 
 <!-- Active Game UI -->
 <section id="game"><div id="side"><div id="chips"></div>
-<div class="ctl glass"><div class="scene" id="scene"><div class="cube" id="cube"></div></div><button id="roll" disabled>Roll dice</button></div><div id="msg" aria-live="polite"></div></div><div id="stage"><div class="frame"><canvas id="board"></canvas></div></div></section>
+<div class="ctl glass"><div class="scene" id="scene" aria-hidden="true"><div class="cube" id="cube"></div></div><button id="roll" disabled>Roll dice</button></div><div id="msg" aria-live="polite"></div></div><div id="stage"><div class="frame"><canvas id="board" tabindex="0" role="grid" aria-label="Parchisi game board. Use number keys 1 to 4 to move a highlighted piece."></canvas></div></div></section>
 </main>
 
 <div id="pop"></div>
@@ -139,9 +142,14 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
   let currentRoomCode = null;
   let myColorIndex = null;
   let isHost = false;
+  let gameStarted = false;
 
   const authMsg = document.getElementById('auth-msg');
   const menuMsg = document.getElementById('menu-msg');
+  const showRequestError = (target, action, error) => {
+    console.error(`${action} failed:`, error);
+    target.textContent = `${action} failed. Check your connection and try again.`;
+  };
 
   if(currentUser) {
     document.getElementById('auth-screen').style.display = 'none';
@@ -158,9 +166,9 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
       else {
         set(ref(db, `accounts/${u}`), { password: p }).then(() => {
           authMsg.textContent = "Account created! You can now login.";
-        });
+        }).catch(error => showRequestError(authMsg, 'Registration', error));
       }
-    });
+    }).catch(error => showRequestError(authMsg, 'Registration', error));
   };
 
   // Account Login
@@ -175,7 +183,7 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('menu-screen').style.display = 'flex';
       } else authMsg.textContent = "Invalid username or password!";
-    });
+    }).catch(error => showRequestError(authMsg, 'Login', error));
   };
 
   // Create Room Logic
@@ -194,15 +202,13 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
 
     set(ref(db, `rooms/${roomCode}`), initialRoomData).then(() => {
       openRoomLobby(roomCode);
-    }).catch(err => {
-      alert("Failed to create room: " + err.message);
-    });
+    }).catch(error => showRequestError(menuMsg, 'Creating the room', error));
   };
 
   // Join Room Logic
   document.getElementById('btn-join-room').onclick = () => {
     const code = document.getElementById('join-code-input').value.trim();
-    if(!code) return menuMsg.textContent = "Enter a valid 6-digit room code!";
+    if(!/^\d{6}$/.test(code)) return menuMsg.textContent = "Enter a valid 6-digit room code!";
 
     get(child(ref(db), `rooms/${code}`)).then(s => {
       if(!s.exists()) return menuMsg.textContent = "Room not found!";
@@ -223,8 +229,8 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
 
       update(ref(db, `rooms/${code}/players`), { [assignedSlot]: currentUser }).then(() => {
         openRoomLobby(code);
-      });
-    });
+      }).catch(error => showRequestError(menuMsg, 'Joining the room', error));
+    }).catch(error => showRequestError(menuMsg, 'Joining the room', error));
   };
 
   // Sync Room Lobby Changes
@@ -245,6 +251,7 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
         else nameEl.textContent = "Empty";
       }
 
+      // Enable start button if at least 2 players are present and current user is Host
       const playerCount = Object.keys(players).length;
       const startBtn = document.getElementById('btn-start-online-game');
       if(isHost) {
@@ -254,16 +261,26 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
         startBtn.style.display = 'none';
       }
 
+      // Detect game start signal from host
       if(room.status === 'playing' && room.gameState) {
-        startOnlineGameView(room);
+        document.getElementById('again').disabled = !isHost;
+        if(!gameStarted) {
+          gameStarted = true;
+          startOnlineGameView(room);
+        } else if(typeof window.syncGameState === 'function') {
+          window.syncGameState(room.gameState);
+        }
       }
-    });
+    }, error => showRequestError(gameStarted ? document.getElementById('msg') : menuMsg, 'Loading the room', error));
   }
 
   // Leave Room Button
   document.getElementById('btn-leave-room').onclick = () => {
     if(currentRoomCode && myColorIndex !== null) {
-      remove(ref(db, `rooms/${currentRoomCode}/players/${myColorIndex}`));
+      remove(ref(db, `rooms/${currentRoomCode}/players/${myColorIndex}`)).then(() => {
+        location.reload();
+      }).catch(error => showRequestError(menuMsg, 'Leaving the room', error));
+      return;
     }
     location.reload();
   };
@@ -271,8 +288,11 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
   // Host starts the online game
   document.getElementById('btn-start-online-game').onclick = () => {
     get(child(ref(db), `rooms/${currentRoomCode}`)).then(s => {
+      if(!s.exists()) {
+        menuMsg.textContent = "Room not found!";
+        return;
+      }
       const room = s.val();
-      if(!room) return;
       const players = room.players || {};
       
       const activePlayersList = [
@@ -291,19 +311,56 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
         lastMove: null
       };
 
+      if(activePlayersList.filter(Boolean).length < 2) {
+        menuMsg.textContent = "At least two players are needed to start.";
+        return;
+      }
+
       update(ref(db, `rooms/${currentRoomCode}`), {
         status: 'playing',
         gameState: initialGameState
-      });
-    });
+      }).catch(error => showRequestError(menuMsg, 'Starting the game', error));
+    }).catch(error => showRequestError(menuMsg, 'Starting the game', error));
   };
+
+  async function restartOnlineGame() {
+    if(!isHost || !currentRoomCode || !gameStarted) return;
+    if(!window.confirm('Start a new game for everyone in this room?')) return;
+    try {
+      const snapshot = await get(child(ref(db), `rooms/${currentRoomCode}`));
+      if(!snapshot.exists()) throw new Error('Room no longer exists.');
+      const players = snapshot.val().players || {};
+      const activePlayersList = [players[0] || null, players[1] || null, players[2] || null, players[3] || null];
+      if(activePlayersList.filter(Boolean).length < 2) {
+        menuMsg.textContent = "At least two players are needed to play again.";
+        return;
+      }
+      await update(ref(db, `rooms/${currentRoomCode}`), {
+        status: 'playing',
+        gameState: {
+          players: activePlayersList,
+          pegs: [[-1,-1,-1,-1],[-1,-1,-1,-1],[-1,-1,-1,-1],[-1,-1,-1,-1]],
+          turn: 0,
+          dice: null,
+          bonus: 0,
+          over: false,
+          winner: null,
+          lastMove: null
+        }
+      });
+    } catch(error) {
+      showRequestError(menuMsg, 'Restarting the game', error);
+    }
+  }
+  document.getElementById('again').onclick = restartOnlineGame;
+  document.getElementById('wb').onclick = restartOnlineGame;
 
   function startOnlineGameView(room) {
     document.getElementById('room-lobby-screen').style.display = 'none';
     document.getElementById('game').style.display = 'flex';
     resize();
 
-    window.initGameEngine(room.gameState, currentRoomCode, myIndexGlobal, db, update, ref, onValue);
+    window.initGameEngine(room.gameState, currentRoomCode, myColorIndex, db, update, ref);
   }
 </script>
 
@@ -352,55 +409,64 @@ function setDie(d,roll){const[rx,ry]=ORI[d],c=$('cube');spin++;const e=roll?spin
 setDie(1,false);
 function pop(t,sub,col){const p=$('pop');p.innerHTML=t+(sub?`<small>${sub}</small>`:'');p.style.color=col;p.classList.remove('show');void p.offsetWidth;p.classList.add('show')}
 
-/* Online Game Engine Synchronizer */
+/* Online Game State Synchronizer */
 let G=null, shake=0, P=[], CF=[], confetti=0;
 let roomCodeGlobal=null, myIndexGlobal=null, dbGlobal=null, updateGlobal=null, refGlobal=null;
 
-window.initGameEngine = function(state, roomCode, myIndex, db, updateFn, refFn, onValueFn) {
+window.initGameEngine = function(state, roomCode, myIndex, db, updateFn, refFn) {
   roomCodeGlobal = roomCode;
   myIndexGlobal = myIndex;
   dbGlobal = db;
   updateGlobal = updateFn;
   refGlobal = refFn;
 
+  window.syncGameState(state);
+};
+
+function validGameState(state) {
+  const playersAreValid = state && (Array.isArray(state.players) ||
+    (state.players && typeof state.players === 'object'));
+  return playersAreValid &&
+    Object.values(state.players).every(player => player == null || typeof player === 'string') &&
+    Array.isArray(state.pegs) && state.pegs.length === 4 &&
+    state.pegs.every(row => Array.isArray(row) && row.length === 4 &&
+      row.every(p => Number.isInteger(p) && p >= -1 && p <= 56)) &&
+    Number.isInteger(state.turn) && state.turn >= 0 && state.turn < 4 &&
+    Boolean(state.players[state.turn]) &&
+    (state.dice == null || (Number.isInteger(state.dice) && state.dice >= 1 && state.dice <= 6)) &&
+    (!state.over || (Number.isInteger(state.winner) && state.winner >= 0 && state.winner < 4));
+}
+
+window.syncGameState = function(state) {
+  if(!validGameState(state)) {
+    console.error('Received invalid game state from the room.');
+    msg('Game data is invalid. Leave the room and try again.');
+    return;
+  }
+
+  const wasBusy = G && G.busy;
+  const wasWinner = G && G.over && G.winner === state.winner;
+  const players = Array.from({length:4}, (_,i) =>
+    typeof state.players[i] === 'string' ? state.players[i] : null
+  );
   G = {
-    players: state.players,
-    pegs: state.pegs,
+    players,
+    pegs: state.pegs.map(row => row.slice()),
     turn: state.turn,
     dice: state.dice,
-    moves: [],
-    busy: false,
-    over: false,
+    moves: state.dice == null ? [] : legal(state.turn, state.dice),
+    busy: Boolean(wasBusy),
+    over: Boolean(state.over),
+    winner: Number.isInteger(state.winner) ? state.winner : null,
+    syncError: false,
     bonus: state.bonus || 0,
     hover: null, mv: null, fly: [], hide: new Set()
   };
-
-  // Real-time synchronization listener for moves and turn progression
-  onValueFn(refGlobal(dbGlobal, `rooms/${roomCode}/gameState`), (snapshot) => {
-    const remoteState = snapshot.val();
-    if(!remoteState) return;
-
-    G.pegs = remoteState.pegs;
-    G.turn = remoteState.turn;
-    G.dice = remoteState.dice;
-    
-    if(G.dice !== null) {
-      G.moves = legal(G.turn, G.dice);
-      setDie(G.dice, false);
-    } else {
-      G.moves = [];
-    }
-
-    if(remoteState.winner) {
-      G.over = true;
-      SFX.win();
-      $('wt').textContent = remoteState.winner + ' wins!';
-      $('wt').style.color = COL[remoteState.winnerColor \vert{}\vert{} 0];$('win').style.display = 'flex';
-    }
-
-    ui();
-  });
-
+  if(G.dice != null) setDie(G.dice, false);
+  $('again').disabled = myIndexGlobal !== 0;
+  $('wb').disabled = myIndexGlobal !== 0;
+  if(G.over) showWinner(G.winner, !wasWinner);
+  else $('win').style.display = 'none';
   ui();
 };
 
@@ -408,45 +474,76 @@ function legal(c,d){ return G.pegs[c].map((p,i)=>p===-1?(d===6?i:-1):(p+d<=56?i:
 function caps(c,np){const h=[];if(np>50||np<0)return h;const a=(c*13+np)%52;if(SAFE.has(a))return h;G.pegs.forEach((arr,o)=>o!==c&&arr.forEach((q,k)=>{if(q>=0&&q<=50&&(o*13+q)%52===a)h.push([o,k])}));return h}
 const msg=t=>$('msg').textContent=t;
 
+function showWinner(c, playSound=true) {
+  if(!Number.isInteger(c) || !G.players[c]) return;
+  if(playSound) SFX.win();
+  $('wt').textContent = `${G.players[c]} wins!`;
+  $('wt').style.color = COL[c];
+  $('win').style.display = 'flex';
+}
+
+async function persistGameState() {
+  const state = {
+    players: G.players,
+    pegs: G.pegs,
+    turn: G.turn,
+    dice: G.dice,
+    bonus: G.bonus,
+    over: G.over,
+    winner: G.winner
+  };
+  try {
+    await updateGlobal(refGlobal(dbGlobal, `rooms/${roomCodeGlobal}/gameState`), state);
+    return true;
+  } catch(error) {
+    console.error('Could not synchronize game state:', error);
+    G.syncError = true;
+    G.busy = false;
+    ui();
+    msg('Could not sync the game. Check your connection and try again.');
+    return false;
+  }
+}
+
 $('roll').onclick = async () => {
-  if(G && G.turn === myIndexGlobal && !G.busy && G.dice == null && !G.over) {
+  if(G && G.turn === myIndexGlobal && !G.busy && !G.syncError && G.dice == null && !G.over) {
     au();
     G.busy = true; ui();
     const d = 1 + Math.random()*6 | 0;
     SFX.roll(); setDie(d, true); await sl(1050);
-    
-    const validMoves = legal(G.turn, d);
+    G.dice = d;
+    G.moves = legal(G.turn, d);
+    pop(d, d===6?'SIX!':'', COL[G.turn]);
+    if(d===6) SFX.six();
+    if(!await persistGameState()) return;
+    G.busy = false;
+    ui();
 
-    if(!validMoves.length) {
-      pop(d, 'NO MOVE', COL[G.turn]);
-      if(d===6) SFX.six();
+    if(!G.moves.length) {
+      msg(`${NAME[G.turn]} rolled ${d}: no legal move`);
       await sl(1200);
-      nextTurnOnline(d, null);
-    } else {
-      pop(d, d===6?'SIX!':'', COL[G.turn]);
-      if(d===6) SFX.six();
-      updateGlobal(refGlobal(dbGlobal, `rooms/${roomCodeGlobal}/gameState`), {
-        dice: d,
-        turn: G.turn,
-        pegs: G.pegs
-      });
-      G.busy = false;
+      await nextTurnOnline();
     }
   }
 };
 
-function nextTurnOnline(rolledDice, currentPegs) {
-  let next = (G.turn + 1) % 4;
-  while(!G.players[next]) { next = (next + 1) % 4; }
-  
-  updateGlobal(refGlobal(dbGlobal, `rooms/${roomCodeGlobal}/gameState`), {
-    turn: next,
-    dice: null,
-    pegs: currentPegs || G.pegs
-  });
+async function nextTurnOnline() {
+  let next = G.turn;
+  for(let offset=1;offset<=4;offset++) {
+    const candidate = (G.turn + offset) % 4;
+    if(G.players[candidate]) { next = candidate; break; }
+  }
+  G.turn = next;
+  G.dice = null;
+  G.moves = [];
+  G.busy = true;
+  if(!await persistGameState()) return;
+  G.busy = false;
+  ui();
 }
 
 async function doMoveOnline(i) {
+  if(!canMove() || !G.moves.includes(i)) return;
   const c = G.turn, d = G.dice;
   G.busy = true; G.moves = []; ui();
   const p = G.pegs[c][i], np = p===-1?0:p+d;
@@ -470,48 +567,75 @@ async function doMoveOnline(i) {
   }
 
   if(G.pegs[c].every(x=>x===56)){
-    updateGlobal(refGlobal(dbGlobal, `rooms/${roomCodeGlobal}/gameState`), {
-      pegs: G.pegs,
-      winner: NAME[c],
-      winnerColor: c,
-      dice: null
-    });
+    G.over=true;
+    G.winner=c;
+    G.dice=null;
+    if(!await persistGameState()) return;
+    G.busy=false;
+    showWinner(c, false);
+    ui();
     return;
   }
 
-  if(d === 6) {
-    // Extra turn on rolling 6
+  if(d===6) {
+    G.dice = null;
+    G.moves = [];
+    if(!await persistGameState()) return;
     G.busy = false;
-    updateGlobal(refGlobal(dbGlobal, `rooms/${roomCodeGlobal}/gameState`), {
-      pegs: G.pegs,
-      dice: null,
-      turn: G.turn
-    });
+    ui();
   } else {
-    nextTurnOnline(d, G.pegs);
+    await nextTurnOnline();
   }
 }
 
 function ui(){
   if(!G)return;
-  $('chips').innerHTML = G.players.map((pName,i)=>!pName?'':`<span class="chip glass ${G.turn===i&&!G.over?'turn':''}" style="--c:${COL[i]}"><span class="av">👤</span><span>${pName}<small>${G.pegs[i].map(x=>x===56?'●':'○').join('')}</small></span></span>`).join('');
+  const chips = $('chips');
+  chips.replaceChildren();
+  G.players.forEach((pName,i)=>{
+    if(!pName) return;
+    const chip = document.createElement('span');
+    chip.className = `chip glass ${G.turn===i&&!G.over?'turn':''}`;
+    chip.style.setProperty('--c',COL[i]);
+    const avatar = document.createElement('span');
+    avatar.className = 'av';
+    avatar.textContent = '👤';
+    const details = document.createElement('span');
+    details.append(document.createTextNode(pName));
+    const pieces = document.createElement('small');
+    pieces.textContent = G.pegs[i].map(x=>x===56?'●':'○').join('');
+    details.append(pieces);
+    chip.append(avatar,details);
+    chips.append(chip);
+  });
   document.documentElement.style.setProperty('--g',COL[G.turn]+'aa');
   const isMyTurn = G.turn === myIndexGlobal;
-  $('roll').disabled = !(isMyTurn && !G.busy && G.dice==null &&!G.over);
+  $('roll').disabled = !(isMyTurn && !G.busy && !G.syncError && G.dice==null && !G.over);
   if(isMyTurn && G.dice==null) msg(`Your turn! Roll the dice.`);
-  else if(isMyTurn && G.dice!=null && G.moves.length) msg(`You rolled ${G.dice}. Tap a glowing piece.`);
-  else if(isMyTurn && G.dice!=null && !G.moves.length) msg(`No valid moves.`);
-  else msg(`Waiting for ${G.players[G.turn]}...`);
+  else if(isMyTurn && G.dice!=null && G.moves.length) msg(`You rolled ${G.dice}. Tap a piece to move.`);
+  else if(isMyTurn && G.dice!=null) msg(`You rolled ${G.dice}. No legal move.`);
+  else if(!isMyTurn) msg(`Waiting for ${G.players[G.turn]}...`);
+  if(G.syncError) msg('Could not sync the game. Check your connection and try again.');
+  if(G.over) msg(`${G.players[G.winner]} wins!`);
 }
 
 /* Canvas Board & Graphics */
 const cv=$('board'),g=cv.getContext('2d'),bc=document.createElement('canvas');
-const canMove=()=>G&&!G.busy&&!G.over&&G.turn===myIndexGlobal&&G.dice!=null;
+const canMove=()=>G&&!G.busy&&!G.syncError&&!G.over&&G.turn===myIndexGlobal&&G.dice!=null;
 function pegList(){const seen={},out=[];G.pegs.forEach((arr,c)=>arr.forEach((p,i)=>{if(G.hide.has(c+','+i)||(G.mv&&G.mv.c===c&&G.mv.i===i))return;const[x,y]=cellOf(c,p,i);(seen[x+','+y]=seen[x+','+y]||[]).push({c,i,p,x,y})}));
  Object.values(seen).forEach(l=>l.forEach((o,n)=>{const f=l.length>1?(n-(l.length-1)/2)*11:0;o.px=o.x*S+20+f;o.py=o.y*S+20+f/2;out.push(o)}));return out.sort((a,b)=>a.py-b.py)}
 function at(e){const r=cv.getBoundingClientRect(),k=600/r.width,x=(e.clientX-r.left)*k,y=(e.clientY-r.top)*k;let best=null,bd=Math.max(30,26*k);
  pegList().forEach(o=>{if(o.c===G.turn&&G.moves.includes(o.i)){const d=Math.hypot(o.px-x,o.py-y);if(d<bd){bd=d;best=o}}});return best}
 cv.addEventListener('pointerdown',e=>{if(!canMove())return;const h=at(e);if(h){au();doMoveOnline(h.i)}});
+cv.addEventListener('keydown',e=>{
+  if(!canMove() || !/^[1-4]$/.test(e.key)) return;
+  const i=Number(e.key)-1;
+  if(G.moves.includes(i)) {
+    e.preventDefault();
+    au();
+    doMoveOnline(i);
+  }
+});
 
 function rr(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath()}
 function lg(x,a,b,w,h,c1,c2){const q=x.createLinearGradient(a,b,a+w,b+h);q.addColorStop(0,c1);q.addColorStop(1,c2);return q}
@@ -542,8 +666,13 @@ function frame(t){
 }
 
 function resize(){const s=$('stage');if(!s)return;const b=Math.floor(Math.min(s.clientWidth,s.clientHeight));if(b<60)return;document.documentElement.style.setProperty('--bs',b+'px');
- const d=Math.min(devicePixelRatio||1,2),w=Math.round(cv.clientWidth*d);if(w<50||cv.width===w)return;cv.width=cv.height=w;bc.width=bc.height=w;const x=bc.getContext('2d');x.setTransform(w/600,0,0,w/600,0,0);drawBoard(x)}
+ const d=Math.min(devicePixelRatio||1,2),w=Math.round(cv.clientWidth*d);if(w<50)return;
+ if(cv.width!==w||cv.height!==w){cv.width=w;cv.height=w}
+ if(bc.width!==w||bc.height!==w){bc.width=w;bc.height=w}
+ const x=bc.getContext('2d');if(!x)return;x.setTransform(w/600,0,0,w/600,0,0);drawBoard(x)}
 addEventListener('resize',resize);addEventListener('orientationchange',()=>setTimeout(resize,250));
+if(window.visualViewport) window.visualViewport.addEventListener('resize',resize);
+if(window.ResizeObserver) new ResizeObserver(resize).observe($('stage'));
 requestAnimationFrame(frame);
 </script>
 </body>
