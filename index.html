@@ -194,6 +194,8 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
 
     set(ref(db, `rooms/${roomCode}`), initialRoomData).then(() => {
       openRoomLobby(roomCode);
+    }).catch(err => {
+      alert("Failed to create room: " + err.message);
     });
   };
 
@@ -243,7 +245,6 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
         else nameEl.textContent = "Empty";
       }
 
-      // Enable start button if at least 2 players are present and current user is Host
       const playerCount = Object.keys(players).length;
       const startBtn = document.getElementById('btn-start-online-game');
       if(isHost) {
@@ -253,7 +254,6 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
         startBtn.style.display = 'none';
       }
 
-      // Detect game start signal from host
       if(room.status === 'playing' && room.gameState) {
         startOnlineGameView(room);
       }
@@ -272,6 +272,7 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
   document.getElementById('btn-start-online-game').onclick = () => {
     get(child(ref(db), `rooms/${currentRoomCode}`)).then(s => {
       const room = s.val();
+      if(!room) return;
       const players = room.players || {};
       
       const activePlayersList = [
@@ -302,7 +303,7 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
     document.getElementById('game').style.display = 'flex';
     resize();
 
-    window.initGameEngine(room.gameState, currentRoomCode, myColorIndex, db, update, ref);
+    window.initGameEngine(room.gameState, currentRoomCode, myIndexGlobal, db, update, ref, onValue);
   }
 </script>
 
@@ -351,11 +352,11 @@ function setDie(d,roll){const[rx,ry]=ORI[d],c=$('cube');spin++;const e=roll?spin
 setDie(1,false);
 function pop(t,sub,col){const p=$('pop');p.innerHTML=t+(sub?`<small>${sub}</small>`:'');p.style.color=col;p.classList.remove('show');void p.offsetWidth;p.classList.add('show')}
 
-/* Online Game State Synchronizer */
+/* Online Game Engine Synchronizer */
 let G=null, shake=0, P=[], CF=[], confetti=0;
 let roomCodeGlobal=null, myIndexGlobal=null, dbGlobal=null, updateGlobal=null, refGlobal=null;
 
-window.initGameEngine = function(state, roomCode, myIndex, db, updateFn, refFn) {
+window.initGameEngine = function(state, roomCode, myIndex, db, updateFn, refFn, onValueFn) {
   roomCodeGlobal = roomCode;
   myIndexGlobal = myIndex;
   dbGlobal = db;
@@ -374,19 +375,38 @@ window.initGameEngine = function(state, roomCode, myIndex, db, updateFn, refFn) 
     hover: null, mv: null, fly: [], hide: new Set()
   };
 
+  // Real-time synchronization listener for moves and turn progression
+  onValueFn(refGlobal(dbGlobal, `rooms/${roomCode}/gameState`), (snapshot) => {
+    const remoteState = snapshot.val();
+    if(!remoteState) return;
+
+    G.pegs = remoteState.pegs;
+    G.turn = remoteState.turn;
+    G.dice = remoteState.dice;
+    
+    if(G.dice !== null) {
+      G.moves = legal(G.turn, G.dice);
+      setDie(G.dice, false);
+    } else {
+      G.moves = [];
+    }
+
+    if(remoteState.winner) {
+      G.over = true;
+      SFX.win();
+      $('wt').textContent = remoteState.winner + ' wins!';
+      $('wt').style.color = COL[remoteState.winnerColor \vert{}\vert{} 0];$('win').style.display = 'flex';
+    }
+
+    ui();
+  });
+
   ui();
-  startTurnOnline();
 };
 
 function legal(c,d){ return G.pegs[c].map((p,i)=>p===-1?(d===6?i:-1):(p+d<=56?i:-1)).filter(i=>i>=0); }
 function caps(c,np){const h=[];if(np>50||np<0)return h;const a=(c*13+np)%52;if(SAFE.has(a))return h;G.pegs.forEach((arr,o)=>o!==c&&arr.forEach((q,k)=>{if(q>=0&&q<=50&&(o*13+q)%52===a)h.push([o,k])}));return h}
 const msg=t=>$('msg').textContent=t;
-
-function startTurnOnline() {
-  if(!G || G.over) return;
-  G.dice = null; G.moves = []; G.hover = null;
-  ui();
-}
 
 $('roll').onclick = async () => {
   if(G && G.turn === myIndexGlobal && !G.busy && G.dice == null && !G.over) {
@@ -394,33 +414,36 @@ $('roll').onclick = async () => {
     G.busy = true; ui();
     const d = 1 + Math.random()*6 | 0;
     SFX.roll(); setDie(d, true); await sl(1050);
-    G.dice = d;
-    G.moves = legal(G.turn, d);
-    pop(d, d===6?'SIX!':'', COL[G.turn]);
-    if(d===6) SFX.six();
-    ui();
+    
+    const validMoves = legal(G.turn, d);
 
-    if(!G.moves.length) {
-      msg(`${NAME[G.turn]} rolled ${d}: no legal move`);
+    if(!validMoves.length) {
+      pop(d, 'NO MOVE', COL[G.turn]);
+      if(d===6) SFX.six();
       await sl(1200);
-      nextTurnOnline();
+      nextTurnOnline(d, null);
+    } else {
+      pop(d, d===6?'SIX!':'', COL[G.turn]);
+      if(d===6) SFX.six();
+      updateGlobal(refGlobal(dbGlobal, `rooms/${roomCodeGlobal}/gameState`), {
+        dice: d,
+        turn: G.turn,
+        pegs: G.pegs
+      });
+      G.busy = false;
     }
   }
 };
 
-function nextTurnOnline() {
+function nextTurnOnline(rolledDice, currentPegs) {
   let next = (G.turn + 1) % 4;
   while(!G.players[next]) { next = (next + 1) % 4; }
-  G.turn = next;
-  G.dice = null;
-  G.busy = false;
-
+  
   updateGlobal(refGlobal(dbGlobal, `rooms/${roomCodeGlobal}/gameState`), {
-    turn: G.turn,
-    pegs: G.pegs,
-    dice: null
+    turn: next,
+    dice: null,
+    pegs: currentPegs || G.pegs
   });
-  ui();
 }
 
 async function doMoveOnline(i) {
@@ -447,13 +470,25 @@ async function doMoveOnline(i) {
   }
 
   if(G.pegs[c].every(x=>x===56)){
-    G.over=true; SFX.win(); $('wt').textContent=NAME[c]+' wins!'; $('wt').style.color=COL[c];$('win').style.display='flex';
+    updateGlobal(refGlobal(dbGlobal, `rooms/${roomCodeGlobal}/gameState`), {
+      pegs: G.pegs,
+      winner: NAME[c],
+      winnerColor: c,
+      dice: null
+    });
+    return;
   }
 
-  if(d===6) {
-    G.dice = null; G.busy = false; ui();
+  if(d === 6) {
+    // Extra turn on rolling 6
+    G.busy = false;
+    updateGlobal(refGlobal(dbGlobal, `rooms/${roomCodeGlobal}/gameState`), {
+      pegs: G.pegs,
+      dice: null,
+      turn: G.turn
+    });
   } else {
-    nextTurnOnline();
+    nextTurnOnline(d, G.pegs);
   }
 }
 
@@ -462,10 +497,11 @@ function ui(){
   $('chips').innerHTML = G.players.map((pName,i)=>!pName?'':`<span class="chip glass ${G.turn===i&&!G.over?'turn':''}" style="--c:${COL[i]}"><span class="av">👤</span><span>${pName}<small>${G.pegs[i].map(x=>x===56?'●':'○').join('')}</small></span></span>`).join('');
   document.documentElement.style.setProperty('--g',COL[G.turn]+'aa');
   const isMyTurn = G.turn === myIndexGlobal;
-  $('roll').disabled = !(isMyTurn && !G.busy && G.dice==null && !G.over);
+  $('roll').disabled = !(isMyTurn && !G.busy && G.dice==null &&!G.over);
   if(isMyTurn && G.dice==null) msg(`Your turn! Roll the dice.`);
-  else if(isMyTurn && G.moves.length) msg(`You rolled ${G.dice}. Tap a piece to move.`);
-  else if(!isMyTurn) msg(`Waiting for ${G.players[G.turn]}...`);
+  else if(isMyTurn && G.dice!=null && G.moves.length) msg(`You rolled ${G.dice}. Tap a glowing piece.`);
+  else if(isMyTurn && G.dice!=null && !G.moves.length) msg(`No valid moves.`);
+  else msg(`Waiting for ${G.players[G.turn]}...`);
 }
 
 /* Canvas Board & Graphics */
