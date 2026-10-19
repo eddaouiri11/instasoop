@@ -1,1294 +1,514 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parchisi Online - Realtime Multiplayer</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Canvas Confetti -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Parchisi Royale - Online Multiplayer</title>
+<style>
+:root{--ds:72px;--ink:#f6ecd6;--mut:#c9b793;--gold:#e6b957;--g:#e6b957}
+*{box-sizing:border-box}
+body{margin:0;position:fixed;inset:0;width:100%;height:100%;overscroll-behavior:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));color:var(--ink);font-family:Georgia,'Palatino Linotype',serif;display:flex;flex-direction:column;align-items:center;gap:8px;overflow:hidden;
+background:radial-gradient(ellipse at 50% 35%,#0000 0%,#000a 100%),repeating-linear-gradient(92deg,#3b2414 0 6px,#442a17 6px 9px,#38210f 9px 16px,#4a2f1a 16px 18px),#3b2414}
+#bg,#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}#bg{z-index:0}#fx{z-index:60}
+header,main{position:relative;z-index:1;width:100%;max-width:1000px}main{flex:1;min-height:0;display:flex;flex-direction:column}header{flex:none}
+header{display:flex;align-items:center;justify-content:space-between}
+h1{margin:0;font-size:clamp(1.2rem,4vw,2rem);font-weight:normal;letter-spacing:.2em;color:var(--gold);text-shadow:0 2px 0 #000a,0 0 18px #e6b95766}
+.hb{display:flex;gap:8px}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;font-weight:bold;color:#2a1c05;background:linear-gradient(#f4cf7a,#c79632);box-shadow:0 4px 0 #7b5815,0 8px 14px #0006;padding:12px 20px;transition:transform .08s}
+button:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #7b5815}
+button:disabled{opacity:.45;cursor:default}
+button.ic{width:46px;height:46px;padding:0;font-size:1.3rem;background:#ffffff1c;color:var(--ink);box-shadow:inset 0 0 0 1px #ffffff40;backdrop-filter:blur(8px)}
+:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.glass{background:linear-gradient(145deg,#ffffff26,#ffffff0d);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px);border:1px solid #ffffff3a;border-radius:20px;box-shadow:0 18px 50px #000a}
 
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
-            color: #f8fafc;
-            min-height: 100vh;
-            touch-action: manipulation;
-        }
+/* Auth & Room Screens */
+.panel-screen{padding:18px;width:100%;max-width:440px;margin:auto;display:flex;flex-direction:column;gap:10px;text-align:center;}
+.panel-screen input{font:inherit;padding:10px;border-radius:10px;background:#1b120acc;color:var(--ink);border:1px solid #e6b95766;width:100%;text-align:center;}
+.panel-screen button{width:100%;margin-top:5px;}
 
-        .font-game {
-            font-family: 'Fredoka One', cursive;
-        }
+#room-lobby-screen, #setup, #game{display:none;}
 
-        /* 3D Dice Styles */
-        .dice-scene {
-            width: 60px;
-            height: 60px;
-            perspective: 400px;
-        }
+.room-code-badge{font-size:1.8rem;font-weight:bold;color:var(--gold);letter-spacing:4px;background:#0005;padding:8px;border-radius:12px;border:1px dashed var(--gold);margin:5px 0;}
+.player-slot-list{display:flex;flex-direction:column;gap:8px;margin:10px 0;}
+.slot-card{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:12px;background:#0004;border:1px solid #ffffff20;}
+.slot-card b{display:flex;align-items:center;gap:8px;}
 
-        .dice-cube {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+#game{flex:1;min-height:0;flex-direction:column;align-items:center;gap:8px}#side{display:contents}#stage{order:1;flex:1;min-height:0;min-width:0;width:100%;display:flex;align-items:center;justify-content:center}.ctl{order:2}#msg{order:3}
+#chips{order:0;flex:none;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.chip{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;border-radius:40px;font-size:.85rem;opacity:.7;transition:all .25s;border:2px solid transparent}
+.chip.turn{opacity:1;transform:scale(1.08);border-color:var(--c);box-shadow:0 0 18px var(--c)}
+.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:1.1rem;background:radial-gradient(circle at 30% 25%,#fff8,var(--c) 55%,#0006);box-shadow:0 2px 6px #0008}
+.chip small{display:block;letter-spacing:.15em;font-size:.7rem}
+.frame{padding:clamp(6px,1.6vw,12px);border-radius:24px;background:linear-gradient(145deg,#d9ab55,#7d5718 60%,#b88a36);box-shadow:0 20px 50px #000c,inset 0 2px 3px #fff8;flex:none;width:var(--bs,300px);height:var(--bs,300px)}
+canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-action:none}
+.ctl{flex:none;display:flex;align-items:center;gap:22px;padding:8px 22px;border-radius:60px}
+.scene{flex:none;width:var(--ds);height:var(--ds);perspective:calc(var(--ds)*5);border-radius:16px;box-shadow:0 0 22px var(--g)}
+.toss{animation:toss 1s cubic-bezier(.3,.6,.4,1)}
+@keyframes toss{0%{transform:translateY(0) scale(1)}30%{transform:translateY(-34px) scale(1.2)}60%{transform:translateY(0) scale(1)}78%{transform:translateY(-10px)}100%{transform:translateY(0)}}
+.cube{position:relative;width:var(--ds);height:var(--ds);transform-style:preserve-3d;transition:transform 1s cubic-bezier(.2,.8,.25,1)}
+.face{position:absolute;inset:0;border-radius:15px;background:linear-gradient(145deg,#fffdf6,#e3d3ac);border:2px solid #fff;display:grid;grid:repeat(3,1fr)/repeat(3,1fr);padding:11px;box-shadow:inset 0 0 14px #0004;backface-visibility:hidden}
+.face i{width:12px;height:12px;border-radius:50%;margin:auto;background:radial-gradient(circle at 35% 30%,#555,#111)}
+.f1{transform:translateZ(calc(var(--ds)/2))}.f6{transform:rotateY(180deg) translateZ(calc(var(--ds)/2))}.f3{transform:rotateY(90deg) translateZ(calc(var(--ds)/2))}.f4{transform:rotateY(-90deg) translateZ(calc(var(--ds)/2))}.f2{transform:rotateX(90deg) translateZ(calc(var(--ds)/2))}.f5{transform:rotateX(-90deg) translateZ(calc(var(--ds)/2))}
+#roll{font-size:1.15rem;min-width:140px}
+#msg{flex:none;max-width:100%;min-height:1.3em;font-size:clamp(.78rem,2.6vw,.95rem);text-align:center;color:var(--mut)}
+#pop{position:fixed;left:50%;top:42%;z-index:55;font-size:clamp(3rem,14vw,6rem);font-weight:bold;pointer-events:none;opacity:0;transform:translate(-50%,-50%);text-shadow:0 4px 0 #000a,0 0 30px currentColor;text-align:center;line-height:1}
+#pop small{display:block;font-size:.3em;letter-spacing:.2em}
+#pop.show{animation:pop 1.1s ease-out}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,-30%) scale(.3)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}70%{opacity:1;transform:translate(-50%,-60%) scale(1)}100%{opacity:0;transform:translate(-50%,-90%) scale(1)}}
+#win{position:fixed;inset:0;z-index:58;display:none;align-items:center;justify-content:center;background:#000b;padding:16px}
+#win .glass{padding:30px;text-align:center;animation:rise .7s cubic-bezier(.2,1.3,.4,1)}
+@keyframes rise{from{transform:scale(.4) translateY(80px);opacity:0}}
+#win h2{margin:6px 0 4px;font-size:2rem;font-weight:normal}#win .tr{font-size:4rem;animation:spin 2s ease-in-out infinite}
+@keyframes spin{50%{transform:rotateY(180deg) scale(1.2)}}
 
-        .dice-face {
-            position: absolute;
-            width: 60px;
-            height: 60px;
-            background: #ffffff;
-            border: 3px solid #cbd5e1;
-            border-radius: 12px;
-            display: grid;
-            grid-template: repeat(3, 1fr) / repeat(3, 1fr);
-            padding: 5px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.15);
-        }
-
-        .dot {
-            background-color: #1e293b;
-            border-radius: 50%;
-            align-self: center;
-            justify-self: center;
-            width: 10px;
-            height: 10px;
-            box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5);
-        }
-
-        .face-1 { transform: translateZ(30px); }
-        .face-2 { transform: rotateY(180deg) translateZ(30px); }
-        .face-3 { transform: rotateY(-90deg) translateZ(30px); }
-        .face-4 { transform: rotateY(90deg) translateZ(30px); }
-        .face-5 { transform: rotateX(-90deg) translateZ(30px); }
-        .face-6 { transform: rotateX(90deg) translateZ(30px); }
-
-        /* Parchisi Board Specifics */
-        .board-container {
-            aspect-ratio: 1 / 1;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-        }
-
-        .home-nest {
-            border: 6px solid #1e293b;
-        }
-
-        .peg {
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
-        }
-
-        .peg:hover {
-            transform: scale(1.25) translateY(-4px);
-            z-index: 50;
-        }
-
-        .peg-highlight {
-            animation: bounce 0.8s infinite alternate;
-            box-shadow: 0 0 15px #fde047;
-        }
-
-        @keyframes bounce {
-            from { transform: translateY(0); }
-            to { transform: translateY(-8px); }
-        }
-
-        /* Glassmorphism UI */
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.75);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-    </style>
+@media(max-height:640px){:root{--ds:54px}.face{padding:8px}.face i{width:9px;height:9px}.ctl{padding:6px 16px;gap:14px}button{padding:10px 16px}#roll{min-width:110px;font-size:1rem}.chip{font-size:.75rem}.av{width:28px;height:28px}h1{font-size:1.2rem}button.ic{width:38px;height:38px}}
+@media(min-aspect-ratio:13/10){#game{flex-direction:row;justify-content:center;gap:16px}#side{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;width:min(34vw,270px);flex:none}#chips{flex-direction:column;flex-wrap:nowrap;width:100%}.chip{width:100%}#stage{width:auto}.ctl{flex-direction:column;border-radius:26px}}
+</style>
 </head>
-<body class="flex flex-col items-center justify-center p-2 md:p-6 min-h-screen">
-
-    <!-- Notification Toast -->
-    <div id="toast" class="fixed top-5 right-5 z-50 transform translate-x-full transition-transform duration-300 glass-panel px-6 py-4 rounded-xl shadow-2xl flex items-center space-x-3 border-l-4 border-yellow-400">
-        <i id="toast-icon" class="fas fa-info-circle text-yellow-400 text-xl"></i>
-        <span id="toast-msg" class="font-semibold text-sm md:text-base">Notification</span>
-    </div>
-
-    <!-- MAIN CONTAINER -->
-    <div id="app" class="w-full max-w-6xl">
-        
-        <!-- HEADER -->
-        <header class="flex justify-between items-center mb-4 glass-panel p-4 rounded-2xl">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-red-500 flex items-center justify-center font-game text-xl text-white shadow-lg">
-                    P
-                </div>
-                <h1 class="text-xl md:text-2xl font-game tracking-wide bg-gradient-to-r from-amber-400 via-orange-300 to-yellow-500 bg-clip-text text-transparent">
-                    PARCHISI ONLINE
-                </h1>
-            </div>
-            
-            <!-- User Status & Sound Toggle -->
-            <div id="user-bar" class="hidden flex items-center space-x-4">
-                <div class="flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
-                    <i class="fas fa-user text-amber-400"></i>
-                    <span id="current-user-display" class="font-bold text-sm text-slate-200"></span>
-                </div>
-                <button id="btn-sound" onclick="toggleSound()" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center border border-slate-700 transition">
-                    <i id="sound-icon" class="fas fa-volume-up text-amber-400"></i>
-                </button>
-                <button onclick="logout()" class="w-10 h-10 rounded-xl bg-rose-900/50 hover:bg-rose-800 text-rose-300 flex items-center justify-center border border-rose-700 transition" title="Logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
-            </div>
-        </header>
-
-        <!-- VIEW 1: LOGIN / REGISTER SCREEN -->
-        <section id="view-auth" class="glass-panel p-6 md:p-10 rounded-3xl max-w-md mx-auto shadow-2xl mt-8">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-game text-amber-400 mb-2">Welcome Player</h2>
-                <p class="text-slate-400 text-sm">Sign in or register your account to play Parchisi with friends.</p>
-            </div>
-
-            <!-- Tabs -->
-            <div class="flex bg-slate-900/60 p-1 rounded-xl mb-6 border border-slate-800">
-                <button id="tab-login" onclick="switchAuthTab('login')" class="flex-1 py-2.5 rounded-lg font-bold text-sm transition bg-amber-500 text-slate-950">Login</button>
-                <button id="tab-register" onclick="switchAuthTab('register')" class="flex-1 py-2.5 rounded-lg font-bold text-sm transition text-slate-400 hover:text-white">Register</button>
-            </div>
-
-            <!-- Login Form -->
-            <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Username</label>
-                    <input type="text" id="login-username" required class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-400 transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Password</label>
-                    <input type="password" id="login-password" required class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-400 transition">
-                </div>
-                <button type="submit" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-game py-3.5 rounded-xl shadow-lg transform active:scale-95 transition">
-                    ENTER LOBBY
-                </button>
-            </form>
-
-            <!-- Register Form -->
-            <form id="form-register" onsubmit="handleRegister(event)" class="space-y-4 hidden">
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Choose Username</label>
-                    <input type="text" id="reg-username" required class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-400 transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Password</label>
-                    <input type="password" id="reg-password" required class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-400 transition">
-                </div>
-                <button type="submit" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-game py-3.5 rounded-xl shadow-lg transform active:scale-95 transition">
-                    CREATE ACCOUNT
-                </button>
-            </form>
-        </section>
-
-        <!-- VIEW 2: LOBBY & ROOM SELECTOR -->
-        <section id="view-lobby" class="hidden space-y-6 max-w-2xl mx-auto mt-6">
-            <div class="glass-panel p-6 rounded-3xl text-center space-y-6">
-                <h2 class="text-3xl font-game text-amber-400">Game Lobby</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Create Room -->
-                    <div class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 flex flex-col justify-between space-y-4">
-                        <div>
-                            <i class="fas fa-plus-circle text-4xl text-amber-400 mb-2"></i>
-                            <h3 class="font-game text-xl">Create New Room</h3>
-                            <p class="text-xs text-slate-400 mt-1">Host a new game match and invite your friends via room code.</p>
-                        </div>
-                        <button onclick="createNewRoom()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-game py-3 rounded-xl shadow-lg transition">
-                            CREATE ROOM
-                        </button>
-                    </div>
-
-                    <!-- Join Room -->
-                    <div class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 flex flex-col justify-between space-y-4">
-                        <div>
-                            <i class="fas fa-sign-in-alt text-4xl text-emerald-400 mb-2"></i>
-                            <h3 class="font-game text-xl">Join Existing Room</h3>
-                            <p class="text-xs text-slate-400 mt-1">Enter a 6-character room code to join your friends.</p>
-                        </div>
-                        <div class="space-y-2">
-                            <input type="text" id="join-room-code" placeholder="ENTER CODE" maxlength="6" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-center font-mono font-bold text-lg uppercase tracking-widest text-amber-400 focus:outline-none focus:border-amber-400">
-                            <button onclick="joinRoomWithCode()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-game py-3 rounded-xl shadow-lg transition">
-                                JOIN ROOM
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- VIEW 3: ROOM WAITING LOBBY -->
-        <section id="view-room" class="hidden space-y-6 max-w-3xl mx-auto mt-4">
-            <div class="glass-panel p-6 rounded-3xl space-y-6">
-                <!-- Room Header -->
-                <div class="flex flex-col md:flex-row justify-between items-center bg-slate-900/80 p-4 rounded-2xl border border-slate-800 gap-4">
-                    <div>
-                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">ROOM CODE</span>
-                        <div class="flex items-center space-x-3">
-                            <h2 id="room-code-display" class="text-3xl font-mono font-bold text-amber-400 tracking-wider">------</h2>
-                            <button onclick="copyRoomCode()" class="bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-700 transition flex items-center space-x-1">
-                                <i class="fas fa-copy"></i>
-                                <span>Copy</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <button onclick="leaveRoom()" class="bg-rose-900/60 hover:bg-rose-800 text-rose-200 px-4 py-2.5 rounded-xl font-bold text-sm border border-rose-700 transition">
-                            Leave Room
-                        </button>
-                        <button id="btn-start-game" onclick="hostStartGame()" class="hidden bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 text-slate-950 font-game px-6 py-2.5 rounded-xl text-lg shadow-lg transition">
-                            START GAME
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Player Slots Matrix -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <!-- Red Slot -->
-                    <div class="p border-2 border-red-500/50 bg-red-950/20 rounded-2xl p-4 flex flex-col justify-between">
-                        <div class="flex justify-between items-center">
-                            <span class="font-game text-red-400 flex items-center gap-2">
-                                <div class="w-4 h-4 rounded-full bg-red-500"></div> RED
-                            </span>
-                            <span id="slot-tag-red" class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400">EMPTY</span>
-                        </div>
-                        <div id="slot-name-red" class="text-lg font-bold my-4 text-slate-200">Waiting...</div>
-                        <div class="slot-actions flex gap-2">
-                            <button onclick="claimSlot('red')" class="btn-claim flex-1 bg-red-600 hover:bg-red-500 text-white py-1.5 rounded-lg font-bold text-xs">CLAIM</button>
-                            <button onclick="toggleBotSlot('red')" class="btn-bot-toggle bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold">ADD BOT</button>
-                        </div>
-                    </div>
-
-                    <!-- Green Slot -->
-                    <div class="border-2 border-emerald-500/50 bg-emerald-950/20 rounded-2xl p-4 flex flex-col justify-between">
-                        <div class="flex justify-between items-center">
-                            <span class="font-game text-emerald-400 flex items-center gap-2">
-                                <div class="w-4 h-4 rounded-full bg-emerald-500"></div> GREEN
-                            </span>
-                            <span id="slot-tag-green" class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400">EMPTY</span>
-                        </div>
-                        <div id="slot-name-green" class="text-lg font-bold my-4 text-slate-200">Waiting...</div>
-                        <div class="slot-actions flex gap-2">
-                            <button onclick="claimSlot('green')" class="btn-claim flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-1.5 rounded-lg font-bold text-xs">CLAIM</button>
-                            <button onclick="toggleBotSlot('green')" class="btn-bot-toggle bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold">ADD BOT</button>
-                        </div>
-                    </div>
-
-                    <!-- Blue Slot -->
-                    <div class="border-2 border-blue-500/50 bg-blue-950/20 rounded-2xl p-4 flex flex-col justify-between">
-                        <div class="flex justify-between items-center">
-                            <span class="font-game text-blue-400 flex items-center gap-2">
-                                <div class="w-4 h-4 rounded-full bg-blue-500"></div> BLUE
-                            </span>
-                            <span id="slot-tag-blue" class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400">EMPTY</span>
-                        </div>
-                        <div id="slot-name-blue" class="text-lg font-bold my-4 text-slate-200">Waiting...</div>
-                        <div class="slot-actions flex gap-2">
-                            <button onclick="claimSlot('blue')" class="btn-claim flex-1 bg-blue-600 hover:bg-blue-500 text-white py-1.5 rounded-lg font-bold text-xs">CLAIM</button>
-                            <button onclick="toggleBotSlot('blue')" class="btn-bot-toggle bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold">ADD BOT</button>
-                        </div>
-                    </div>
-
-                    <!-- Yellow Slot -->
-                    <div class="border-2 border-yellow-500/50 bg-yellow-950/20 rounded-2xl p-4 flex flex-col justify-between">
-                        <div class="flex justify-between items-center">
-                            <span class="font-game text-yellow-400 flex items-center gap-2">
-                                <div class="w-4 h-4 rounded-full bg-yellow-500"></div> YELLOW
-                            </span>
-                            <span id="slot-tag-yellow" class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400">EMPTY</span>
-                        </div>
-                        <div id="slot-name-yellow" class="text-lg font-bold my-4 text-slate-200">Waiting...</div>
-                        <div class="slot-actions flex gap-2">
-                            <button onclick="claimSlot('yellow')" class="btn-claim flex-1 bg-yellow-600 hover:bg-yellow-500 text-slate-950 py-1.5 rounded-lg font-bold text-xs">CLAIM</button>
-                            <button onclick="toggleBotSlot('yellow')" class="btn-bot-toggle bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold">ADD BOT</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- VIEW 4: MAIN PARCHISI GAMEPLAY -->
-        <section id="view-game" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            
-            <!-- Left Info Panel -->
-            <div class="lg:col-span-3 space-y-4 order-2 lg:order-1">
-                <!-- Active Turn Display -->
-                <div class="glass-panel p-4 rounded-2xl text-center border-t-4" id="turn-card">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">CURRENT TURN</span>
-                    <div id="turn-player-name" class="font-game text-2xl my-1 text-amber-400">Red Player</div>
-                    <div id="turn-status-msg" class="text-xs text-slate-300">Waiting for roll...</div>
-                </div>
-
-                <!-- Dice & Action Controls -->
-                <div class="glass-panel p-5 rounded-2xl flex flex-col items-center justify-center space-y-4">
-                    <div class="dice-scene">
-                        <div id="dice-cube" class="dice-cube">
-                            <div class="dice-face face-1"><div class="dot" style="grid-area: 2/2"></div></div>
-                            <div class="dice-face face-2"><div class="dot" style="grid-area: 1/1"></div><div class="dot" style="grid-area: 3/3"></div></div>
-                            <div class="dice-face face-3"><div class="dot" style="grid-area: 1/1"></div><div class="dot" style="grid-area: 2/2"></div><div class="dot" style="grid-area: 3/3"></div></div>
-                            <div class="dice-face face-4"><div class="dot" style="grid-area: 1/1"></div><div class="dot" style="grid-area: 1/3"></div><div class="dot" style="grid-area: 3/1"></div><div class="dot" style="grid-area: 3/3"></div></div>
-                            <div class="dice-face face-5"><div class="dot" style="grid-area: 1/1"></div><div class="dot" style="grid-area: 1/3"></div><div class="dot" style="grid-area: 2/2"></div><div class="dot" style="grid-area: 3/1"></div><div class="dot" style="grid-area: 3/3"></div></div>
-                            <div class="dice-face face-6"><div class="dot" style="grid-area: 1/1"></div><div class="dot" style="grid-area: 1/3"></div><div class="dot" style="grid-area: 2/1"></div><div class="dot" style="grid-area: 2/3"></div><div class="dot" style="grid-area: 3/1"></div><div class="dot" style="grid-area: 3/3"></div></div>
-                        </div>
-                    </div>
-
-                    <button id="btn-roll-dice" onclick="rollDiceAction()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 text-slate-950 font-game py-3 rounded-xl shadow-lg transform active:scale-95 transition disabled:opacity-50">
-                        ROLL DICE
-                    </button>
-                </div>
-
-                <!-- Players Roster -->
-                <div class="glass-panel p-4 rounded-2xl space-y-2">
-                    <h3 class="font-game text-sm text-slate-400 mb-2">PLAYERS</h3>
-                    <div id="roster-red" class="flex items-center justify-between p-2 rounded-xl bg-red-950/40 border border-red-800/50">
-                        <span class="text-xs font-bold text-red-400 flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div> RED</span>
-                        <span id="roster-name-red" class="text-xs font-bold text-slate-200">--</span>
-                    </div>
-                    <div id="roster-green" class="flex items-center justify-between p-2 rounded-xl bg-emerald-950/40 border border-emerald-800/50">
-                        <span class="text-xs font-bold text-emerald-400 flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-emerald-500"></div> GREEN</span>
-                        <span id="roster-name-green" class="text-xs font-bold text-slate-200">--</span>
-                    </div>
-                    <div id="roster-blue" class="flex items-center justify-between p-2 rounded-xl bg-blue-950/40 border border-blue-800/50">
-                        <span class="text-xs font-bold text-blue-400 flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-blue-500"></div> BLUE</span>
-                        <span id="roster-name-blue" class="text-xs font-bold text-slate-200">--</span>
-                    </div>
-                    <div id="roster-yellow" class="flex items-center justify-between p-2 rounded-xl bg-yellow-950/40 border border-yellow-800/50">
-                        <span class="text-xs font-bold text-yellow-400 flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-yellow-500"></div> YELLOW</span>
-                        <span id="roster-name-yellow" class="text-xs font-bold text-slate-200">--</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Parchisi Game Canvas / Board Container -->
-            <div class="lg:col-span-9 order-1 lg:order-2 flex justify-center">
-                <div class="board-container w-full max-w-[650px] bg-slate-900 border-4 border-slate-700 rounded-3xl overflow-hidden relative shadow-2xl">
-                    <canvas id="gameCanvas" class="w-full h-full cursor-pointer"></canvas>
-                </div>
-            </div>
-        </section>
-
-    </div>
-
-    <!-- Firebase Realtime Database Scripts -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, get, child, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-        // Firebase Configuration provided by user
-        const firebaseConfig = {
-            databaseURL: "https://patchisi-online-game-default-rtdb.firebaseio.com",
-            projectId: "patchisi-online-game"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        // Make Firebase instances accessible globally
-        window.db = db;
-        window.dbRef = ref;
-        window.dbSet = set;
-        window.dbGet = get;
-        window.dbChild = child;
-        window.dbOnValue = onValue;
-        window.dbUpdate = update;
-        window.dbRemove = remove;
-    </script>
-
-    <!-- Game Engine & Application Logic -->
-    <script>
-        // --- Sound Synthesizer (Web Audio API) ---
-        let audioCtx = null;
-        let soundEnabled = true;
-
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        }
-
-        function playSFX(type) {
-            if (!soundEnabled) return;
-            initAudio();
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-
-            const now = audioCtx.currentTime;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            if (type === 'roll') {
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.exponentialRampToValueAtTime(400, now + 0.1);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
-                osc.start(now);
-                osc.stop(now + 0.1);
-            } else if (type === 'move') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(300, now);
-                osc.frequency.exponentialRampToValueAtTime(600, now + 0.08);
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
-                osc.start(now);
-                osc.stop(now + 0.08);
-            } else if (type === 'capture') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(800, now);
-                osc.frequency.linearRampToValueAtTime(200, now + 0.3);
-                gain.gain.setValueAtTime(0.4, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
-            } else if (type === 'win') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(440, now);
-                osc.frequency.setValueAtTime(554.37, now + 0.1);
-                osc.frequency.setValueAtTime(659.25, now + 0.2);
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.5);
-                osc.start(now);
-                osc.stop(now + 0.5);
-            }
-        }
-
-        function toggleSound() {
-            soundEnabled = !soundEnabled;
-            const icon = document.getElementById('sound-icon');
-            if (soundEnabled) {
-                icon.className = 'fas fa-volume-up text-amber-400';
-            } else {
-                icon.className = 'fas fa-volume-mute text-slate-500';
-            }
-        }
-
-        // --- Application State ---
-        let currentUser = null; // { username: string }
-        let currentRoomId = null;
-        let roomUnsubscribe = null;
-        let myColorSlot = null; // 'red', 'green', 'blue', 'yellow'
-        let currentRoomData = null;
-
-        const COLOR_KEYS = ['red', 'green', 'blue', 'yellow'];
-        const COLOR_HEX = {
-            red: '#ef4444',
-            green: '#10b981',
-            blue: '#3b82f6',
-            yellow: '#eab308'
-        };
-
-        // --- Parchisi Board Coordinates Logic ---
-        // 68 main track tiles + 4 home corridors (7 tiles each)
-        // Simplified grid mapping on a 15x15 cell canvas
-        const GRID_SIZE = 15;
-        let canvas, ctx;
-
-        // Path positions on 15x15 grid for 68 outer cells
-        const MAIN_PATH = [
-            // Bottom-left area -> Up -> Right -> Down -> Left loop
-            {x: 6, y: 14}, {x: 6, y: 13}, {x: 6, y: 12}, {x: 6, y: 11}, {x: 6, y: 10}, {x: 6, y: 9}, // 1-6
-            {x: 5, y: 8}, {x: 4, y: 8}, {x: 3, y: 8}, {x: 2, y: 8}, {x: 1, y: 8}, {x: 0, y: 8}, // 7-12
-            {x: 0, y: 7}, // 13 (Safe)
-            {x: 0, y: 6}, {x: 1, y: 6}, {x: 2, y: 6}, {x: 3, y: 6}, {x: 4, y: 6}, {x: 5, y: 6}, // 14-19
-            {x: 6, y: 5}, {x: 6, y: 4}, {x: 6, y: 3}, {x: 6, y: 2}, {x: 6, y: 1}, {x: 6, y: 0}, // 20-25
-            {x: 7, y: 0}, // 26
-            {x: 8, y: 0}, {x: 8, y: 1}, {x: 8, y: 2}, {x: 8, y: 3}, {x: 8, y: 4}, {x: 8, y: 5}, // 27-32
-            {x: 9, y: 6}, {x: 10, y: 6}, {x: 11, y: 6}, {x: 12, y: 6}, {x: 13, y: 6}, {x: 14, y: 6}, // 33-38
-            {x: 14, y: 7}, // 39
-            {x: 14, y: 8}, {x: 13, y: 8}, {x: 12, y: 8}, {x: 11, y: 8}, {x: 10, y: 8}, {x: 9, y: 8}, // 40-45
-            {x: 8, y: 9}, {x: 8, y: 10}, {x: 8, y: 11}, {x: 8, y: 12}, {x: 8, y: 13}, {x: 8, y: 14}, // 46-51
-            {x: 7, y: 14}, // 52
-            {x: 6, y: 14} // Loop reference
-        ];
-
-        // Safe spots on main path
-        const SAFE_SPOTS = [0, 4, 12, 17, 21, 29, 34, 38, 46, 51];
-
-        // Starting main track index for each color
-        const START_INDEX = {
-            red: 0,      // Bottom-Left
-            green: 17,   // Top-Left
-            blue: 34,    // Top-Right
-            yellow: 51   // Bottom-Right
-        };
-
-        // Home corridor grids
-        const HOME_PATHS = {
-            red:    [{x:7, y:13}, {x:7, y:12}, {x:7, y:11}, {x:7, y:10}, {x:7, y:9}, {x:7, y:8}],
-            green:  [{x:1, y:7}, {x:2, y:7}, {x:3, y:7}, {x:4, y:7}, {x:5, y:7}, {x:6, y:7}],
-            blue:   [{x:7, y:1}, {x:7, y:2}, {x:7, y:3}, {x:7, y:4}, {x:7, y:5}, {x:7, y:6}],
-            yellow: [{x:13, y:7}, {x:12, y:7}, {x:11, y:7}, {x:10, y:7}, {x:9, y:7}, {x:8, y:7}]
-        };
-
-        // Nest Base Box Coordinates (4 pegs per nest)
-        const NEST_POSITIONS = {
-            red:    [{x:2, y:11}, {x:3, y:11}, {x:2, y:12}, {x:3, y:12}],
-            green:  [{x:2, y:2},  {x:3, y:2},  {x:2, y:3},  {x:3, y:3}],
-            blue:   [{x:11, y:2}, {x:12, y:2}, {x:11, y:3}, {x:12, y:3}],
-            yellow: [{x:11, y:11},{x:12, y:11},{x:11, y:12},{x:12, y:12}]
-        };
-
-        // --- Toast Notifications ---
-        function showToast(message, type = 'info') {
-            const toast = document.getElementById('toast');
-            const msg = document.getElementById('toast-msg');
-            const icon = document.getElementById('toast-icon');
-
-            msg.textContent = message;
-            if (type === 'error') {
-                icon.className = 'fas fa-exclamation-circle text-rose-500 text-xl';
-                toast.style.borderColor = '#f43f5e';
-            } else if (type === 'success') {
-                icon.className = 'fas fa-check-circle text-emerald-400 text-xl';
-                toast.style.borderColor = '#34d399';
-            } else {
-                icon.className = 'fas fa-info-circle text-yellow-400 text-xl';
-                toast.style.borderColor = '#facc15';
-            }
-
-            toast.classList.remove('translate-x-full');
-            setTimeout(() => {
-                toast.classList.add('translate-x-full');
-            }, 3500);
-        }
-
-        // --- Navigation / View Switcher ---
-        function showView(viewId) {
-            ['view-auth', 'view-lobby', 'view-room', 'view-game'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-            });
-            document.getElementById(viewId).classList.remove('hidden');
-
-            const userBar = document.getElementById('user-bar');
-            if (currentUser) {
-                userBar.classList.remove('hidden');
-                document.getElementById('current-user-display').textContent = currentUser.username;
-            } else {
-                userBar.classList.add('hidden');
-            }
-
-            if (viewId === 'view-game') {
-                setTimeout(resizeCanvas, 100);
-            }
-        }
-
-        function switchAuthTab(tab) {
-            if (tab === 'login') {
-                document.getElementById('tab-login').className = 'flex-1 py-2.5 rounded-lg font-bold text-sm transition bg-amber-500 text-slate-950';
-                document.getElementById('tab-register').className = 'flex-1 py-2.5 rounded-lg font-bold text-sm transition text-slate-400 hover:text-white';
-                document.getElementById('form-login').classList.remove('hidden');
-                document.getElementById('form-register').classList.add('hidden');
-            } else {
-                document.getElementById('tab-register').className = 'flex-1 py-2.5 rounded-lg font-bold text-sm transition bg-emerald-500 text-slate-950';
-                document.getElementById('tab-login').className = 'flex-1 py-2.5 rounded-lg font-bold text-sm transition text-slate-400 hover:text-white';
-                document.getElementById('form-register').classList.remove('hidden');
-                document.getElementById('form-login').classList.add('hidden');
-            }
-        }
-
-        // --- Authentication Engine (RTDB direct `accounts/`) ---
-        async function handleLogin(e) {
-            e.preventDefault();
-            const username = document.getElementById('login-username').value.trim().toLowerCase();
-            const password = document.getElementById('login-password').value;
-
-            if (!username || !password) {
-                showToast('Please enter both username and password', 'error');
-                return;
-            }
-
-            try {
-                const userRef = window.dbRef(window.db, `accounts/${username}`);
-                const snapshot = await window.dbGet(userRef);
-
-                if (snapshot.exists()) {
-                    const userData = snapshot.val();
-                    if (userData.password === password) {
-                        currentUser = { username: userData.username };
-                        showToast(`Welcome back, ${userData.username}!`, 'success');
-                        showView('view-lobby');
-                    } else {
-                        showToast('Invalid password', 'error');
-                    }
-                } else {
-                    showToast('Account does not exist. Please register.', 'error');
-                }
-            } catch (err) {
-                console.error(err);
-                showToast('Login failed. Connection error.', 'error');
-            }
-        }
-
-        async function handleRegister(e) {
-            e.preventDefault();
-            const username = document.getElementById('reg-username').value.trim().toLowerCase();
-            const password = document.getElementById('reg-password').value;
-
-            if (!username || !password) {
-                showToast('Please fill out all fields', 'error');
-                return;
-            }
-
-            try {
-                const userRef = window.dbRef(window.db, `accounts/${username}`);
-                const snapshot = await window.dbGet(userRef);
-
-                if (snapshot.exists()) {
-                    showToast('Username already taken', 'error');
-                } else {
-                    await window.dbSet(userRef, {
-                        username: username,
-                        password: password,
-                        createdAt: Date.now()
-                    });
-                    currentUser = { username: username };
-                    showToast('Account created successfully!', 'success');
-                    showView('view-lobby');
-                }
-            } catch (err) {
-                console.error(err);
-                showToast('Registration failed.', 'error');
-            }
-        }
-
-        function logout() {
-            if (currentRoomId) leaveRoom();
-            currentUser = null;
-            showView('view-auth');
-        }
-
-        // --- Lobby & Room Management ---
-        function generateRoomCode() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-            let code = '';
-            for (let i = 0; i < 6; i++) {
-                code += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return code;
-        }
-
-        async function createNewRoom() {
-            if (!currentUser) return;
-            const roomId = generateRoomCode();
-
-            const initialPegs = {};
-            COLOR_KEYS.forEach(col => {
-                initialPegs[col] = [-1, -1, -1, -1]; // -1 = Home Nest, 0..51 = Main Track, 100+ = Corridor
-            });
-
-            const roomState = {
-                roomId: roomId,
-                host: currentUser.username,
-                status: 'waiting', // waiting, playing, finished
-                currentTurn: 'red',
-                diceRoll: 0,
-                hasRolled: false,
-                winner: null,
-                slots: {
-                    red: { username: currentUser.username, type: 'player' },
-                    green: { username: null, type: 'empty' },
-                    blue: { username: null, type: 'empty' },
-                    yellow: { username: null, type: 'empty' }
-                },
-                pegs: initialPegs
-            };
-
-            try {
-                await window.dbSet(window.dbRef(window.db, `rooms/${roomId}`), roomState);
-                joinRoomById(roomId);
-            } catch (err) {
-                console.error(err);
-                showToast('Failed to create room', 'error');
-            }
-        }
-
-        async function joinRoomWithCode() {
-            const code = document.getElementById('join-room-code').value.trim().toUpperCase();
-            if (code.length !== 6) {
-                showToast('Enter a valid 6-character room code', 'error');
-                return;
-            }
-
-            const roomRef = window.dbRef(window.db, `rooms/${code}`);
-            const snapshot = await window.dbGet(roomRef);
-
-            if (snapshot.exists()) {
-                joinRoomById(code);
-            } else {
-                showToast('Room not found', 'error');
-            }
-        }
-
-        function joinRoomById(roomId) {
-            currentRoomId = roomId;
-            myColorSlot = null;
-
-            // Unsubscribe existing listener
-            if (roomUnsubscribe) roomUnsubscribe();
-
-            const roomRef = window.dbRef(window.db, `rooms/${roomId}`);
-            roomUnsubscribe = window.dbOnValue(roomRef, (snapshot) => {
-                const roomData = snapshot.val();
-                if (!roomData) {
-                    showToast('Room has been closed or deleted', 'error');
-                    leaveRoom();
-                    return;
-                }
-                currentRoomData = roomData;
-                syncRoomUI(roomData);
-            });
-
-            showView('view-room');
-            document.getElementById('room-code-display').textContent = roomId;
-        }
-
-        function syncRoomUI(roomData) {
-            // Find user's slot if assigned
-            myColorSlot = null;
-            COLOR_KEYS.forEach(color => {
-                if (roomData.slots[color] && roomData.slots[color].username === currentUser.username) {
-                    myColorSlot = color;
-                }
-            });
-
-            // Update Waiting Room UI
-            COLOR_KEYS.forEach(color => {
-                const slot = roomData.slots[color];
-                const nameEl = document.getElementById(`slot-name-${color}`);
-                const tagEl = document.getElementById(`slot-tag-${color}`);
-                const rosterName = document.getElementById(`roster-name-${color}`);
-
-                if (slot.type === 'player' && slot.username) {
-                    nameEl.textContent = slot.username;
-                    if (rosterName) rosterName.textContent = slot.username;
-                    tagEl.textContent = 'PLAYER';
-                    tagEl.className = 'text-xs px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800';
-                } else if (slot.type === 'bot') {
-                    nameEl.textContent = 'BOT (AI)';
-                    if (rosterName) rosterName.textContent = 'BOT (AI)';
-                    tagEl.textContent = 'BOT';
-                    tagEl.className = 'text-xs px-2 py-0.5 rounded bg-purple-950 text-purple-400 border border-purple-800';
-                } else {
-                    nameEl.textContent = 'Waiting for player...';
-                    if (rosterName) rosterName.textContent = 'EMPTY';
-                    tagEl.textContent = 'EMPTY';
-                    tagEl.className = 'text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400';
-                }
-            });
-
-            // Host controls Start Game button & Bot slots
-            const isHost = roomData.host === currentUser.username;
-            const btnStart = document.getElementById('btn-start-game');
-            if (isHost && roomData.status === 'waiting') {
-                btnStart.classList.remove('hidden');
-            } else {
-                btnStart.classList.add('hidden');
-            }
-
-            // Hide/Show Bot control buttons for non-hosts
-            document.querySelectorAll('.btn-bot-toggle').forEach(btn => {
-                btn.style.display = isHost ? 'block' : 'none';
-            });
-
-            // Handle transition to game view
-            if (roomData.status === 'playing') {
-                if (document.getElementById('view-game').classList.contains('hidden')) {
-                    showView('view-game');
-                }
-                syncGameplayUI(roomData);
-            }
-        }
-
-        async function claimSlot(color) {
-            if (!currentRoomId || !currentUser) return;
-            const updates = {};
-            
-            // Remove user from any existing slot first
-            COLOR_KEYS.forEach(c => {
-                if (currentRoomData.slots[c].username === currentUser.username) {
-                    updates[`slots/${c}`] = { username: null, type: 'empty' };
-                }
-            });
-
-            // Claim new slot
-            updates[`slots/${color}`] = { username: currentUser.username, type: 'player' };
-
-            try {
-                await window.dbUpdate(window.dbRef(window.db, `rooms/${currentRoomId}`), updates);
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        async function toggleBotSlot(color) {
-            if (!currentRoomId || currentRoomData.host !== currentUser.username) return;
-
-            const currentSlot = currentRoomData.slots[color];
-            let newSlot = { username: null, type: 'empty' };
-
-            if (currentSlot.type === 'empty') {
-                newSlot = { username: 'Bot ' + color.toUpperCase(), type: 'bot' };
-            }
-
-            try {
-                await window.dbUpdate(window.dbRef(window.db, `rooms/${currentRoomId}/slots/${color}`), newSlot);
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        async function hostStartGame() {
-            if (!currentRoomId || currentRoomData.host !== currentUser.username) return;
-
-            // Ensure at least 1 filled slot
-            let activeSlots = 0;
-            COLOR_KEYS.forEach(c => {
-                if (currentRoomData.slots[c].type !== 'empty') activeSlots++;
-            });
-
-            if (activeSlots < 1) {
-                showToast('Need at least 1 active slot to start', 'error');
-                return;
-            }
-
-            try {
-                await window.dbUpdate(window.dbRef(window.db, `rooms/${currentRoomId}`), {
-                    status: 'playing',
-                    currentTurn: 'red',
-                    hasRolled: false,
-                    diceRoll: 0
-                });
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        async function leaveRoom() {
-            if (roomUnsubscribe) {
-                roomUnsubscribe();
-                roomUnsubscribe = null;
-            }
-
-            if (currentRoomId && currentUser) {
-                try {
-                    // Clear user from slot
-                    if (myColorSlot) {
-                        await window.dbSet(window.dbRef(window.db, `rooms/${currentRoomId}/slots/${myColorSlot}`), {
-                            username: null,
-                            type: 'empty'
-                        });
-                    }
-                } catch (e) {}
-            }
-
-            currentRoomId = null;
-            myColorSlot = null;
-            showView('view-lobby');
-        }
-
-        function copyRoomCode() {
-            if (!currentRoomId) return;
-            navigator.clipboard.writeText(currentRoomId);
-            showToast('Room Code copied to clipboard!', 'success');
-        }
-
-        // --- Realtime Gameplay Synchronization ---
-        function syncGameplayUI(roomData) {
-            const turnColor = roomData.currentTurn;
-            const slot = roomData.slots[turnColor];
-            const turnName = slot.username || turnColor.toUpperCase();
-
-            const turnCard = document.getElementById('turn-card');
-            const turnPlayerEl = document.getElementById('turn-player-name');
-            const turnStatusEl = document.getElementById('turn-status-msg');
-
-            turnCard.style.borderColor = COLOR_HEX[turnColor];
-            turnPlayerEl.textContent = `${turnName} (${turnColor.toUpperCase()})`;
-            turnPlayerEl.style.color = COLOR_HEX[turnColor];
-
-            const isMyTurn = myColorSlot === turnColor;
-            const btnRoll = document.getElementById('btn-roll-dice');
-
-            if (roomData.hasRolled) {
-                turnStatusEl.textContent = `Rolled a ${roomData.diceRoll}! Select peg to move.`;
-                btnRoll.disabled = true;
-            } else {
-                turnStatusEl.textContent = isMyTurn ? 'Your turn! Roll the dice.' : `Waiting for ${turnName} to roll...`;
-                btnRoll.disabled = !isMyTurn;
-            }
-
-            // Animate / Render Dice value
-            if (roomData.diceRoll > 0) {
-                renderDice3D(roomData.diceRoll);
-            }
-
-            // Redraw Game Board Canvas
-            drawBoard(roomData);
-
-            // Handle Bot Turns if Host
-            if (roomData.host === currentUser.username && slot.type === 'bot' && roomData.status === 'playing') {
-                setTimeout(() => processBotTurn(roomData), 1000);
-            }
-        }
-
-        // --- 3D Dice Render Engine ---
-        function renderDice3D(val) {
-            const cube = document.getElementById('dice-cube');
-            const rotations = {
-                1: 'rotateX(0deg) rotateY(0deg)',
-                2: 'rotateY(-180deg)',
-                3: 'rotateY(90deg)',
-                4: 'rotateY(-90deg)',
-                5: 'rotateX(90deg)',
-                6: 'rotateX(-90deg)'
-            };
-            cube.style.transform = rotations[val] || 'rotateX(0deg)';
-        }
-
-        async function rollDiceAction() {
-            if (!currentRoomId || !myColorSlot) return;
-            if (currentRoomData.currentTurn !== myColorSlot || currentRoomData.hasRolled) return;
-
-            playSFX('roll');
-
-            // Generate Random Roll 1-6
-            const rollVal = Math.floor(Math.random() * 6) + 1;
-
-            // Animate Cube spin
-            const cube = document.getElementById('dice-cube');
-            cube.style.transform = `rotateX(${Math.random()*720}deg) rotateY(${Math.random()*720}deg)`;
-
-            setTimeout(async () => {
-                try {
-                    await window.dbUpdate(window.dbRef(window.db, `rooms/${currentRoomId}`), {
-                        diceRoll: rollVal,
-                        hasRolled: true
-                    });
-
-                    // Check if player has valid moves, if not auto pass turn
-                    const validMoves = getValidPegMoves(currentRoomData.pegs[myColorSlot], myColorSlot, rollVal);
-                    if (validMoves.length === 0) {
-                        showToast(`No valid moves for ${rollVal}. Turn passed!`, 'info');
-                        setTimeout(advanceTurn, 1200);
-                    }
-                } catch (err) {
-                    console.error(err);
-                }
-            }, 500);
-        }
-
-        // --- Parchisi Game Logic Core ---
-        function getValidPegMoves(pegs, color, roll) {
-            const valid = [];
-            pegs.forEach((pegPos, index) => {
-                if (pegPos === -1) {
-                    // Must roll 5 to get out of nest
-                    if (roll === 5) valid.push(index);
-                } else if (pegPos >= 0 && pegPos < 100) {
-                    // On main path or home track
-                    if (pegPos + roll <= 73) { // 68 main tiles + 5 home corridor tiles
-                        valid.push(index);
-                    }
-                }
-            });
-            return valid;
-        }
-
-        async function handleCanvasClick(e) {
-            if (!currentRoomData || currentRoomData.status !== 'playing') return;
-            if (currentRoomData.currentTurn !== myColorSlot || !currentRoomData.hasRolled) return;
-
-            const rect = canvas.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const clickY = e.clientY - rect.top;
-
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            const realX = clickX * scaleX;
-            const realY = clickY * scaleY;
-
-            const cellSize = canvas.width / GRID_SIZE;
-
-            // Check click on player's pegs
-            const pegs = currentRoomData.pegs[myColorSlot];
-            const validMoves = getValidPegMoves(pegs, myColorSlot, currentRoomData.diceRoll);
-
-            for (let idx of validMoves) {
-                const pegPos = pegs[idx];
-                const coords = getPegPixelCoords(myColorSlot, idx, pegPos, cellSize);
-
-                const dist = Math.hypot(realX - coords.x, realY - coords.y);
-                if (dist <= cellSize * 0.7) {
-                    // Execute Peg Move
-                    await executePegMove(myColorSlot, idx, currentRoomData.diceRoll);
-                    break;
-                }
-            }
-        }
-
-        async function executePegMove(color, pegIndex, roll) {
-            playSFX('move');
-
-            const currentPegs = currentRoomData.pegs[color];
-            let currentPos = currentPegs[pegIndex];
-            let nextPos = currentPos;
-
-            if (currentPos === -1 && roll === 5) {
-                nextPos = 0; // Move onto starting tile
-            } else if (currentPos >= 0) {
-                nextPos = currentPos + roll;
-            }
-
-            const newPegs = [...currentPegs];
-            newPegs[pegIndex] = nextPos;
-
-            const updates = {};
-            updates[`pegs/${color}`] = newPegs;
-
-            // Check Capture logic if on main track
-            let captureBonus = false;
-            if (nextPos >= 0 && nextPos < 68) {
-                const globalIndex = (START_INDEX[color] + nextPos) % 68;
-
-                // Check other colors for capture
-                COLOR_KEYS.forEach(otherCol => {
-                    if (otherCol !== color) {
-                        const otherPegs = [...currentRoomData.pegs[otherCol]];
-                        otherPegs.forEach((oPos, oIdx) => {
-                            if (oPos >= 0 && oPos < 68) {
-                                const oGlobalIndex = (START_INDEX[otherCol] + oPos) % 68;
-                                if (globalIndex === oGlobalIndex && !SAFE_SPOTS.includes(globalIndex)) {
-                                    // Capture enemy peg! Send back to nest
-                                    otherPegs[oIdx] = -1;
-                                    updates[`pegs/${otherCol}`] = otherPegs;
-                                    captureBonus = true;
-                                    playSFX('capture');
-                                    showToast(`${color.toUpperCase()} captured ${otherCol.toUpperCase()}!`, 'success');
-                                }
-                            }
-                        });
-                    }
-                });
-            }
-
-            // Check Win Condition (All 4 pegs reach 73)
-            if (newPegs.every(p => p >= 72)) {
-                updates['status'] = 'finished';
-                updates['winner'] = color;
-                playSFX('win');
-                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-                showToast(`PLAYER ${color.toUpperCase()} WINS THE GAME!`, 'success');
-            }
-
-            try {
-                await window.dbUpdate(window.dbRef(window.db, `rooms/${currentRoomId}`), updates);
-
-                // Advance turn or give bonus roll on 6 or capture
-                if (roll === 6 || captureBonus) {
-                    showToast('Bonus Roll!', 'success');
-                    await window.dbUpdate(window.dbRef(window.db, `rooms/${currentRoomId}`), {
-                        hasRolled: false,
-                        diceRoll: 0
-                    });
-                } else {
-                    advanceTurn();
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        async function advanceTurn() {
-            if (!currentRoomData) return;
-            const order = ['red', 'green', 'blue', 'yellow'];
-            const currentIndex = order.indexOf(currentRoomData.currentTurn);
-            const nextTurn = order[(currentIndex + 1) % 4];
-
-            try {
-                await window.dbUpdate(window.dbRef(window.db, `rooms/${currentRoomId}`), {
-                    currentTurn: nextTurn,
-                    hasRolled: false,
-                    diceRoll: 0
-                });
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        // --- Bot AI Logic (Host executes) ---
-        async function processBotTurn(roomData) {
-            const botColor = roomData.currentTurn;
-            if (!roomData.hasRolled) {
-                // Bot Rolls
-                const rollVal = Math.floor(Math.random() * 6) + 1;
-                await window.dbUpdate(window.dbRef(window.db, `rooms/${currentRoomId}`), {
-                    diceRoll: rollVal,
-                    hasRolled: true
-                });
-            } else {
-                // Bot Moves Peg
-                const pegs = roomData.pegs[botColor];
-                const validMoves = getValidPegMoves(pegs, botColor, roomData.diceRoll);
-
-                if (validMoves.length > 0) {
-                    // Pick best move (prioritize getting out of nest, then capture, then furthest peg)
-                    const chosenIndex = validMoves[0];
-                    await executePegMove(botColor, chosenIndex, roomData.diceRoll);
-                } else {
-                    setTimeout(advanceTurn, 1000);
-                }
-            }
-        }
-
-        // --- Board & Peg Rendering ---
-        function initCanvas() {
-            canvas = document.getElementById('gameCanvas');
-            ctx = canvas.getContext('2d');
-            canvas.addEventListener('click', handleCanvasClick);
-            window.addEventListener('resize', resizeCanvas);
-            resizeCanvas();
-        }
-
-        function resizeCanvas() {
-            if (!canvas) return;
-            const container = canvas.parentElement;
-            canvas.width = container.clientWidth;
-            canvas.height = container.clientWidth;
-            if (currentRoomData) drawBoard(currentRoomData);
-        }
-
-        function drawBoard(roomData) {
-            if (!ctx) return;
-            const w = canvas.width;
-            const h = canvas.height;
-            const cs = w / GRID_SIZE; // Cell size
-
-            ctx.clearRect(0, 0, w, h);
-
-            // 1. Background / Canvas Fill
-            ctx.fillStyle = '#0f172a';
-            ctx.fillRect(0, 0, w, h);
-
-            // 2. Draw Nests (Corners)
-            drawNest(0, 9, 6, 6, COLOR_HEX.red, 'RED');
-            drawNest(0, 0, 6, 6, COLOR_HEX.green, 'GREEN');
-            drawNest(9, 0, 6, 6, COLOR_HEX.blue, 'BLUE');
-            drawNest(9, 9, 6, 6, COLOR_HEX.yellow, 'YELLOW');
-
-            // 3. Draw Track Grid & Safe Spots
-            MAIN_PATH.forEach((pt, i) => {
-                ctx.fillStyle = SAFE_SPOTS.includes(i) ? '#334155' : '#1e293b';
-                ctx.fillRect(pt.x * cs, pt.y * cs, cs, cs);
-                ctx.strokeStyle = '#475569';
-                ctx.strokeRect(pt.x * cs, pt.y * cs, cs, cs);
-
-                if (SAFE_SPOTS.includes(i)) {
-                    ctx.fillStyle = '#fde047';
-                    ctx.beginPath();
-                    ctx.arc((pt.x + 0.5) * cs, (pt.y + 0.5) * cs, cs * 0.15, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            });
-
-            // 4. Draw Home Corridors
-            COLOR_KEYS.forEach(color => {
-                HOME_PATHS[color].forEach(pt => {
-                    ctx.fillStyle = COLOR_HEX[color] + '66';
-                    ctx.fillRect(pt.x * cs, pt.y * cs, cs, cs);
-                    ctx.strokeStyle = COLOR_HEX[color];
-                    ctx.strokeRect(pt.x * cs, pt.y * cs, cs, cs);
-                });
-            });
-
-            // 5. Draw Center Home Triangle
-            ctx.fillStyle = '#334155';
-            ctx.fillRect(6 * cs, 6 * cs, 3 * cs, 3 * cs);
-            ctx.strokeStyle = '#94a3b8';
-            ctx.strokeRect(6 * cs, 6 * cs, 3 * cs, 3 * cs);
-
-            // 6. Draw Pegs
-            if (roomData && roomData.pegs) {
-                COLOR_KEYS.forEach(color => {
-                    const pegs = roomData.pegs[color];
-                    pegs.forEach((pos, idx) => {
-                        const coords = getPegPixelCoords(color, idx, pos, cs);
-                        const isMyTurn = myColorSlot === roomData.currentTurn && roomData.currentTurn === color;
-                        const validMoves = isMyTurn && roomData.hasRolled ? getValidPegMoves(pegs, color, roomData.diceRoll) : [];
-                        const isHighlight = validMoves.includes(idx);
-
-                        drawPeg(coords.x, coords.y, cs * 0.35, COLOR_HEX[color], isHighlight);
-                    });
-                });
-            }
-        }
-
-        function drawNest(gx, gy, gw, gh, color, label) {
-            const cs = canvas.width / GRID_SIZE;
-            ctx.fillStyle = color + '22';
-            ctx.fillRect(gx * cs, gy * cs, gw * cs, gh * cs);
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 3;
-            ctx.strokeRect(gx * cs, gy * cs, gw * cs, gh * cs);
-            ctx.lineWidth = 1;
-        }
-
-        function getPegPixelCoords(color, idx, pos, cs) {
-            if (pos === -1) {
-                // In Home Nest
-                const nestPt = NEST_POSITIONS[color][idx];
-                return { x: (nestPt.x + 0.5) * cs, y: (nestPt.y + 0.5) * cs };
-            } else if (pos >= 0 && pos < 68) {
-                // On Main Track
-                const globalIndex = (START_INDEX[color] + pos) % 68;
-                const pt = MAIN_PATH[globalIndex];
-                return { x: (pt.x + 0.5) * cs, y: (pt.y + 0.5) * cs };
-            } else {
-                // In Home Corridor
-                const corridorIdx = Math.min(pos - 68, 5);
-                const pt = HOME_PATHS[color][corridorIdx];
-                return { x: (pt.x + 0.5) * cs, y: (pt.y + 0.5) * cs };
-            }
-        }
-
-        function drawPeg(x, y, radius, color, isHighlight) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.fillStyle = color;
-            ctx.fill();
-            ctx.lineWidth = 3;
-            ctx.strokeStyle = '#ffffff';
-            ctx.stroke();
-
-            // Highlight animation stroke
-            if (isHighlight) {
-                ctx.beginPath();
-                ctx.arc(x, y, radius + 4, 0, Math.PI * 2);
-                ctx.strokeStyle = '#fde047';
-                ctx.lineWidth = 3;
-                ctx.stroke();
-            }
-
-            ctx.restore();
-        }
-
-        // Initialize Application
-        window.onload = () => {
-            initCanvas();
-            showView('view-auth');
-        };
-    </script>
+<body>
+<canvas id="bg"></canvas><canvas id="fx"></canvas>
+<header><h1>PARCHISI</h1><div class="hb"><button class="ic" id="mute" aria-label="Mute sound">🔊</button><button class="ic" id="again" aria-label="New game">↺</button></div></header>
+<main>
+<!-- Auth Screen -->
+<section class="glass panel-screen" id="auth-screen">
+  <h2>Login / Register</h2>
+  <input type="text" id="auth-username" placeholder="Username">
+  <input type="password" id="auth-password" placeholder="Password">
+  <button id="btn-login">Login</button>
+  <button id="btn-register" style="background:linear-gradient(#7ac3f4,#328ec7); color:#fff;">Register Account</button>
+  <p id="auth-msg" style="font-size:0.85rem; color:var(--mut); margin:0;"></p>
+</section>
+
+<!-- Menu / Lobby Select Screen -->
+<section class="glass panel-screen" id="menu-screen" style="display:none;">
+  <h2>Multiplayer Hub</h2>
+  <p style="color:var(--mut); font-size:0.9rem;">Create a game room or enter a room code to join friends.</p>
+  <button id="btn-create-room">Create New Room</button>
+  <div style="display:flex; gap:8px; margin-top:10px;">
+    <input type="text" id="join-code-input" placeholder="ROOM CODE" style="letter-spacing:2px; font-weight:bold;">
+    <button id="btn-join-room" style="flex:none; width:auto; margin:0;">Join</button>
+  </div>
+  <p id="menu-msg" style="font-size:0.85rem; color:var(--mut); margin:0;"></p>
+</section>
+
+<!-- Room Lobby Screen (4 Places) -->
+<section class="glass panel-screen" id="room-lobby-screen">
+  <h2>Game Room</h2>
+  <div class="room-code-badge" id="display-room-code">------</div>
+  <p style="color:var(--mut); font-size:0.85rem; margin:0;">Share this code with players to join!</p>
+  
+  <div class="player-slot-list">
+    <div class="slot-card"><b style="color:#e04a3c;"><span class="dot" style="background:#e04a3c; width:16px; height:16px; display:inline-block; border-radius:50%;"></span> Red</b> <span id="slot-0-name">Empty</span></div>
+    <div class="slot-card"><b style="color:#35a85f;"><span class="dot" style="background:#35a85f; width:16px; height:16px; display:inline-block; border-radius:50%;"></span> Green</b> <span id="slot-1-name">Empty</span></div>
+    <div class="slot-card"><b style="color:#3a7bd5;"><span class="dot" style="background:#3a7bd5; width:16px; height:16px; display:inline-block; border-radius:50%;"></span> Blue</b> <span id="slot-2-name">Empty</span></div>
+    <div class="slot-card"><b style="color:#f2b42a;"><span class="dot" style="background:#f2b42a; width:16px; height:16px; display:inline-block; border-radius:50%;"></span> Yellow</b> <span id="slot-3-name">Empty</span></div>
+  </div>
+
+  <button id="btn-start-online-game" disabled>Start Game</button>
+  <button id="btn-leave-room" style="background:linear-gradient(#f47a7a,#c73232); color:#fff;">Leave Room</button>
+</section>
+
+<!-- Active Game UI -->
+<section id="game"><div id="side"><div id="chips"></div>
+<div class="ctl glass"><div class="scene" id="scene"><div class="cube" id="cube"></div></div><button id="roll" disabled>Roll dice</button></div><div id="msg" aria-live="polite"></div></div><div id="stage"><div class="frame"><canvas id="board"></canvas></div></div></section>
+</main>
+
+<div id="pop"></div>
+<div id="win"><div class="glass"><div class="tr">🏆</div><h2 id="wt"></h2><p style="color:var(--mut)">All four pieces reached the center!</p><button id="wb" style="width:100%">Play again</button></div></div>
+
+<!-- Firebase Modular SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, set, get, child, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAVoP7bX_Baejw7mIg9R07H7AFUYPeEW0A",
+    authDomain: "patchisi-online-game.firebaseapp.com",
+    databaseURL: "https://patchisi-online-game-default-rtdb.firebaseio.com",
+    projectId: "patchisi-online-game",
+    storageBucket: "patchisi-online-game.firebasestorage.app",
+    messagingSenderId: "505649893262",
+    appId: "1:505649893262:web:616a91f0359b7ddd099edf",
+    measurementId: "G-V4CEPP768E"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  let currentUser = localStorage.getItem("currentUser") || null;
+  let currentRoomCode = null;
+  let myColorIndex = null;
+  let isHost = false;
+
+  const authMsg = document.getElementById('auth-msg');
+  const menuMsg = document.getElementById('menu-msg');
+
+  if(currentUser) {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('menu-screen').style.display = 'flex';
+  }
+
+  // Account Registration
+  document.getElementById('btn-register').onclick = () => {
+    const u = document.getElementById('auth-username').value.trim().toLowerCase();
+    const p = document.getElementById('auth-password').value.trim();
+    if(!u || !p) return authMsg.textContent = "Enter username and password!";
+    get(child(ref(db), `accounts/${u}`)).then(s => {
+      if (s.exists()) authMsg.textContent = "Username already taken!";
+      else {
+        set(ref(db, `accounts/${u}`), { password: p }).then(() => {
+          authMsg.textContent = "Account created! You can now login.";
+        });
+      }
+    });
+  };
+
+  // Account Login
+  document.getElementById('btn-login').onclick = () => {
+    const u = document.getElementById('auth-username').value.trim().toLowerCase();
+    const p = document.getElementById('auth-password').value.trim();
+    if(!u || !p) return authMsg.textContent = "Enter username and password!";
+    get(child(ref(db), `accounts/${u}`)).then(s => {
+      if (s.exists() && s.val().password === p) {
+        currentUser = u;
+        localStorage.setItem("currentUser", u);
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('menu-screen').style.display = 'flex';
+      } else authMsg.textContent = "Invalid username or password!";
+    });
+  };
+
+  // Create Room Logic
+  document.getElementById('btn-create-room').onclick = () => {
+    const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
+    currentRoomCode = roomCode;
+    isHost = true;
+    myColorIndex = 0; // Host is Red
+
+    const initialRoomData = {
+      host: currentUser,
+      status: 'waiting',
+      players: { 0: currentUser },
+      gameState: null
+    };
+
+    set(ref(db, `rooms/${roomCode}`), initialRoomData).then(() => {
+      openRoomLobby(roomCode);
+    });
+  };
+
+  // Join Room Logic
+  document.getElementById('btn-join-room').onclick = () => {
+    const code = document.getElementById('join-code-input').value.trim();
+    if(!code) return menuMsg.textContent = "Enter a valid 6-digit room code!";
+
+    get(child(ref(db), `rooms/${code}`)).then(s => {
+      if(!s.exists()) return menuMsg.textContent = "Room not found!";
+      const room = s.val();
+      if(room.status !== 'waiting') return menuMsg.textContent = "Game already started!";
+
+      let assignedSlot = -1;
+      const players = room.players || {};
+      for(let i=0; i<4; i++) {
+        if(!players[i]) { assignedSlot = i; break; }
+      }
+
+      if(assignedSlot === -1) return menuMsg.textContent = "Room is full!";
+
+      myColorIndex = assignedSlot;
+      currentRoomCode = code;
+      isHost = false;
+
+      update(ref(db, `rooms/${code}/players`), { [assignedSlot]: currentUser }).then(() => {
+        openRoomLobby(code);
+      });
+    });
+  };
+
+  // Sync Room Lobby Changes
+  function openRoomLobby(code) {
+    document.getElementById('menu-screen').style.display = 'none';
+    document.getElementById('room-lobby-screen').style.display = 'flex';
+    document.getElementById('display-room-code').textContent = code;
+
+    const roomRef = ref(db, `rooms/${code}`);
+    onValue(roomRef, (snapshot) => {
+      const room = snapshot.val();
+      if(!room) return;
+
+      const players = room.players || {};
+      for(let i=0; i<4; i++) {
+        const nameEl = document.getElementById(`slot-${i}-name`);
+        if(players[i]) nameEl.textContent = players[i] + (i===0 ? " (Host)" : "");
+        else nameEl.textContent = "Empty";
+      }
+
+      // Enable start button if at least 2 players are present and current user is Host
+      const playerCount = Object.keys(players).length;
+      const startBtn = document.getElementById('btn-start-online-game');
+      if(isHost) {
+        startBtn.style.display = 'block';
+        startBtn.disabled = playerCount < 2;
+      } else {
+        startBtn.style.display = 'none';
+      }
+
+      // Detect game start signal from host
+      if(room.status === 'playing' && room.gameState) {
+        startOnlineGameView(room);
+      }
+    });
+  }
+
+  // Leave Room Button
+  document.getElementById('btn-leave-room').onclick = () => {
+    if(currentRoomCode && myColorIndex !== null) {
+      remove(ref(db, `rooms/${currentRoomCode}/players/${myColorIndex}`));
+    }
+    location.reload();
+  };
+
+  // Host starts the online game
+  document.getElementById('btn-start-online-game').onclick = () => {
+    get(child(ref(db), `rooms/${currentRoomCode}`)).then(s => {
+      const room = s.val();
+      const players = room.players || {};
+      
+      const activePlayersList = [
+        players[0] || null,
+        players[1] || null,
+        players[2] || null,
+        players[3] || null
+      ];
+
+      const initialGameState = {
+        players: activePlayersList,
+        pegs: [[-1,-1,-1,-1],[-1,-1,-1,-1],[-1,-1,-1,-1],[-1,-1,-1,-1]],
+        turn: 0,
+        dice: null,
+        bonus: 0,
+        lastMove: null
+      };
+
+      update(ref(db, `rooms/${currentRoomCode}`), {
+        status: 'playing',
+        gameState: initialGameState
+      });
+    });
+  };
+
+  function startOnlineGameView(room) {
+    document.getElementById('room-lobby-screen').style.display = 'none';
+    document.getElementById('game').style.display = 'flex';
+    resize();
+
+    window.initGameEngine(room.gameState, currentRoomCode, myColorIndex, db, update, ref);
+  }
+</script>
+
+<script>
+const COL=['#e04a3c','#35a85f','#3a7bd5','#f2b42a'],LT=['#ff8274','#74dc95','#78afff','#ffdc7a'],DK=['#8a2118','#1d6a3a','#1f4b99','#a1700c'];
+const NAME=['Red','Green','Blue','Yellow'],SAFE=new Set([0,13,26,39,8,21,34,47]),S=40;
+const track=[],L=(x,y,dx,dy,n)=>{for(let i=0;i<n;i++)track.push([x+dx*i,y+dy*i])};
+L(1,6,1,0,5);L(6,5,0,-1,6);L(7,0,1,0,2);L(8,1,0,1,5);L(9,6,1,0,6);L(14,7,0,1,2);L(13,8,-1,0,5);L(8,9,0,1,6);L(7,14,-1,0,2);L(6,13,0,-1,5);L(5,8,-1,0,6);L(0,7,0,-1,2);
+const lane=(c,k)=>[[1+k,7],[7,1+k],[13-k,7],[7,13-k]][c];
+const BASE=[[[2,2],[4,2],[2,4],[4,4]],[[10,2],[12,2],[10,4],[12,4]],[[10,10],[12,10],[10,12],[12,12]],[[2,10],[4,10],[2,12],[4,12]]];
+const cellOf=(c,p,i)=>p<0?BASE[c][i]:p<=50?track[(c*13+p)%52]:p<56?lane(c,p-51):[7,7];
+const $=id=>document.getElementById(id),sl=ms=>new Promise(r=>setTimeout(r,ms)),lerp=(a,b,t)=>a+(b-a)*t;
+const anim=(ms,fn)=>new Promise(res=>{const s=performance.now();(function f(n){const t=Math.min(1,(n-s)/ms);fn(t);t<1?requestAnimationFrame(f):res()})(s)});
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+
+/* Audio Synthesizer */
+let AC=null,muted=false;
+const au=()=>{if(!AC)try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}if(AC&&AC.state==='suspended')AC.resume();return muted?null:AC};
+function tone(f,d,ty='sine',v=.2,t0=0,f2){const a=au();if(!a)return;const t=a.currentTime+t0,o=a.createOscillator(),g=a.createGain();o.type=ty;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.02)}
+function noise(d,v=.2,f=2000,q=1,t0=0){const a=au();if(!a)return;const t=a.currentTime+t0,n=a.sampleRate*d|0,b=a.createBuffer(1,n,a.sampleRate),x=b.getChannelData(0);for(let i=0;i<n;i++)x[i]=(Math.random()*2-1)*(1-i/n);const s=a.createBufferSource(),fl=a.createBiquadFilter(),g=a.createGain();s.buffer=b;fl.type='bandpass';fl.frequency.value=f;fl.Q.value=q;g.gain.value=v;s.connect(fl);fl.connect(g);g.connect(a.destination);s.start(t)}
+let NB=null;
+function nbuf(a){if(!NB){const n=a.sampleRate|0;NB=a.createBuffer(1,n,a.sampleRate);const x=NB.getChannelData(0);for(let i=0;i<n;i++)x[i]=Math.random()*2-1}return NB}
+function knock(t0,v,f,dec,body){const a=au();if(!a)return;const t=a.currentTime+t0,s=a.createBufferSource(),b=a.createBiquadFilter(),h=a.createBiquadFilter(),g=a.createGain();
+ s.buffer=nbuf(a);b.type='bandpass';b.frequency.value=f;b.Q.value=3+Math.random()*4;h.type='highpass';h.frequency.value=300;
+ g.gain.setValueAtTime(v*4,t);g.gain.exponentialRampToValueAtTime(.001,t+dec);let o=g;
+ if(a.createStereoPanner){const p=a.createStereoPanner();p.pan.value=Math.random()*.6-.3;g.connect(p);o=p}
+ s.connect(b);b.connect(h);h.connect(g);o.connect(a.destination);s.start(t,Math.random()*.8,dec+.02);
+ if(body)tone(body,dec*1.5,'sine',v*.8,t0,body*.5)}
+const SFX={
+roll(){for(let i=0;i<26;i++)knock(i*.016+Math.random()*.012,.1+Math.random()*.18+i*.004,700+Math.random()*1700,.018+Math.random()*.02,Math.random()<.25?150+Math.random()*80:0);[[.46,.9],[.62,.7],[.75,.5],[.85,.36],[.92,.24],[.97,.15]].forEach(([t,v])=>{knock(t,v,1000+Math.random()*500,.07,170);knock(t+.008,v*.6,2600+Math.random()*1500,.025);knock(t+.02+Math.random()*.02,v*.35,1800+Math.random()*1200,.02)});for(let i=0;i<7;i++)knock(.9+i*.02+Math.random()*.015,.1+Math.random()*.06,1500+Math.random()*2200,.02)},
+step(){tone(320,.07,'triangle',.28,0,120);noise(.03,.18,3200,2)},
+capture(){tone(220,.5,'sawtooth',.25,0,40);noise(.45,.4,600,.7);tone(90,.4,'sine',.45,0,30)},
+safe(){tone(660,.15,'sine',.2);tone(990,.25,'sine',.2,.1)},
+six(){tone(784,.12,'triangle',.2);tone(1175,.2,'triangle',.2,.08)},
+home(){[784,988,1319].forEach((f,i)=>tone(f,.3,'sine',.2,i*.09))},
+start(){[523,659,784,1047].forEach((f,i)=>tone(f,.25,'triangle',.2,i*.1))},
+win(){[523,659,784,1047,784,1047,1319].forEach((f,i)=>{tone(f,.4,'triangle',.22,i*.15);tone(f/2,.4,'sine',.12,i*.15)})}};
+$('mute').onclick=()=>{muted=!muted;$('mute').textContent=muted?'🔇':'🔊';};
+
+/* 3D Dice Render */
+const PIP={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]},ORI={1:[0,0],2:[-90,0],3:[0,-90],4:[0,90],5:[90,0],6:[0,180]};
+$('cube').innerHTML=[1,2,3,4,5,6].map(n=>`<div class="face f${n}">${[...Array(9)].map((_,k)=>PIP[n].includes(k)?'<i></i>':'<b></b>').join('')}</div>`).join('');
+let spin=0;
+function setDie(d,roll){const[rx,ry]=ORI[d],c=$('cube');spin++;const e=roll?spin*720:0;c.style.transition=roll?'':'none';c.style.transform=`rotateX(${rx+e}deg) rotateY(${ry+e}deg)`;
+ if(roll){const s=$('scene');s.classList.remove('toss');void s.offsetWidth;s.classList.add('toss')}}
+setDie(1,false);
+function pop(t,sub,col){const p=$('pop');p.innerHTML=t+(sub?`<small>${sub}</small>`:'');p.style.color=col;p.classList.remove('show');void p.offsetWidth;p.classList.add('show')}
+
+/* Online Game State Synchronizer */
+let G=null, shake=0, P=[], CF=[], confetti=0;
+let roomCodeGlobal=null, myIndexGlobal=null, dbGlobal=null, updateGlobal=null, refGlobal=null;
+
+window.initGameEngine = function(state, roomCode, myIndex, db, updateFn, refFn) {
+  roomCodeGlobal = roomCode;
+  myIndexGlobal = myIndex;
+  dbGlobal = db;
+  updateGlobal = updateFn;
+  refGlobal = refFn;
+
+  G = {
+    players: state.players,
+    pegs: state.pegs,
+    turn: state.turn,
+    dice: state.dice,
+    moves: [],
+    busy: false,
+    over: false,
+    bonus: state.bonus || 0,
+    hover: null, mv: null, fly: [], hide: new Set()
+  };
+
+  ui();
+  startTurnOnline();
+};
+
+function legal(c,d){ return G.pegs[c].map((p,i)=>p===-1?(d===6?i:-1):(p+d<=56?i:-1)).filter(i=>i>=0); }
+function caps(c,np){const h=[];if(np>50||np<0)return h;const a=(c*13+np)%52;if(SAFE.has(a))return h;G.pegs.forEach((arr,o)=>o!==c&&arr.forEach((q,k)=>{if(q>=0&&q<=50&&(o*13+q)%52===a)h.push([o,k])}));return h}
+const msg=t=>$('msg').textContent=t;
+
+function startTurnOnline() {
+  if(!G || G.over) return;
+  G.dice = null; G.moves = []; G.hover = null;
+  ui();
+}
+
+$('roll').onclick = async () => {
+  if(G && G.turn === myIndexGlobal && !G.busy && G.dice == null && !G.over) {
+    au();
+    G.busy = true; ui();
+    const d = 1 + Math.random()*6 | 0;
+    SFX.roll(); setDie(d, true); await sl(1050);
+    G.dice = d;
+    G.moves = legal(G.turn, d);
+    pop(d, d===6?'SIX!':'', COL[G.turn]);
+    if(d===6) SFX.six();
+    ui();
+
+    if(!G.moves.length) {
+      msg(`${NAME[G.turn]} rolled ${d}: no legal move`);
+      await sl(1200);
+      nextTurnOnline();
+    }
+  }
+};
+
+function nextTurnOnline() {
+  let next = (G.turn + 1) % 4;
+  while(!G.players[next]) { next = (next + 1) % 4; }
+  G.turn = next;
+  G.dice = null;
+  G.busy = false;
+
+  updateGlobal(refGlobal(dbGlobal, `rooms/${roomCodeGlobal}/gameState`), {
+    turn: G.turn,
+    pegs: G.pegs,
+    dice: null
+  });
+  ui();
+}
+
+async function doMoveOnline(i) {
+  const c = G.turn, d = G.dice;
+  G.busy = true; G.moves = []; ui();
+  const p = G.pegs[c][i], np = p===-1?0:p+d;
+
+  if(p===-1){
+    const[a,b]=cellOf(c,-1,i),[x,y]=cellOf(c,0,i);
+    await anim(380,t=>{G.mv={c,i,x:lerp(a,x,ease(t)),y:lerp(b,y,ease(t)),z:Math.sin(t*Math.PI)*26}});
+    G.pegs[c][i]=0; G.mv=null; SFX.step();
+  } else {
+    for(let q=p+1;q<=np;q++){
+      const[a,b]=cellOf(c,q-1,i),[x,y]=cellOf(c,q,i);
+      await anim(190,t=>{G.mv={c,i,x:lerp(a,x,t),y:lerp(b,y,t),z:Math.sin(t*Math.PI)*16}});
+      G.pegs[c][i]=q; G.mv=null; SFX.step();
+    }
+  }
+
+  const hit = caps(c, np);
+  if(hit.length){
+    shake=1; SFX.capture();
+    hit.forEach(([o,k])=>{ G.pegs[o][k]=-1; });
+  }
+
+  if(G.pegs[c].every(x=>x===56)){
+    G.over=true; SFX.win(); $('wt').textContent=NAME[c]+' wins!'; $('wt').style.color=COL[c];$('win').style.display='flex';
+  }
+
+  if(d===6) {
+    G.dice = null; G.busy = false; ui();
+  } else {
+    nextTurnOnline();
+  }
+}
+
+function ui(){
+  if(!G)return;
+  $('chips').innerHTML = G.players.map((pName,i)=>!pName?'':`<span class="chip glass ${G.turn===i&&!G.over?'turn':''}" style="--c:${COL[i]}"><span class="av">👤</span><span>${pName}<small>${G.pegs[i].map(x=>x===56?'●':'○').join('')}</small></span></span>`).join('');
+  document.documentElement.style.setProperty('--g',COL[G.turn]+'aa');
+  const isMyTurn = G.turn === myIndexGlobal;
+  $('roll').disabled = !(isMyTurn && !G.busy && G.dice==null && !G.over);
+  if(isMyTurn && G.dice==null) msg(`Your turn! Roll the dice.`);
+  else if(isMyTurn && G.moves.length) msg(`You rolled ${G.dice}. Tap a piece to move.`);
+  else if(!isMyTurn) msg(`Waiting for ${G.players[G.turn]}...`);
+}
+
+/* Canvas Board & Graphics */
+const cv=$('board'),g=cv.getContext('2d'),bc=document.createElement('canvas');
+const canMove=()=>G&&!G.busy&&!G.over&&G.turn===myIndexGlobal&&G.dice!=null;
+function pegList(){const seen={},out=[];G.pegs.forEach((arr,c)=>arr.forEach((p,i)=>{if(G.hide.has(c+','+i)||(G.mv&&G.mv.c===c&&G.mv.i===i))return;const[x,y]=cellOf(c,p,i);(seen[x+','+y]=seen[x+','+y]||[]).push({c,i,p,x,y})}));
+ Object.values(seen).forEach(l=>l.forEach((o,n)=>{const f=l.length>1?(n-(l.length-1)/2)*11:0;o.px=o.x*S+20+f;o.py=o.y*S+20+f/2;out.push(o)}));return out.sort((a,b)=>a.py-b.py)}
+function at(e){const r=cv.getBoundingClientRect(),k=600/r.width,x=(e.clientX-r.left)*k,y=(e.clientY-r.top)*k;let best=null,bd=Math.max(30,26*k);
+ pegList().forEach(o=>{if(o.c===G.turn&&G.moves.includes(o.i)){const d=Math.hypot(o.px-x,o.py-y);if(d<bd){bd=d;best=o}}});return best}
+cv.addEventListener('pointerdown',e=>{if(!canMove())return;const h=at(e);if(h){au();doMoveOnline(h.i)}});
+
+function rr(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath()}
+function lg(x,a,b,w,h,c1,c2){const q=x.createLinearGradient(a,b,a+w,b+h);q.addColorStop(0,c1);q.addColorStop(1,c2);return q}
+function tile(x,cx,cy,c1,c2){x.save();x.shadowColor='#0006';x.shadowBlur=4;x.shadowOffsetY=2;rr(x,cx*S+2,cy*S+2,S-4,S-4,10);x.fillStyle=lg(x,cx*S,cy*S,S,S,c1,c2);x.fill();x.restore();x.strokeStyle='#fff8';x.lineWidth=1;rr(x,cx*S+3,cy*S+3,S-6,S-6,9);x.stroke()}
+function drawBoard(x){x.clearRect(0,0,600,600);
+ x.save();x.shadowColor='#000a';x.shadowBlur=14;rr(x,2,2,596,596,24);x.fillStyle=lg(x,0,0,600,600,'#f8eed4','#d6c394');x.fill();x.restore();
+ [[0,0],[9,0],[9,9],[0,9]].forEach(([a,b],c)=>{rr(x,a*S+4,b*S+4,6*S-8,6*S-8,22);x.fillStyle=lg(x,a*S,b*S,6*S,6*S,LT[c],DK[c]);x.fill();
+  x.save();x.shadowColor='#0007';x.shadowBlur=12;x.shadowOffsetY=3;rr(x,(a+1)*S,(b+1)*S,4*S,4*S,18);x.fillStyle='#fbf4e0';x.fill();x.restore();
+  BASE[c].forEach(([p,q])=>{x.beginPath();x.arc(p*S+20,q*S+20,18,0,7);x.fillStyle=COL[c]+'30';x.fill();x.lineWidth=3;x.strokeStyle=COL[c];x.stroke()})});
+ track.forEach(([a,b],i)=>{const s=[0,13,26,39].indexOf(i);tile(x,a,b,s>=0?LT[s]:'#fffdf6',s>=0?DK[s]:'#e9dcbb');});
+ for(let c=0;c<4;c++)for(let k=0;k<5;k++){const[a,b]=lane(c,k);tile(x,a,b,LT[c],DK[c])}
+}
+function peg(c,px,py,z,s,glow){g.save();g.translate(px,py);g.beginPath();g.ellipse(2,10,13*s*(1-z/200),5*s,0,0,7);g.fillStyle='#0006';g.fill();g.translate(0,-z);g.scale(s,s);
+ g.beginPath();g.ellipse(0,6,14,7,0,0,7);g.fillStyle=DK[c];g.fill();
+ const q=g.createRadialGradient(-5,-7,2,0,-2,17);q.addColorStop(0,'#fff');q.addColorStop(.35,LT[c]);q.addColorStop(1,DK[c]);g.beginPath();g.arc(0,-2,14,0,7);g.fillStyle=q;g.fill();g.lineWidth=2;g.strokeStyle=glow?'#fff':'#0005';g.stroke();g.restore()}
+
+function frame(t){
+ const k=cv.width/600;g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);
+ g.setTransform(k,0,0,k,0,0);g.drawImage(bc,0,0,600,600);
+ if(G){
+   pegList().forEach(o=>{
+     const m=canMove()&&o.c===G.turn&&G.moves.includes(o.i);
+     peg(o.c,o.px,o.py,m?Math.abs(Math.sin(t/260))*4:0,1,m);
+   });
+   if(G.mv)peg(G.mv.c,G.mv.x*S+20,G.mv.y*S+20,G.mv.z,1.1,false);
+ }
+ requestAnimationFrame(frame);
+}
+
+function resize(){const s=$('stage');if(!s)return;const b=Math.floor(Math.min(s.clientWidth,s.clientHeight));if(b<60)return;document.documentElement.style.setProperty('--bs',b+'px');
+ const d=Math.min(devicePixelRatio||1,2),w=Math.round(cv.clientWidth*d);if(w<50||cv.width===w)return;cv.width=cv.height=w;bc.width=bc.height=w;const x=bc.getContext('2d');x.setTransform(w/600,0,0,w/600,0,0);drawBoard(x)}
+addEventListener('resize',resize);addEventListener('orientationchange',()=>setTimeout(resize,250));
+requestAnimationFrame(frame);
+</script>
 </body>
 </html>
