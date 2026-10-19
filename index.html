@@ -68,11 +68,11 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
 <canvas id="bg"></canvas><canvas id="fx"></canvas>
 <header><h1>PARCHISI</h1><div class="hb"><button class="ic" id="mute" aria-label="Mute sound" aria-pressed="false">🔊</button><button class="ic" id="again" aria-label="New game">↺</button></div></header>
 <main>
-<!-- شاشة تسجيل الدخول والتسجيل -->
+<!-- شاشة تسجيل الدخول بالتسجيل باسم المستخدم وكلمة المرور فقط -->
 <section class="glass" id="auth-screen">
-  <h2>تسجيل الدخول للعب أونلاين</h2>
-  <input type="email" id="auth-email" placeholder="البريد الإلكتروني">
-  <input type="password" id="auth-password" placeholder="كلمة المرور">
+  <h2>تسجيل الدخول / إنشاء حساب</h2>
+  <input type="text" id="auth-username" placeholder="Username (اسم المستخدم)">
+  <input type="password" id="auth-password" placeholder="Password (كلمة المرور)">
   <button id="btn-login">تسجيل الدخول</button>
   <button id="btn-register" style="background:linear-gradient(#7ac3f4,#328ec7); color:#fff;">إنشاء حساب جديد</button>
   <p id="auth-msg" style="font-size:0.85rem; color:var(--mut); margin:0;"></p>
@@ -85,10 +85,9 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
 <div id="pop"></div>
 <div id="win"><div class="glass"><div class="tr">🏆</div><h2 id="wt"></h2><p style="color:var(--mut)">All four pieces reached the center!</p><button id="wb" style="width:100%">Play again</button></div></div>
 
-<!-- مكتبات Firebase وتكوين الكود -->
+<!-- Firebase SDK + Username/Password Auth logic -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
   import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
   const firebaseConfig = {
@@ -103,35 +102,64 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;touch-actio
   };
 
   const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
   const db = getDatabase(app);
 
-  // ربط أزرار تسجيل الدخول
-  document.getElementById('btn-login').onclick = () => {
-    const email = document.getElementById('auth-email').value;
-    const pass = document.getElementById('auth-password').value;
-    signInWithEmailAndPassword(auth, email, pass)
-      .then((userCredential) => {
-        document.getElementById('auth-screen').style.display = 'none';
-        document.getElementById('setup').style.display = 'block';
-      })
-      .catch((error) => {
-        document.getElementById('auth-msg').textContent = "خطأ: " + error.message;
-      });
+  const authMsg = document.getElementById('auth-msg');
+
+  // Register with Username and Password
+  document.getElementById('btn-register').onclick = () => {
+    const user = document.getElementById('auth-username').value.trim().toLowerCase();
+    const pass = document.getElementById('auth-password').value.trim();
+
+    if(!user || !pass) {
+      authMsg.textContent = "يرجى ملء اسم المستخدم وكلمة المرور!";
+      return;
+    }
+
+    const dbRef = ref(db);
+    get(child(dbRef, `accounts/${user}`)).then((snapshot) => {
+      if (snapshot.exists()) {
+        authMsg.textContent = "اسم المستخدم هذا مستعمل من قبل!";
+      } else {
+        set(ref(db, 'accounts/' + user), {
+          password: pass,
+          score: 0
+        }).then(() => {
+          authMsg.textContent = "تم إنشاء الحساب بنجاح! يمكنك الآن الضغط على تسجيل الدخول.";
+        });
+      }
+    }).catch(error => {
+      authMsg.textContent = "خطأ: " + error.message;
+    });
   };
 
-  document.getElementById('btn-register').onclick = () => {
-    const email = document.getElementById('auth-email').value;
-    const pass = document.getElementById('auth-password').value;
-    createUserWithEmailAndPassword(auth, email, pass)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        set(ref(db, 'users/' + user.uid), { email: email, score: 0 });
-        document.getElementById('auth-msg').textContent = "تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن.";
-      })
-      .catch((error) => {
-        document.getElementById('auth-msg').textContent = "خطأ: " + error.message;
-      });
+  // Login with Username and Password
+  document.getElementById('btn-login').onclick = () => {
+    const user = document.getElementById('auth-username').value.trim().toLowerCase();
+    const pass = document.getElementById('auth-password').value.trim();
+
+    if(!user || !pass) {
+      authMsg.textContent = "يرجى إدخال اسم المستخدم وكلمة المرور!";
+      return;
+    }
+
+    const dbRef = ref(db);
+    get(child(dbRef, `accounts/${user}`)).then((snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        if(data.password === pass) {
+          localStorage.setItem("currentUser", user);
+          document.getElementById('auth-screen').style.display = 'none';
+          document.getElementById('setup').style.display = 'block';
+        } else {
+          authMsg.textContent = "كلمة المرور غير صحيحة!";
+        }
+      } else {
+        authMsg.textContent = "اسم المستخدم غير موجود!";
+      }
+    }).catch(error => {
+      authMsg.textContent = "خطأ: " + error.message;
+    });
   };
 </script>
 
