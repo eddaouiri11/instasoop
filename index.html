@@ -7,7 +7,8 @@
 <style>
 :root{--ds:72px;--ink:#fff7e7;--mut:#cdbd9e;--gold:#f4c65f;--g:#e6b957;--wood:#21140f;--panel:#2d1c14}
 *{box-sizing:border-box}
-body{margin:0;position:fixed;inset:0;width:100%;height:100vh;height:100dvh;overscroll-behavior:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));color:var(--ink);font-family:Georgia,'Palatino Linotype',serif;display:flex;flex-direction:column;align-items:center;gap:10px;overflow:hidden;
+html{height:100%;overflow:hidden;background-color:#1a100c}
+body{margin:0;position:fixed;inset:0;width:100%;height:100vh;height:100dvh;height:var(--viewport-height,100dvh);min-height:0;overscroll-behavior:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));color:var(--ink);font-family:Georgia,'Palatino Linotype',serif;display:flex;flex-direction:column;align-items:center;gap:10px;overflow:hidden;
 background:radial-gradient(ellipse at 50% 22%,#71451e 0%,#382317 52%,#1a100c 100%)}
 #bg,#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}#bg{z-index:0}#fx{z-index:60}
 header,main{position:relative;z-index:1;width:100%;max-width:1120px}main{flex:1;min-height:0;display:flex;flex-direction:column}header{flex:none}
@@ -15,35 +16,38 @@ header{display:flex;align-items:center;justify-content:space-between}
 h1{margin:0;font-size:clamp(1.2rem,4vw,2rem);font-weight:normal;letter-spacing:.2em;color:var(--gold);text-shadow:0 2px 0 #000a,0 0 18px #e6b95766}
 header{padding:4px 2px 10px;border-bottom:1px solid #f4c65f30}
 .hb{display:flex;gap:8px}
-button{font:inherit;cursor:pointer;border:0;border-radius:12px;font-weight:bold;color:#2a1c05;background:linear-gradient(#f4cf7a,#c79632);box-shadow:0 4px 0 #7b5815,0 8px 14px #0006;padding:12px 20px;transition:transform .08s}
+button{font:inherit;cursor:pointer;border:1px solid #fff5;border-radius:14px;font-weight:bold;color:#2a1c05;background:linear-gradient(145deg,#ffe5a1,#d5a33f);box-shadow:0 4px 0 #7b5815,0 10px 24px #0005,0 0 18px #f4c65f22;padding:12px 20px;transition:transform .16s ease,box-shadow .16s ease,filter .16s ease}
+button:hover:not(:disabled){filter:brightness(1.08);box-shadow:0 4px 0 #7b5815,0 12px 28px #0007,0 0 22px #f4c65f55}
 button:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #7b5815}
 button:disabled{opacity:.45;cursor:default}
-button.ic{width:46px;height:46px;padding:0;font-size:1.3rem;background:#ffffff1c;color:var(--ink);box-shadow:inset 0 0 0 1px #ffffff40;backdrop-filter:blur(8px)}
+button.ic{width:46px;height:46px;padding:0;font-size:1.3rem;background:linear-gradient(145deg,#ffffff28,#ffffff0c);color:var(--ink);box-shadow:inset 0 0 0 1px #ffffff40,0 8px 20px #0004;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 :focus-visible{outline:3px solid #fff;outline-offset:2px}
 .glass{background:linear-gradient(145deg,#ffffff1c,#ffffff08);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px);border:1px solid #ffffff30;border-radius:20px;box-shadow:0 18px 50px #0008}
 
 /* Auth & Room Screens */
-.panel-screen{padding:18px;width:100%;max-width:440px;max-height:100%;overflow-y:auto;margin:auto;display:flex;flex-direction:column;gap:10px;text-align:center;}
-.panel-screen input{font:inherit;padding:10px;border-radius:10px;background:#1b120acc;color:var(--ink);border:1px solid #e6b95766;width:100%;text-align:center;user-select:text;-webkit-user-select:text;}
+.panel-screen{padding:clamp(16px,4vw,26px);width:100%;max-width:440px;max-height:100%;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;margin:auto;display:flex;flex-direction:column;gap:12px;text-align:center;}
+.panel-screen h2{margin:2px 0 6px;font-size:clamp(1.35rem,5vw,1.8rem);font-weight:normal;color:var(--gold);letter-spacing:.04em;text-shadow:0 2px 18px #e6b95744}
+.panel-screen input{font:inherit;font-size:16px;min-height:48px;padding:12px 14px;border-radius:13px;background:linear-gradient(145deg,#1b120ae8,#24180fdc);color:var(--ink);border:1px solid #e6b95766;width:100%;text-align:center;user-select:text;-webkit-user-select:text;box-shadow:inset 0 2px 10px #0004;touch-action:manipulation}
+.panel-screen input::placeholder{color:#cdbd9eaa}
 .panel-screen input:focus{outline:2px solid var(--gold);outline-offset:2px}
 .panel-screen button{width:100%;margin-top:5px;}
 
 #room-lobby-screen, #setup, #game{display:none;}
 
-.room-code-badge{font-size:1.8rem;font-weight:bold;color:var(--gold);letter-spacing:4px;background:#0005;padding:8px;border-radius:12px;border:1px dashed var(--gold);margin:5px 0;}
+.room-code-badge{font-size:clamp(1.5rem,7vw,2rem);font-weight:bold;color:var(--gold);letter-spacing:clamp(3px,1.5vw,6px);text-shadow:0 0 18px #f4c65f55;background:linear-gradient(145deg,#0006,#0002);padding:10px 14px;border-radius:14px;border:1px dashed #f4c65fbb;box-shadow:inset 0 0 20px #f4c65f0b,0 8px 20px #0003;margin:5px 0;}
 .player-slot-list{display:flex;flex-direction:column;gap:8px;margin:10px 0;}
-.slot-card{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:12px;background:#0004;border:1px solid #ffffff20;}
+.slot-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;border-radius:14px;background:linear-gradient(145deg,#ffffff12,#0003);border:1px solid #ffffff26;box-shadow:inset 0 1px #ffffff12;}
 .slot-card b{display:flex;align-items:center;gap:8px;}
 
 #game{flex:1;min-height:0;flex-direction:column;align-items:center;gap:8px;padding:8px 0}#side{display:contents}#stage{order:1;flex:1;min-height:0;min-width:0;width:100%;display:flex;align-items:center;justify-content:center}.ctl{order:2}#msg{order:3}
 #chips{order:0;flex:none;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-.chip{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;border-radius:40px;font-size:.85rem;opacity:.78;transition:all .25s;border:2px solid #ffffff18;background:linear-gradient(145deg,#563b2c,#2a1b14)}
-.chip.turn{opacity:1;transform:scale(1.08);border-color:var(--c);box-shadow:0 0 18px var(--c)}
+.chip{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;border-radius:40px;font-size:.85rem;opacity:.82;transition:all .25s;border:1px solid #ffffff28;background:linear-gradient(145deg,#ffffff20,#21130fd9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 7px 18px #0004}
+.chip.turn{opacity:1;transform:scale(1.04);border-color:var(--c);box-shadow:0 0 0 1px var(--c),0 0 22px var(--c),0 8px 22px #0005}
 .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:1.1rem;background:radial-gradient(circle at 30% 25%,#fff8,var(--c) 55%,#0006);box-shadow:0 2px 6px #0008}
 .chip small{display:block;letter-spacing:.15em;font-size:.7rem}
 .frame{padding:clamp(7px,1.4vw,12px);border-radius:26px;background:linear-gradient(145deg,#f6d681,#9a681f 55%,#d2a444);box-shadow:0 24px 64px #0009,0 0 0 1px #fff5,inset 0 2px 3px #fff9;flex:none;width:var(--bs,300px);height:var(--bs,300px)}
 canvas#board{display:block;width:100%;height:100%;border-radius:14px;background:#f8eed4;touch-action:none}
-.ctl{flex:none;display:flex;align-items:center;gap:18px;padding:10px 18px;border-radius:24px;background:linear-gradient(145deg,#493024ed,#241711ed);border-color:#f4c65f55}
+.ctl{flex:none;display:flex;align-items:center;gap:18px;padding:10px 18px;border-radius:24px;background:linear-gradient(145deg,#ffffff1b,#21130feb);border-color:#f4c65f77;box-shadow:0 14px 32px #0006,inset 0 1px #ffffff26}
 .scene{flex:none;width:var(--ds);height:var(--ds);perspective:calc(var(--ds)*5);border-radius:16px;box-shadow:0 0 22px var(--g)}
 .toss{animation:toss 1s cubic-bezier(.3,.6,.4,1)}
 @keyframes toss{0%{transform:translateY(0) scale(1)}30%{transform:translateY(-34px) scale(1.2)}60%{transform:translateY(0) scale(1)}78%{transform:translateY(-10px)}100%{transform:translateY(0)}}
@@ -68,12 +72,32 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;background:
 @media(max-width:420px){body{gap:5px;padding-left:max(5px,env(safe-area-inset-left));padding-right:max(5px,env(safe-area-inset-right))}h1{letter-spacing:.12em}.hb{gap:5px}.chip{gap:5px;padding:4px 8px 4px 4px}.frame{border-radius:18px}.ctl{gap:12px;padding:7px 14px}}
 @media(max-height:520px){:root{--ds:48px}body{gap:3px;padding-top:max(4px,env(safe-area-inset-top));padding-bottom:max(4px,env(safe-area-inset-bottom))}header h1{font-size:1rem}.chip{padding-top:2px;padding-bottom:2px}.ctl{padding:4px 10px}}
 @media(min-width:760px) and (min-aspect-ratio:13/10){#game{gap:clamp(18px,4vw,48px)}#side{width:min(30vw,290px)}#chips{gap:10px}.chip{min-height:54px;padding:7px 14px 7px 7px;font-size:.95rem}.ctl{width:100%;padding:14px 18px;box-shadow:0 16px 36px #0007}.frame{border-radius:30px}#msg{max-width:100%;line-height:1.45}}
-@media(max-width:560px){.ctl{gap:12px;padding:8px 12px}#roll{min-width:126px}.frame{border-radius:20px}#game{gap:5px}#chips{gap:5px}}
+@media(max-width:560px){.ctl{gap:12px;padding:8px 12px}#roll{min-width:126px}.frame{border-radius:20px}#game{gap:5px}#chips{gap:5px}.chip.turn{transform:scale(1.02)}}
+@media(max-height:520px) and (orientation:landscape){body{gap:4px}header{padding:0 2px 5px}#game{gap:8px;padding:3px 0}.panel-screen{padding:14px;gap:8px}.player-slot-list{margin:3px 0;gap:5px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/* Startup */
+#loading{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:max(24px,env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(24px,env(safe-area-inset-left));background:radial-gradient(ellipse at 50% 42%,#56341d 0%,#281811 58%,#130c09 100%);transition:opacity .55s ease,visibility .55s ease}
+#loading.done{opacity:0;visibility:hidden;pointer-events:none}
+.loading-card{width:min(100%,360px);padding:34px 28px 30px;text-align:center;border-radius:26px;background:linear-gradient(145deg,#ffffff18,#ffffff08);border:1px solid #f4c65f55;box-shadow:0 28px 80px #0009,0 0 48px #f4c65f15;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.loading-mark{width:66px;height:66px;margin:0 auto 16px;display:grid;place-items:center;border-radius:20px;color:#24150c;font-size:2rem;background:linear-gradient(145deg,#ffe5a1,#bd862b);box-shadow:0 8px 24px #0006,0 0 30px #f4c65f55;transform:rotate(-8deg)}
+.loading-card h2{margin:0;color:var(--gold);font-size:1.45rem;font-weight:normal;letter-spacing:.17em}
+.loading-card p{margin:8px 0 22px;color:var(--mut);font-size:.88rem;letter-spacing:.06em}
+.loading-track{height:8px;padding:2px;overflow:hidden;border-radius:20px;background:#0008;box-shadow:inset 0 1px 4px #0008}
+.loading-fill{width:8%;height:100%;border-radius:20px;background:linear-gradient(90deg,#c18c33,#ffe5a1);box-shadow:0 0 16px #f4c65f99;transition:width .35s ease}
+.loading-caption{display:block;margin-top:12px;color:#ffffffa6;font:600 .7rem system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase}
 </style>
 </head>
 <body>
 <canvas id="bg"></canvas><canvas id="fx"></canvas>
+<div id="loading" role="status" aria-live="polite">
+  <div class="loading-card">
+    <div class="loading-mark" aria-hidden="true">♟</div>
+    <h2>PARCHISI ROYALE</h2>
+    <p>Your table is being prepared</p>
+    <div class="loading-track" aria-hidden="true"><div class="loading-fill" id="loading-fill"></div></div>
+    <span class="loading-caption" id="loading-caption">Loading game</span>
+  </div>
+</div>
 <header><h1>PARCHISI</h1><div class="hb"><button class="ic" id="mute" aria-label="Mute sound">🔊</button><button class="ic" id="again" aria-label="Start a new game" disabled>↺</button></div></header>
 <main>
 <!-- Auth Screen -->
@@ -123,6 +147,49 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;background:
 <div id="pop"></div>
 <div id="win"><div class="glass"><div class="tr">🏆</div><h2 id="wt"></h2><p style="color:var(--mut)">All four pieces reached the center!</p><button id="wb" style="width:100%">Play again</button></div></div>
 
+<script>
+(() => {
+  const loading = document.getElementById('loading');
+  const fill = document.getElementById('loading-fill');
+  const caption = document.getElementById('loading-caption');
+  let progress = 8;
+  let canvasReady = false;
+  let firebaseReady = false;
+  let loadingComplete = false;
+  const progressTimer = setInterval(() => {
+    if(progress < 88) {
+      progress = Math.min(88, progress + Math.max(1, (88 - progress) * .08));
+      fill.style.width = `${progress}%`;
+    }
+  }, 120);
+  const finishIfReady = () => {
+    if(!canvasReady || !firebaseReady || loadingComplete) return;
+    loadingComplete = true;
+    clearInterval(progressTimer);
+    fill.style.width = '100%';
+    caption.textContent = 'Ready to play';
+    setTimeout(() => loading.classList.add('done'), 220);
+  };
+  window.markCanvasReady = () => {
+    canvasReady = true;
+    finishIfReady();
+  };
+  window.markFirebaseReady = () => {
+    firebaseReady = true;
+    caption.textContent = 'Preparing your table';
+    finishIfReady();
+  };
+  if(window.visualViewport) {
+    const updateViewportHeight = () => {
+      document.documentElement.style.setProperty('--viewport-height', `${window.visualViewport.height}px`);
+    };
+    updateViewportHeight();
+    window.visualViewport.addEventListener('resize', updateViewportHeight);
+    window.visualViewport.addEventListener('scroll', updateViewportHeight);
+  }
+})();
+</script>
+
 <!-- Firebase Modular SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -154,6 +221,11 @@ canvas#board{display:block;width:100%;height:100%;border-radius:14px;background:
     console.error(`${action} failed:`, error);
     target.textContent = `${action} failed. Check your connection and try again.`;
   };
+
+  onValue(ref(db, '.info/connected'), () => window.markFirebaseReady(), error => {
+    showRequestError(menuMsg, 'Connecting to the game service', error);
+    window.markFirebaseReady();
+  });
 
   if(currentUser) {
     document.getElementById('auth-screen').style.display = 'none';
@@ -670,7 +742,7 @@ function frame(t){
  requestAnimationFrame(frame);
 }
 
-function resize(){const s=$('stage');if(!s)return;const b=Math.floor(Math.min(s.clientWidth,s.clientHeight));if(b>=60)document.documentElement.style.setProperty('--bs',b+'px');
+function resize(){const s=$('stage');if(!s)return;const b=Math.floor(Math.min(s.clientWidth,s.clientHeight));if(b>0)document.documentElement.style.setProperty('--bs',b+'px');
  const d=Math.min(window.devicePixelRatio||1,2),cssWidth=cv.clientWidth,w=Math.round((cssWidth||600)*d);if(w<50)return;
  if(cv.width!==w||cv.height!==w){cv.width=w;cv.height=w}
  if(bc.width!==w||bc.height!==w){bc.width=w;bc.height=w}
@@ -688,6 +760,7 @@ if(g&&bg){
  console.error('This browser could not create a 2D canvas context.');
  msg('Your browser could not draw the board. Update Chrome and reload.');
 }
+window.markCanvasReady?.();
 requestAnimationFrame(frame);
 </script>
 </body>
