@@ -925,24 +925,16 @@
           <input id="reg-username" name="username" type="text" maxlength="24" autocomplete="username" placeholder="e.g. GhostRanger" required />
         </div>
         <div class="field">
-          <label for="reg-email">Email</label>
-          <input id="reg-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
-        </div>
-        <div class="field">
           <label for="reg-password">Password</label>
           <input id="reg-password" name="password" type="password" autocomplete="new-password" placeholder="At least 6 characters" required />
         </div>
-        <div class="field">
-          <label for="reg-confirm">Confirm password</label>
-          <input id="reg-confirm" name="confirm" type="password" autocomplete="new-password" placeholder="Repeat your password" required />
-        </div>
-        <button type="submit" class="primary">Create account</button>
+        <button type="submit" class="primary">Register</button>
       </form>
 
       <form id="login-form" class="hidden" novalidate>
         <div class="field">
-          <label for="login-email">Email</label>
-          <input id="login-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+          <label for="login-username">Username</label>
+          <input id="login-username" name="username" type="text" maxlength="24" autocomplete="username" placeholder="Your username" required />
         </div>
         <div class="field">
           <label for="login-password">Password</label>
@@ -1091,6 +1083,25 @@
       measurementId: 'G-V4CEPP768E'
     };
 
+    function validateFirebaseConfig(config) {
+      const required = ['apiKey', 'authDomain', 'databaseURL', 'projectId', 'appId'];
+      const missing = required.filter((key) => !config[key] || String(config[key]).trim() === '');
+      if (missing.length) {
+        throw new Error(`Firebase config is incomplete. Missing: ${missing.join(', ')}. Open Firebase Console > Project settings > Your apps and confirm the active web app matches the project you are using.`);
+      }
+      const authDomain = String(config.authDomain || '').toLowerCase();
+      const projectId = String(config.projectId || '').toLowerCase();
+      const databaseUrl = String(config.databaseURL || '').toLowerCase();
+      if (projectId && !authDomain.includes(projectId) && !authDomain.includes('firebaseapp.com') && !authDomain.includes('web.app')) {
+        console.warn('Firebase authDomain does not match projectId. This commonly triggers "Firebase: Error (auth/configuration-not-found)".');
+      }
+      if (projectId && !databaseUrl.includes(projectId)) {
+        console.warn('Firebase databaseURL does not match the active project. This usually means the app is configured to a different Firebase project.');
+      }
+    }
+
+    validateFirebaseConfig(firebaseConfig);
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
@@ -1192,6 +1203,19 @@
 
     function normalizeUsername(value) {
       return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'radio-user';
+    }
+
+    function generatePrivateAuthEmail(username) {
+      const base = normalizeUsername(username).replace(/[^a-z0-9]/g, '').slice(0, 18) || 'radio-user';
+      const randomPart = (() => {
+        if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+          const values = new Uint32Array(3);
+          window.crypto.getRandomValues(values);
+          return Array.from(values).map((value) => value.toString(16).padStart(8, '0')).join('').slice(0, 20);
+        }
+        return `${Date.now()}${Math.random().toString(16).slice(2, 10)}`;
+      })();
+      return `${base}-${randomPart}@radiotalk.internal`;
     }
 
     function getInitials(name) {
@@ -1384,19 +1408,20 @@
       }
     }
 
-    async function createAccount(username, email, password) {
+    async function createAccount(username, password) {
       const trimmed = String(username || '').trim();
       if (!trimmed || trimmed.length < 2) throw new Error('Username must be at least 2 characters long.');
       if (!/^[a-zA-Z0-9 _-]+$/.test(trimmed)) throw new Error('Username can contain letters, numbers, spaces, underscores, and dashes only.');
-      if (!email || !password || password.length < 6) throw new Error('Please provide a valid email and a password with at least 6 characters.');
-      const authUser = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      if (!password || password.length < 6) throw new Error('Please provide a password with at least 6 characters.');
+      const authEmail = generatePrivateAuthEmail(trimmed);
+      const authUser = await createUserWithEmailAndPassword(auth, authEmail, password);
       await updateProfile(authUser.user, { displayName: trimmed });
       await reserveUsername(authUser.user.uid, trimmed);
       const userRef = ref(db, `users/${authUser.user.uid}`);
       await set(userRef, {
         uid: authUser.user.uid,
         username: trimmed,
-        email: email.trim().toLowerCase(),
+        authEmail,
         status: 'online',
         currentChannel: 'general',
         createdAt: serverTimestamp(),
@@ -1405,21 +1430,34 @@
       return authUser;
     }
 
-    async function login(email, password) {
-      if (!email || !password) throw new Error('Please enter both email and password.');
-      return signInWithEmailAndPassword(auth, email.trim(), password);
+    async function login(username, password) {
+      const trimmed = String(username || '').trim();
+      if (!trimmed || !password) throw new Error('Please enter both username and password.');
+      const usernameKey = normalizeUsername(trimmed);
+      const usernameRef = ref(db, `usernames/${usernameKey}`);
+      const uidSnapshot = await get(usernameRef);
+      const uid = uidSnapshot.val();
+      if (!uid) {
+        throw new Error('No account was found for that username.');
+      }
+      const userRef = ref(db, `users/${uid}`);
+      const userSnapshot = await get(userRef);
+      const profile = userSnapshot.val() || {};
+      const authEmail = profile.authEmail || profile.email || generatePrivateAuthEmail(trimmed);
+      return signInWithEmailAndPassword(auth, authEmail, password);
     }
 
     function mapAuthError(error) {
       const code = error && error.code ? error.code : '';
       const message = error && error.message ? error.message : 'Authentication failed.';
-      if (code === 'auth/email-already-in-use') return 'An account already exists for that email.';
-      if (code === 'auth/invalid-email') return 'The email address is not valid.';
+      if (code === 'auth/email-already-in-use') return 'An account with this generated identity already exists.';
+      if (code === 'auth/invalid-email') return 'The internal identity is not valid. Please try again.';
       if (code === 'auth/weak-password') return 'Password is too weak. Use at least 6 characters.';
-      if (code === 'auth/user-not-found' || code === 'auth/wrong-password') return 'Invalid email or password.';
+      if (code === 'auth/user-not-found' || code === 'auth/wrong-password') return 'Invalid username or password.';
       if (code === 'auth/user-disabled') return 'This account has been disabled.';
       if (code === 'auth/network-request-failed') return 'Network error. Please retry.';
       if (String(message).includes('USERNAME_TAKEN')) return 'This username is already in use.';
+      if (String(message).includes('No account was found for that username')) return 'No account was found for that username.';
       if (message && message !== 'Authentication failed.') return message;
       return 'Unable to complete that request.';
     }
@@ -1783,24 +1821,18 @@
       ui.registerForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const username = document.getElementById('reg-username').value;
-        const email = document.getElementById('reg-email').value;
         const password = document.getElementById('reg-password').value;
-        const confirmPassword = document.getElementById('reg-confirm').value;
 
-        if (!username || !email || !password || !confirmPassword) {
-          setAuthNote('Please fill in every field.', 'error');
-          return;
-        }
-        if (password !== confirmPassword) {
-          setAuthNote('Passwords do not match.', 'error');
+        if (!username || !password) {
+          setAuthNote('Please provide both username and password.', 'error');
           return;
         }
 
         try {
           setAuthNote('Creating account...', '');
-          await createAccount(username, email, password);
+          await createAccount(username, password);
           setAuthNote('Account created successfully. Logging in...', 'success');
-          await login(email, password);
+          await login(username, password);
         } catch (error) {
           setAuthNote(mapAuthError(error), 'error');
           console.error('Registration error:', error);
@@ -1809,11 +1841,11 @@
 
       ui.loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        const email = document.getElementById('login-email').value;
+        const username = document.getElementById('login-username').value;
         const password = document.getElementById('login-password').value;
         try {
           setAuthNote('Signing in...', '');
-          await login(email, password);
+          await login(username, password);
         } catch (error) {
           setAuthNote(mapAuthError(error), 'error');
           console.error('Login error:', error);
@@ -1931,7 +1963,7 @@
           await set(userRef, {
             uid: user.uid,
             username: user.displayName || 'Radio operator',
-            email: user.email || '',
+            authEmail: user.email || generatePrivateAuthEmail(user.displayName || 'radio-user'),
             status: 'online',
             currentChannel: 'general',
             createdAt: serverTimestamp(),
