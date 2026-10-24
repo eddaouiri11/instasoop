@@ -1,767 +1,1971 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Parchisi Royale - Online Multiplayer</title>
-<style>
-:root{--ds:72px;--ink:#fff7e7;--mut:#cdbd9e;--gold:#f4c65f;--g:#e6b957;--wood:#21140f;--panel:#2d1c14}
-*{box-sizing:border-box}
-html{height:100%;overflow:hidden;background-color:#1a100c}
-body{margin:0;position:fixed;inset:0;width:100%;height:100vh;height:100dvh;height:var(--viewport-height,100dvh);min-height:0;overscroll-behavior:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));color:var(--ink);font-family:Georgia,'Palatino Linotype',serif;display:flex;flex-direction:column;align-items:center;gap:10px;overflow:hidden;
-background:radial-gradient(ellipse at 50% 22%,#71451e 0%,#382317 52%,#1a100c 100%)}
-#bg,#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}#bg{z-index:0}#fx{z-index:60}
-header,main{position:relative;z-index:1;width:100%;max-width:1120px}main{flex:1;min-height:0;display:flex;flex-direction:column}header{flex:none}
-header{display:flex;align-items:center;justify-content:space-between}
-h1{margin:0;font-size:clamp(1.2rem,4vw,2rem);font-weight:normal;letter-spacing:.2em;color:var(--gold);text-shadow:0 2px 0 #000a,0 0 18px #e6b95766}
-header{padding:4px 2px 10px;border-bottom:1px solid #f4c65f30}
-.hb{display:flex;gap:8px}
-button{font:inherit;cursor:pointer;border:1px solid #fff5;border-radius:14px;font-weight:bold;color:#2a1c05;background:linear-gradient(145deg,#ffe5a1,#d5a33f);box-shadow:0 4px 0 #7b5815,0 10px 24px #0005,0 0 18px #f4c65f22;padding:12px 20px;transition:transform .16s ease,box-shadow .16s ease,filter .16s ease}
-button:hover:not(:disabled){filter:brightness(1.08);box-shadow:0 4px 0 #7b5815,0 12px 28px #0007,0 0 22px #f4c65f55}
-button:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #7b5815}
-button:disabled{opacity:.45;cursor:default}
-button.ic{width:46px;height:46px;padding:0;font-size:1.3rem;background:linear-gradient(145deg,#ffffff28,#ffffff0c);color:var(--ink);box-shadow:inset 0 0 0 1px #ffffff40,0 8px 20px #0004;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-:focus-visible{outline:3px solid #fff;outline-offset:2px}
-.glass{background:linear-gradient(145deg,#ffffff1c,#ffffff08);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px);border:1px solid #ffffff30;border-radius:20px;box-shadow:0 18px 50px #0008}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#08151f" />
+  <title>RadioTalk</title>
+  <style>
+    :root {
+      --bg: #07121d;
+      --bg-2: #0b1826;
+      --panel: rgba(14, 24, 36, 0.92);
+      --panel-strong: rgba(18, 29, 44, 0.96);
+      --panel-soft: rgba(13, 21, 30, 0.76);
+      --line: rgba(130, 176, 211, 0.2);
+      --text: #edf6ff;
+      --muted: #9fb8ce;
+      --green: #38d39f;
+      --green-strong: #13b67a;
+      --red: #ff5d5d;
+      --red-strong: #e83a3a;
+      --amber: #f7cc6d;
+      --amber-strong: #df9d14;
+      --blue: #6ca8ff;
+      --shadow: rgba(0, 0, 0, 0.38);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
 
-/* Auth & Room Screens */
-.panel-screen{padding:clamp(16px,4vw,26px);width:100%;max-width:440px;max-height:100%;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;margin:auto;display:flex;flex-direction:column;gap:12px;text-align:center;}
-.panel-screen h2{margin:2px 0 6px;font-size:clamp(1.35rem,5vw,1.8rem);font-weight:normal;color:var(--gold);letter-spacing:.04em;text-shadow:0 2px 18px #e6b95744}
-.panel-screen input{font:inherit;font-size:16px;min-height:48px;padding:12px 14px;border-radius:13px;background:linear-gradient(145deg,#1b120ae8,#24180fdc);color:var(--ink);border:1px solid #e6b95766;width:100%;text-align:center;user-select:text;-webkit-user-select:text;box-shadow:inset 0 2px 10px #0004;touch-action:manipulation}
-.panel-screen input::placeholder{color:#cdbd9eaa}
-.panel-screen input:focus{outline:2px solid var(--gold);outline-offset:2px}
-.panel-screen button{width:100%;margin-top:5px;}
+    * { box-sizing: border-box; }
 
-#room-lobby-screen, #setup, #game{display:none;}
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: radial-gradient(circle at top, #0d1b2a 0%, #08151f 40%, #040d16 100%);
+      color: var(--text);
+      font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
 
-.room-code-badge{font-size:clamp(1.5rem,7vw,2rem);font-weight:bold;color:var(--gold);letter-spacing:clamp(3px,1.5vw,6px);text-shadow:0 0 18px #f4c65f55;background:linear-gradient(145deg,#0006,#0002);padding:10px 14px;border-radius:14px;border:1px dashed #f4c65fbb;box-shadow:inset 0 0 20px #f4c65f0b,0 8px 20px #0003;margin:5px 0;}
-.player-slot-list{display:flex;flex-direction:column;gap:8px;margin:10px 0;}
-.slot-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;border-radius:14px;background:linear-gradient(145deg,#ffffff12,#0003);border:1px solid #ffffff26;box-shadow:inset 0 1px #ffffff12;}
-.slot-card b{display:flex;align-items:center;gap:8px;}
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: calc(16px + var(--safe-top)) calc(16px + var(--safe-right)) calc(16px + var(--safe-bottom)) calc(16px + var(--safe-left));
+      overflow: hidden;
+    }
 
-#game{flex:1;min-height:0;flex-direction:column;align-items:center;gap:8px;padding:8px 0}#side{display:contents}#stage{order:1;flex:1;min-height:0;min-width:0;width:100%;display:flex;align-items:center;justify-content:center}.ctl{order:2}#msg{order:3}
-#chips{order:0;flex:none;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-.chip{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;border-radius:40px;font-size:.85rem;opacity:.82;transition:all .25s;border:1px solid #ffffff28;background:linear-gradient(145deg,#ffffff20,#21130fd9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 7px 18px #0004}
-.chip.turn{opacity:1;transform:scale(1.04);border-color:var(--c);box-shadow:0 0 0 1px var(--c),0 0 22px var(--c),0 8px 22px #0005}
-.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:1.1rem;background:radial-gradient(circle at 30% 25%,#fff8,var(--c) 55%,#0006);box-shadow:0 2px 6px #0008}
-.chip small{display:block;letter-spacing:.15em;font-size:.7rem}
-.frame{padding:clamp(7px,1.4vw,12px);border-radius:26px;background:linear-gradient(145deg,#f6d681,#9a681f 55%,#d2a444);box-shadow:0 24px 64px #0009,0 0 0 1px #fff5,inset 0 2px 3px #fff9;flex:none;width:var(--bs,300px);height:var(--bs,300px)}
-canvas#board{display:block;width:100%;height:100%;border-radius:14px;background:#f8eed4;touch-action:none}
-.ctl{flex:none;display:flex;align-items:center;gap:18px;padding:10px 18px;border-radius:24px;background:linear-gradient(145deg,#ffffff1b,#21130feb);border-color:#f4c65f77;box-shadow:0 14px 32px #0006,inset 0 1px #ffffff26}
-.scene{flex:none;width:var(--ds);height:var(--ds);perspective:calc(var(--ds)*5);border-radius:16px;box-shadow:0 0 22px var(--g)}
-.toss{animation:toss 1s cubic-bezier(.3,.6,.4,1)}
-@keyframes toss{0%{transform:translateY(0) scale(1)}30%{transform:translateY(-34px) scale(1.2)}60%{transform:translateY(0) scale(1)}78%{transform:translateY(-10px)}100%{transform:translateY(0)}}
-.cube{position:relative;width:var(--ds);height:var(--ds);transform-style:preserve-3d;transition:transform 1s cubic-bezier(.2,.8,.25,1)}
-.face{position:absolute;inset:0;border-radius:15px;background:linear-gradient(145deg,#fffdf6,#e3d3ac);border:2px solid #fff;display:grid;grid:repeat(3,1fr)/repeat(3,1fr);padding:11px;box-shadow:inset 0 0 14px #0004;backface-visibility:hidden}
-.face i{width:12px;height:12px;border-radius:50%;margin:auto;background:radial-gradient(circle at 35% 30%,#555,#111)}
-.f1{transform:translateZ(calc(var(--ds)/2))}.f6{transform:rotateY(180deg) translateZ(calc(var(--ds)/2))}.f3{transform:rotateY(90deg) translateZ(calc(var(--ds)/2))}.f4{transform:rotateY(-90deg) translateZ(calc(var(--ds)/2))}.f2{transform:rotateX(90deg) translateZ(calc(var(--ds)/2))}.f5{transform:rotateX(-90deg) translateZ(calc(var(--ds)/2))}
-#roll{font-size:1.05rem;min-width:150px;min-height:48px;letter-spacing:.03em}
-#msg{flex:none;max-width:100%;min-height:1.3em;font-size:clamp(.78rem,2.6vw,.95rem);text-align:center;color:var(--mut);padding:5px 12px;border-radius:30px;background:#150e0b70}
-#pop{position:fixed;left:50%;top:42%;z-index:55;font-size:clamp(3rem,14vw,6rem);font-weight:bold;pointer-events:none;opacity:0;transform:translate(-50%,-50%);text-shadow:0 4px 0 #000a,0 0 30px currentColor;text-align:center;line-height:1}
-#pop small{display:block;font-size:.3em;letter-spacing:.2em}
-#pop.show{animation:pop 1.1s ease-out}
-@keyframes pop{0%{opacity:0;transform:translate(-50%,-30%) scale(.3)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}70%{opacity:1;transform:translate(-50%,-60%) scale(1)}100%{opacity:0;transform:translate(-50%,-90%) scale(1)}}
-#win{position:fixed;inset:0;z-index:58;display:none;align-items:center;justify-content:center;background:#000b;padding:16px}
-#win .glass{padding:30px;text-align:center;animation:rise .7s cubic-bezier(.2,1.3,.4,1)}
-@keyframes rise{from{transform:scale(.4) translateY(80px);opacity:0}}
-#win h2{margin:6px 0 4px;font-size:2rem;font-weight:normal}#win .tr{font-size:4rem;animation:spin 2s ease-in-out infinite}
-@keyframes spin{50%{transform:rotateY(180deg) scale(1.2)}}
+    button, input {
+      font: inherit;
+    }
 
-@media(max-height:640px){:root{--ds:54px}.face{padding:8px}.face i{width:9px;height:9px}.ctl{padding:6px 16px;gap:14px}button{padding:10px 16px}#roll{min-width:110px;font-size:1rem}.chip{font-size:.75rem}.av{width:28px;height:28px}h1{font-size:1.2rem}button.ic{width:38px;height:38px}}
-@media(min-aspect-ratio:13/10){#game{flex-direction:row;justify-content:center;gap:16px}#side{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;width:min(34vw,270px);flex:none}#chips{flex-direction:column;flex-wrap:nowrap;width:100%}.chip{width:100%}#stage{width:auto}.ctl{flex-direction:column;border-radius:26px}}
-@media(max-width:420px){body{gap:5px;padding-left:max(5px,env(safe-area-inset-left));padding-right:max(5px,env(safe-area-inset-right))}h1{letter-spacing:.12em}.hb{gap:5px}.chip{gap:5px;padding:4px 8px 4px 4px}.frame{border-radius:18px}.ctl{gap:12px;padding:7px 14px}}
-@media(max-height:520px){:root{--ds:48px}body{gap:3px;padding-top:max(4px,env(safe-area-inset-top));padding-bottom:max(4px,env(safe-area-inset-bottom))}header h1{font-size:1rem}.chip{padding-top:2px;padding-bottom:2px}.ctl{padding:4px 10px}}
-@media(min-width:760px) and (min-aspect-ratio:13/10){#game{gap:clamp(18px,4vw,48px)}#side{width:min(30vw,290px)}#chips{gap:10px}.chip{min-height:54px;padding:7px 14px 7px 7px;font-size:.95rem}.ctl{width:100%;padding:14px 18px;box-shadow:0 16px 36px #0007}.frame{border-radius:30px}#msg{max-width:100%;line-height:1.45}}
-@media(max-width:560px){.ctl{gap:12px;padding:8px 12px}#roll{min-width:126px}.frame{border-radius:20px}#game{gap:5px}#chips{gap:5px}.chip.turn{transform:scale(1.02)}}
-@media(max-height:520px) and (orientation:landscape){body{gap:4px}header{padding:0 2px 5px}#game{gap:8px;padding:3px 0}.panel-screen{padding:14px;gap:8px}.player-slot-list{margin:3px 0;gap:5px}}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
-/* Startup */
-#loading{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:max(24px,env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(24px,env(safe-area-inset-left));background:radial-gradient(ellipse at 50% 42%,#56341d 0%,#281811 58%,#130c09 100%);transition:opacity .55s ease,visibility .55s ease}
-#loading.done{opacity:0;visibility:hidden;pointer-events:none}
-.loading-card{width:min(100%,360px);padding:34px 28px 30px;text-align:center;border-radius:26px;background:linear-gradient(145deg,#ffffff18,#ffffff08);border:1px solid #f4c65f55;box-shadow:0 28px 80px #0009,0 0 48px #f4c65f15;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-.loading-mark{width:66px;height:66px;margin:0 auto 16px;display:grid;place-items:center;border-radius:20px;color:#24150c;font-size:2rem;background:linear-gradient(145deg,#ffe5a1,#bd862b);box-shadow:0 8px 24px #0006,0 0 30px #f4c65f55;transform:rotate(-8deg)}
-.loading-card h2{margin:0;color:var(--gold);font-size:1.45rem;font-weight:normal;letter-spacing:.17em}
-.loading-card p{margin:8px 0 22px;color:var(--mut);font-size:.88rem;letter-spacing:.06em}
-.loading-track{height:8px;padding:2px;overflow:hidden;border-radius:20px;background:#0008;box-shadow:inset 0 1px 4px #0008}
-.loading-fill{width:8%;height:100%;border-radius:20px;background:linear-gradient(90deg,#c18c33,#ffe5a1);box-shadow:0 0 16px #f4c65f99;transition:width .35s ease}
-.loading-caption{display:block;margin-top:12px;color:#ffffffa6;font:600 .7rem system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase}
-</style>
+    button {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: linear-gradient(180deg, rgba(117, 154, 193, 0.28), rgba(61, 90, 116, 0.2));
+      color: var(--text);
+      border-radius: 16px;
+      padding: 0.85rem 1rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease, border-color 0.18s ease;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: rgba(110, 168, 255, 0.42);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .screen {
+      width: min(100%, 430px);
+      min-height: min(100vh - 32px, 860px);
+      min-height: min(100dvh - 32px, 860px);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      position: relative;
+    }
+
+    .hidden { display: none !important; }
+
+    .loading-screen {
+      align-items: center;
+      justify-content: center;
+      background: rgba(6, 12, 18, 0.35);
+      border-radius: 24px;
+      border: 1px solid rgba(116, 167, 255, 0.16);
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.34);
+    }
+
+    .loading-card {
+      width: min(88%, 320px);
+      padding: 24px 20px 18px;
+      border-radius: 24px;
+      background: rgba(12, 20, 31, 0.9);
+      border: 1px solid rgba(122, 151, 177, 0.18);
+      box-shadow: 0 14px 32px rgba(0,0,0,0.28);
+      text-align: center;
+    }
+
+    .brand-mark {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 18px;
+      position: relative;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(49, 224, 177, 0.8), rgba(19, 182, 122, 0.88));
+      box-shadow: 0 16px 28px rgba(19, 182, 122, 0.22);
+    }
+
+    .brand-mark::before,
+    .brand-mark::after {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.92);
+      border-top-color: transparent;
+      border-left-color: transparent;
+      transform: rotate(35deg);
+    }
+
+    .brand-mark::after {
+      inset: 29px;
+      border-color: rgba(255,255,255,0.8);
+      border-top-color: transparent;
+      border-left-color: transparent;
+    }
+
+    .loading-label {
+      font-size: 0.82rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 12px;
+    }
+
+    .loading-track {
+      height: 10px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 14px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .loading-bar {
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), #9ef5d4);
+      border-radius: inherit;
+      transition: width 0.22s ease;
+    }
+
+    .app-shell {
+      background: rgba(7, 18, 24, 0.72);
+      border-radius: 28px;
+      border: 1px solid rgba(146, 191, 255, 0.12);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.32);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .auth-screen {
+      padding: 24px 18px 18px;
+      justify-content: center;
+    }
+
+    .brand-header {
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .brand-header .brand-mark {
+      margin-bottom: 12px;
+    }
+
+    .brand-header h1 {
+      margin: 0;
+      font-size: clamp(2.2rem, 8vw, 3rem);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .brand-header p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .auth-card {
+      background: rgba(11, 21, 32, 0.9);
+      border: 1px solid rgba(133, 176, 212, 0.14);
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: 0 14px 28px rgba(0,0,0,0.2);
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 16px;
+      padding: 6px;
+    }
+
+    .segmented button {
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      color: var(--muted);
+      padding: 0.72rem 0.8rem;
+      border-radius: 12px;
+      font-size: 0.82rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .segmented button.active {
+      background: linear-gradient(180deg, rgba(56, 211, 159, 0.16), rgba(19, 182, 122, 0.14));
+      color: var(--text);
+      border: 1px solid rgba(56, 211, 159, 0.44);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .field label {
+      font-size: 0.78rem;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .field input {
+      width: 100%;
+      border: 1px solid rgba(150, 177, 200, 0.18);
+      border-radius: 14px;
+      background: rgba(16, 25, 35, 0.88);
+      color: var(--text);
+      padding: 0.9rem 0.95rem;
+      font-size: 1rem;
+      outline: none;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+    }
+
+    .field input:focus {
+      border-color: rgba(108, 168, 255, 0.72);
+      box-shadow: 0 0 0 3px rgba(108, 168, 255, 0.15);
+    }
+
+    .primary {
+      width: 100%;
+      border: 0;
+      background: linear-gradient(180deg, rgba(56, 211, 159, 0.88), rgba(19, 182, 122, 0.94));
+      color: #0a1e17;
+      padding: 1rem 1.2rem;
+      font-size: 0.96rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 0.3rem;
+      box-shadow: 0 16px 28px rgba(19, 182, 122, 0.18);
+    }
+
+    .secondary {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: none;
+      color: var(--text);
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .auth-note {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 0.8rem;
+      min-height: 1.2em;
+    }
+
+    .auth-note.error {
+      color: #ff9a9a;
+    }
+
+    .auth-note.success {
+      color: #93f1d0;
+    }
+
+    .app-screen {
+      padding: 14px 14px 20px;
+      min-height: min(100vh - 32px, 860px);
+      min-height: min(100dvh - 32px, 860px);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      padding: 6px 2px 10px;
+      border-bottom: 1px solid rgba(158, 184, 207, 0.14);
+    }
+
+    .topbar-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+      color: var(--green);
+    }
+
+    .mini-mark {
+      width: 22px;
+      height: 22px;
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(56,211,159,0.8), rgba(19,182,122,0.9));
+      position: relative;
+    }
+
+    .mini-mark::before {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.92);
+      border-top-color: transparent;
+      border-left-color: transparent;
+      transform: rotate(34deg);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(146, 191, 255, 0.08);
+      border: 1px solid rgba(146, 191, 255, 0.16);
+      border-radius: 999px;
+      padding: 0.45rem 0.7rem;
+      color: var(--text);
+      font-size: 0.74rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .status-led {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 0 rgba(56, 211, 159, 0.6);
+      animation: pulse 2.2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(56, 211, 159, 0.55); }
+      70% { box-shadow: 0 0 0 10px rgba(56, 211, 159, 0.0); }
+      100% { box-shadow: 0 0 0 0 rgba(56, 211, 159, 0.0); }
+    }
+
+    .status-led.red {
+      background: var(--red);
+      animation-duration: 1.3s;
+    }
+
+    .status-led.amber {
+      background: var(--amber);
+      animation-duration: 1.9s;
+    }
+
+    .profile-panel,
+    .panel {
+      background: rgba(12, 20, 31, 0.9);
+      border-radius: 22px;
+      border: 1px solid rgba(125, 170, 212, 0.14);
+      box-shadow: 0 16px 36px rgba(0,0,0,0.18);
+    }
+
+    .profile-panel {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 14px 12px;
+    }
+
+    .avatar-ring {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(56,211,159,0.2), rgba(108,168,255,0.3));
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: 0.04em;
+    }
+
+    .profile-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .profile-meta h2 {
+      margin: 0;
+      font-size: 1.15rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .subline {
+      color: var(--muted);
+      margin-top: 5px;
+      font-size: 0.8rem;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .panel {
+      padding: 14px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .section-header h3 {
+      margin: 0;
+      font-size: 0.82rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .channel-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 230px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .channel-option {
+      width: 100%;
+      text-align: left;
+      border-radius: 16px;
+      padding: 0.8rem 0.9rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: none;
+    }
+
+    .channel-option.active {
+      background: linear-gradient(180deg, rgba(56,211,159,0.1), rgba(108,168,255,0.08));
+      border-color: rgba(56,211,159,0.4);
+    }
+
+    .channel-name-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .channel-name {
+      font-weight: 700;
+      font-size: 0.98rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .channel-desc {
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    .channel-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      font-size: 0.7rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .channel-dot {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 4px rgba(56,211,159,0.08);
+    }
+
+    .speed-badge {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 999px;
+      padding: 0.36rem 0.6rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .talk-panel {
+      padding-top: 18px;
+      padding-bottom: 16px;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+    }
+
+    .speaker-box {
+      padding: 18px 12px;
+      border-radius: 18px;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(12, 24, 36, 0.7), rgba(7, 14, 22, 0.8));
+      border: 1px solid rgba(255,255,255,0.08);
+      min-height: 94px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .speaker-box .caption {
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .speaker-name {
+      font-size: clamp(1.1rem, 4vw, 1.5rem);
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ptt-btn {
+      width: 210px;
+      height: 210px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 20px auto 12px;
+      border: 8px solid rgba(255,255,255,0.08);
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.86), rgba(255,255,255,0.08) 28%, rgba(9, 17, 24, 0.75) 29%, rgba(8, 20, 25, 0.9) 100%);
+      box-shadow: 0 18px 36px rgba(0,0,0,0.28), inset 0 0 0 2px rgba(255,255,255,0.06);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.25s ease;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .ptt-btn::before {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .ptt-btn span {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      max-width: 72%;
+      line-height: 1.2;
+    }
+
+    .ptt-btn.ready {
+      background: radial-gradient(circle at 30% 30%, rgba(56, 211, 159, 0.28), rgba(56,211,159,0.12) 26%, rgba(7, 31, 26, 0.8) 28%, rgba(8, 15, 19, 0.96) 100%);
+      box-shadow: 0 18px 36px rgba(19, 182, 122, 0.18), 0 0 20px rgba(56,211,159,0.2), inset 0 0 0 2px rgba(56,211,159,0.14);
+    }
+
+    .ptt-btn.transmitting {
+      background: radial-gradient(circle at 30% 30%, rgba(255, 93, 93, 0.35), rgba(255,93,93,0.14) 26%, rgba(36, 9, 15, 0.85) 28%, rgba(20, 7, 10, 0.96) 100%);
+      box-shadow: 0 18px 40px rgba(255, 93, 93, 0.2), 0 0 30px rgba(255,93,93,0.2), inset 0 0 0 2px rgba(255,93,93,0.18);
+      animation: buzz 0.9s infinite alternate;
+    }
+
+    @keyframes buzz {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.04); }
+    }
+
+    .ptt-btn.receiving {
+      background: radial-gradient(circle at 30% 30%, rgba(108,168,255,0.24), rgba(108,168,255,0.1) 26%, rgba(8, 17, 25, 0.9) 28%, rgba(4, 12, 18, 0.96) 100%);
+      box-shadow: 0 18px 36px rgba(108,168,255,0.18), 0 0 24px rgba(108,168,255,0.18);
+    }
+
+    .ptt-btn:disabled {
+      opacity: 0.45;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .meta-box {
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.02);
+      padding: 10px 12px;
+      min-height: 64px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .meta-box .label {
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .meta-box .value {
+      font-size: 1rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .member-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 220px;
+      overflow: auto;
+    }
+
+    .member-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 0.7rem 0.7rem;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .member-row .left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .member-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 800;
+      background: linear-gradient(180deg, rgba(96, 125, 255, 0.2), rgba(56, 211, 159, 0.2));
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .member-name {
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .member-tag {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .panel-footer {
+      margin-top: 14px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .ghost {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: none;
+      color: var(--text);
+      font-size: 0.78rem;
+      padding: 0.72rem 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .settings-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 10, 16, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 6;
+    }
+
+    .settings-card {
+      width: min(100%, 380px);
+      background: rgba(12,20,31,0.98);
+      border: 1px solid rgba(146, 191, 255, 0.12);
+      border-radius: 24px;
+      padding: 18px 16px 16px;
+      box-shadow: 0 26px 48px rgba(0,0,0,0.28);
+    }
+
+    .settings-card h3 {
+      margin: 0 0 14px;
+      font-size: 1.08rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      color: var(--text);
+    }
+
+    .toggle {
+      position: relative;
+      display: inline-flex;
+      width: 46px;
+      height: 28px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.09);
+      border: 1px solid rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+
+    .toggle input {
+      display: none;
+    }
+
+    .toggle .switch {
+      position: absolute;
+      inset: 3px auto 3px 3px;
+      width: 18px;
+      border-radius: 50%;
+      background: white;
+      transition: transform 0.2s ease;
+    }
+
+    .toggle input:checked ~ .switch {
+      transform: translateX(18px);
+      background: var(--green);
+    }
+
+    .toggle input:checked ~ .toggle-bg {
+      background: rgba(56,211,159,0.25);
+    }
+
+    .toggle-bg {
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.04);
+      border-radius: inherit;
+    }
+
+    .settings-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(18px + var(--safe-bottom));
+      transform: translateX(-50%) translateY(14px);
+      opacity: 0;
+      pointer-events: none;
+      background: rgba(14, 22, 31, 0.96);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 999px;
+      padding: 0.8rem 1rem;
+      min-width: 180px;
+      text-align: center;
+      font-size: 0.82rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 10;
+      box-shadow: 0 18px 36px rgba(0,0,0,0.24);
+    }
+
+    .toast.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast.error { border-color: rgba(255,93,93,0.42); color: #ffb4b4; }
+    .toast.success { border-color: rgba(56,211,159,0.42); color: #baf5df; }
+    .toast.info { border-color: rgba(108,168,255,0.42); color: #dfeeff; }
+
+    @media (max-width: 370px) {
+      .screen, .app-screen { padding-left: 10px; padding-right: 10px; }
+      .ptt-btn { width: 180px; height: 180px; }
+    }
+  </style>
 </head>
 <body>
-<canvas id="bg"></canvas><canvas id="fx"></canvas>
-<div id="loading" role="status" aria-live="polite">
-  <div class="loading-card">
-    <div class="loading-mark" aria-hidden="true">♟</div>
-    <h2>PARCHISI ROYALE</h2>
-    <p>Your table is being prepared</p>
-    <div class="loading-track" aria-hidden="true"><div class="loading-fill" id="loading-fill"></div></div>
-    <span class="loading-caption" id="loading-caption">Loading game</span>
-  </div>
-</div>
-<header><h1>PARCHISI</h1><div class="hb"><button class="ic" id="mute" aria-label="Mute sound">🔊</button><button class="ic" id="again" aria-label="Start a new game" disabled>↺</button></div></header>
-<main>
-<!-- Auth Screen -->
-<section class="glass panel-screen" id="auth-screen">
-  <h2>Login / Register</h2>
-  <input type="text" id="auth-username" placeholder="Username" autocomplete="username" autocapitalize="none">
-  <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password">
-  <button id="btn-login">Login</button>
-  <button id="btn-register" style="background:linear-gradient(#7ac3f4,#328ec7); color:#fff;">Register Account</button>
-  <p id="auth-msg" style="font-size:0.85rem; color:var(--mut); margin:0;"></p>
-</section>
-
-<!-- Menu / Lobby Select Screen -->
-<section class="glass panel-screen" id="menu-screen" style="display:none;">
-  <h2>Multiplayer Hub</h2>
-  <p style="color:var(--mut); font-size:0.9rem;">Create a game room or enter a room code to join friends.</p>
-  <button id="btn-create-room">Create New Room</button>
-  <div style="display:flex; gap:8px; margin-top:10px;">
-    <input type="text" id="join-code-input" placeholder="ROOM CODE" inputmode="numeric" maxlength="6" autocomplete="off" style="letter-spacing:2px; font-weight:bold;">
-    <button id="btn-join-room" style="flex:none; width:auto; margin:0;">Join</button>
-  </div>
-  <p id="menu-msg" style="font-size:0.85rem; color:var(--mut); margin:0;"></p>
-</section>
-
-<!-- Room Lobby Screen (4 Places) -->
-<section class="glass panel-screen" id="room-lobby-screen">
-  <h2>Game Room</h2>
-  <div class="room-code-badge" id="display-room-code">------</div>
-  <p style="color:var(--mut); font-size:0.85rem; margin:0;">Share this code with players to join!</p>
-  
-  <div class="player-slot-list">
-    <div class="slot-card"><b style="color:#e04a3c;"><span class="dot" style="background:#e04a3c; width:16px; height:16px; display:inline-block; border-radius:50%;"></span> Red</b> <span id="slot-0-name">Empty</span></div>
-    <div class="slot-card"><b style="color:#35a85f;"><span class="dot" style="background:#35a85f; width:16px; height:16px; display:inline-block; border-radius:50%;"></span> Green</b> <span id="slot-1-name">Empty</span></div>
-    <div class="slot-card"><b style="color:#3a7bd5;"><span class="dot" style="background:#3a7bd5; width:16px; height:16px; display:inline-block; border-radius:50%;"></span> Blue</b> <span id="slot-2-name">Empty</span></div>
-    <div class="slot-card"><b style="color:#f2b42a;"><span class="dot" style="background:#f2b42a; width:16px; height:16px; display:inline-block; border-radius:50%;"></span> Yellow</b> <span id="slot-3-name">Empty</span></div>
+  <div id="loading-screen" class="screen loading-screen" aria-live="polite">
+    <div class="loading-card">
+      <div class="brand-mark" aria-hidden="true"></div>
+      <div class="loading-label">Loading RadioTalk</div>
+      <div class="loading-track">
+        <div id="loading-bar" class="loading-bar"></div>
+      </div>
+    </div>
   </div>
 
-  <button id="btn-start-online-game" disabled>Start Game</button>
-  <button id="btn-leave-room" style="background:linear-gradient(#f47a7a,#c73232); color:#fff;">Leave Room</button>
-</section>
+  <section id="auth-screen" class="screen auth-screen hidden" aria-live="polite">
+    <div class="brand-header">
+      <div class="brand-mark" aria-hidden="true"></div>
+      <h1>RadioTalk</h1>
+      <p>Secure channel network</p>
+    </div>
 
-<!-- Active Game UI -->
-<section id="game"><div id="side"><div id="chips"></div>
-<div class="ctl glass"><div class="scene" id="scene" aria-hidden="true"><div class="cube" id="cube"></div></div><button id="roll" disabled>Roll dice</button></div><div id="msg" aria-live="polite"></div></div><div id="stage"><div class="frame"><canvas id="board" tabindex="0" role="grid" aria-label="Parchisi game board. Use number keys 1 to 4 to move a highlighted piece."></canvas></div></div></section>
-</main>
+    <div class="auth-card">
+      <div class="segmented" role="tablist" aria-label="Authentication options">
+        <button id="show-register" type="button" class="active" aria-selected="true">Register</button>
+        <button id="show-login" type="button" aria-selected="false">Login</button>
+      </div>
 
-<div id="pop"></div>
-<div id="win"><div class="glass"><div class="tr">🏆</div><h2 id="wt"></h2><p style="color:var(--mut)">All four pieces reached the center!</p><button id="wb" style="width:100%">Play again</button></div></div>
+      <form id="register-form" novalidate>
+        <div class="field">
+          <label for="reg-username">Username</label>
+          <input id="reg-username" name="username" type="text" maxlength="24" autocomplete="username" placeholder="e.g. GhostRanger" required />
+        </div>
+        <div class="field">
+          <label for="reg-email">Email</label>
+          <input id="reg-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+        </div>
+        <div class="field">
+          <label for="reg-password">Password</label>
+          <input id="reg-password" name="password" type="password" autocomplete="new-password" placeholder="At least 6 characters" required />
+        </div>
+        <div class="field">
+          <label for="reg-confirm">Confirm password</label>
+          <input id="reg-confirm" name="confirm" type="password" autocomplete="new-password" placeholder="Repeat your password" required />
+        </div>
+        <button type="submit" class="primary">Create account</button>
+      </form>
 
-<script>
-(() => {
-  const loading = document.getElementById('loading');
-  const fill = document.getElementById('loading-fill');
-  const caption = document.getElementById('loading-caption');
-  let progress = 8;
-  let canvasReady = false;
-  let firebaseReady = false;
-  let loadingComplete = false;
-  const progressTimer = setInterval(() => {
-    if(progress < 88) {
-      progress = Math.min(88, progress + Math.max(1, (88 - progress) * .08));
-      fill.style.width = `${progress}%`;
+      <form id="login-form" class="hidden" novalidate>
+        <div class="field">
+          <label for="login-email">Email</label>
+          <input id="login-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+        </div>
+        <div class="field">
+          <label for="login-password">Password</label>
+          <input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="Your password" required />
+        </div>
+        <button type="submit" class="primary">Login</button>
+      </form>
+
+      <div id="auth-note" class="auth-note" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section id="app-screen" class="screen app-screen hidden" aria-live="polite">
+    <header class="topbar">
+      <div class="topbar-title">
+        <span class="mini-mark" aria-hidden="true"></span>
+        <span>RadioTalk</span>
+      </div>
+      <div class="topbar-actions">
+        <button id="settings-button" type="button" class="ghost">Settings</button>
+        <button id="logout-button" type="button" class="ghost">Logout</button>
+      </div>
+    </header>
+
+    <section class="profile-panel">
+      <div id="profile-avatar" class="avatar-ring" aria-label="User profile avatar">R</div>
+      <div class="profile-meta">
+        <h2 id="profile-name">Loading...</h2>
+        <div class="subline">
+          <span id="presence-status" class="status-pill"><span class="status-led"></span> Online</span>
+          <span id="current-channel-tag" class="chip">General</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-header">
+        <h3>Channels</h3>
+        <span id="channel-count" class="speed-badge">0</span>
+      </div>
+      <div id="channel-list" class="channel-list" aria-live="polite"></div>
+    </section>
+
+    <section class="panel talk-panel">
+      <div class="status-row">
+        <div id="network-status" class="status-pill"><span class="status-led amber"></span> Reconnecting</div>
+        <div id="member-count" class="speed-badge">0 members</div>
+      </div>
+
+      <div class="speaker-box">
+        <div class="caption">Current speaker</div>
+        <div id="speaker-name" class="speaker-name">Waiting</div>
+      </div>
+
+      <button id="push-to-talk" class="ptt-btn ready" type="button" aria-label="Push to talk">
+        <span>Ready to transmit</span>
+      </button>
+
+      <div class="meta-grid">
+        <div class="meta-box">
+          <div class="label">Channel</div>
+          <div id="channel-name-box" class="value">General</div>
+        </div>
+        <div class="meta-box">
+          <div class="label">Login</div>
+          <div id="login-box" class="value">Connected</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-header">
+        <h3>Members</h3>
+      </div>
+      <div id="member-list" class="member-list" aria-live="polite"></div>
+      <div class="panel-footer">
+        <button id="leave-channel-button" type="button" class="ghost">Leave channel</button>
+      </div>
+    </section>
+  </section>
+
+  <div id="settings-overlay" class="settings-overlay hidden" aria-modal="true" role="dialog">
+    <div class="settings-card">
+      <h3>Settings</h3>
+      <div class="setting-row">
+        <span>Sound effects</span>
+        <label class="toggle" aria-label="Toggle sound effects">
+          <input id="sound-toggle" type="checkbox" checked />
+          <span class="toggle-bg"></span>
+          <span class="switch"></span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <span>Microphone status</span>
+        <span id="mic-status-label" class="speed-badge">Ready</span>
+      </div>
+      <div class="setting-row">
+        <span>Connection</span>
+        <span id="connection-status-label" class="speed-badge">Online</span>
+      </div>
+      <div class="setting-row">
+        <span>Network</span>
+        <span id="network-label" class="speed-badge">Checking...</span>
+      </div>
+      <div class="settings-actions">
+        <button id="close-settings" class="secondary" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+  <audio id="remote-audio" autoplay playsinline></audio>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      onAuthStateChanged,
+      signOut,
+      updateProfile
+    } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+    import {
+      getDatabase,
+      ref,
+      set,
+      get,
+      onValue,
+      update,
+      remove,
+      push,
+      serverTimestamp,
+      runTransaction,
+      onDisconnect
+    } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+
+    const firebaseConfig = {
+      apiKey: 'AIzaSyAVoP7bX_Baejw7mIg9R07H7AFUYPeEW0A',
+      authDomain: 'patchisi-online-game.firebaseapp.com',
+      databaseURL: 'https://patchisi-online-game-default-rtdb.firebaseio.com',
+      projectId: 'patchisi-online-game',
+      storageBucket: 'patchisi-online-game.firebasestorage.app',
+      messagingSenderId: '505649893262',
+      appId: '1:505649893262:web:616a91f0359b7ddd099edf',
+      measurementId: 'G-V4CEPP768E'
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    const DEFAULT_CHANNELS = [
+      { id: 'general', name: 'General', description: 'All stations' },
+      { id: 'team-alpha', name: 'Team Alpha', description: 'Field operations' },
+      { id: 'team-bravo', name: 'Team Bravo', description: 'Support channel' },
+      { id: 'training-room', name: 'Training Room', description: 'Practice channel' }
+    ];
+
+    const ui = {
+      loading: document.getElementById('loading-screen'),
+      loadingBar: document.getElementById('loading-bar'),
+      authScreen: document.getElementById('auth-screen'),
+      appScreen: document.getElementById('app-screen'),
+      registerForm: document.getElementById('register-form'),
+      loginForm: document.getElementById('login-form'),
+      showRegister: document.getElementById('show-register'),
+      showLogin: document.getElementById('show-login'),
+      authNote: document.getElementById('auth-note'),
+      profileName: document.getElementById('profile-name'),
+      profileAvatar: document.getElementById('profile-avatar'),
+      presenceStatus: document.getElementById('presence-status'),
+      currentChannelTag: document.getElementById('current-channel-tag'),
+      channelList: document.getElementById('channel-list'),
+      channelCount: document.getElementById('channel-count'),
+      memberList: document.getElementById('member-list'),
+      memberCount: document.getElementById('member-count'),
+      speakerName: document.getElementById('speaker-name'),
+      pushToTalk: document.getElementById('push-to-talk'),
+      networkStatus: document.getElementById('network-status'),
+      channelNameBox: document.getElementById('channel-name-box'),
+      loginBox: document.getElementById('login-box'),
+      toast: document.getElementById('toast'),
+      settingsOverlay: document.getElementById('settings-overlay'),
+      settingsButton: document.getElementById('settings-button'),
+      closeSettings: document.getElementById('close-settings'),
+      leaveChannelButton: document.getElementById('leave-channel-button'),
+      logoutButton: document.getElementById('logout-button'),
+      micStatusLabel: document.getElementById('mic-status-label'),
+      connectionStatusLabel: document.getElementById('connection-status-label'),
+      networkLabel: document.getElementById('network-label'),
+      soundToggle: document.getElementById('sound-toggle'),
+      remoteAudio: document.getElementById('remote-audio')
+    };
+
+    const state = {
+      user: null,
+      profile: null,
+      channelKey: 'general',
+      channelMap: {},
+      channelMembers: {},
+      usersByUid: {},
+      activePeers: {},
+      micStream: null,
+      isTransmitting: false,
+      isConnected: false,
+      soundEnabled: true,
+      currentSpeakerName: 'Waiting',
+      currentSessionId: null,
+      channelSubscriptions: [],
+      userPresenceUnsubscribe: null
+    };
+
+    function showToast(message, tone = 'info') {
+      ui.toast.textContent = message;
+      ui.toast.className = `toast ${tone} visible`;
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(() => {
+        ui.toast.classList.remove('visible');
+      }, 2200);
     }
-  }, 120);
-  const finishIfReady = () => {
-    if(!canvasReady || !firebaseReady || loadingComplete) return;
-    loadingComplete = true;
-    clearInterval(progressTimer);
-    fill.style.width = '100%';
-    caption.textContent = 'Ready to play';
-    setTimeout(() => loading.classList.add('done'), 220);
-  };
-  window.markCanvasReady = () => {
-    canvasReady = true;
-    finishIfReady();
-  };
-  window.markFirebaseReady = () => {
-    firebaseReady = true;
-    caption.textContent = 'Preparing your table';
-    finishIfReady();
-  };
-  if(window.visualViewport) {
-    const updateViewportHeight = () => {
-      document.documentElement.style.setProperty('--viewport-height', `${window.visualViewport.height}px`);
-    };
-    updateViewportHeight();
-    window.visualViewport.addEventListener('resize', updateViewportHeight);
-    window.visualViewport.addEventListener('scroll', updateViewportHeight);
-  }
-})();
-</script>
 
-<!-- Firebase Modular SDK -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getDatabase, ref, set, get, child, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    function setAuthNote(text, type = '') {
+      ui.authNote.textContent = text || '';
+      ui.authNote.className = `auth-note ${type}`.trim();
+    }
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAVoP7bX_Baejw7mIg9R07H7AFUYPeEW0A",
-    authDomain: "patchisi-online-game.firebaseapp.com",
-    databaseURL: "https://patchisi-online-game-default-rtdb.firebaseio.com",
-    projectId: "patchisi-online-game",
-    storageBucket: "patchisi-online-game.firebasestorage.app",
-    messagingSenderId: "505649893262",
-    appId: "1:505649893262:web:616a91f0359b7ddd099edf",
-    measurementId: "G-V4CEPP768E"
-  };
+    function setScreen(name) {
+      ui.authScreen.classList.toggle('hidden', name !== 'auth');
+      ui.appScreen.classList.toggle('hidden', name !== 'app');
+      ui.loading.classList.add('hidden');
+    }
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+    function updateLoadingProgress(value) {
+      ui.loadingBar.style.width = `${Math.min(100, Math.max(0, value))}%`;
+    }
 
-  let currentUser = localStorage.getItem("currentUser") || null;
-  let currentRoomCode = null;
-  let myColorIndex = null;
-  let isHost = false;
-  let gameStarted = false;
+    function startLoadingSequence() {
+      let value = 12;
+      updateLoadingProgress(value);
+      const timer = setInterval(() => {
+        value = Math.min(value + Math.random() * 18, 94);
+        updateLoadingProgress(value);
+      }, 150);
+      window.__radioTalkLoader = timer;
+    }
 
-  const authMsg = document.getElementById('auth-msg');
-  const menuMsg = document.getElementById('menu-msg');
-  const showRequestError = (target, action, error) => {
-    console.error(`${action} failed:`, error);
-    target.textContent = `${action} failed. Check your connection and try again.`;
-  };
+    function normalizeUsername(value) {
+      return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'radio-user';
+    }
 
-  onValue(ref(db, '.info/connected'), () => window.markFirebaseReady(), error => {
-    showRequestError(menuMsg, 'Connecting to the game service', error);
-    window.markFirebaseReady();
-  });
+    function getInitials(name) {
+      const safe = (name || '').trim();
+      if (!safe) return 'R';
+      return safe.slice(0, 2).toUpperCase();
+    }
 
-  if(currentUser) {
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('menu-screen').style.display = 'flex';
-  }
+    function getChannelName(channelKey) {
+      const meta = state.channelMap[channelKey] || DEFAULT_CHANNELS.find((item) => item.id === channelKey);
+      if (!meta) return channelKey;
+      return meta.name || channelKey;
+    }
 
-  // Account Registration
-  document.getElementById('btn-register').onclick = () => {
-    const u = document.getElementById('auth-username').value.trim().toLowerCase();
-    const p = document.getElementById('auth-password').value.trim();
-    if(!u || !p) return authMsg.textContent = "Enter username and password!";
-    get(child(ref(db), `accounts/${u}`)).then(s => {
-      if (s.exists()) authMsg.textContent = "Username already taken!";
-      else {
-        set(ref(db, `accounts/${u}`), { password: p }).then(() => {
-          authMsg.textContent = "Account created! You can now login.";
-        }).catch(error => showRequestError(authMsg, 'Registration', error));
-      }
-    }).catch(error => showRequestError(authMsg, 'Registration', error));
-  };
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
 
-  // Account Login
-  document.getElementById('btn-login').onclick = () => {
-    const u = document.getElementById('auth-username').value.trim().toLowerCase();
-    const p = document.getElementById('auth-password').value.trim();
-    if(!u || !p) return authMsg.textContent = "Enter username and password!";
-    get(child(ref(db), `accounts/${u}`)).then(s => {
-      if (s.exists() && s.val().password === p) {
-        currentUser = u;
-        localStorage.setItem("currentUser", u);
-        document.getElementById('auth-screen').style.display = 'none';
-        document.getElementById('menu-screen').style.display = 'flex';
-      } else authMsg.textContent = "Invalid username or password!";
-    }).catch(error => showRequestError(authMsg, 'Login', error));
-  };
+    function renderChannels() {
+      const channels = Object.entries(state.channelMap || {}).sort((a, b) => a[0].localeCompare(b[0]));
 
-  // Create Room Logic
-  document.getElementById('btn-create-room').onclick = () => {
-    const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
-    currentRoomCode = roomCode;
-    isHost = true;
-    myColorIndex = 0; // Host is Red
-
-    const initialRoomData = {
-      host: currentUser,
-      status: 'waiting',
-      players: { 0: currentUser },
-      gameState: null
-    };
-
-    set(ref(db, `rooms/${roomCode}`), initialRoomData).then(() => {
-      openRoomLobby(roomCode);
-    }).catch(error => showRequestError(menuMsg, 'Creating the room', error));
-  };
-
-  // Join Room Logic
-  document.getElementById('btn-join-room').onclick = () => {
-    const code = document.getElementById('join-code-input').value.trim();
-    if(!/^\d{6}$/.test(code)) return menuMsg.textContent = "Enter a valid 6-digit room code!";
-
-    get(child(ref(db), `rooms/${code}`)).then(s => {
-      if(!s.exists()) return menuMsg.textContent = "Room not found!";
-      const room = s.val();
-      if(room.status !== 'waiting') return menuMsg.textContent = "Game already started!";
-
-      let assignedSlot = -1;
-      const players = room.players || {};
-      for(let i=0; i<4; i++) {
-        if(!players[i]) { assignedSlot = i; break; }
+      if (!channels.length) {
+        ui.channelList.innerHTML = '<div class="channel-desc">No channels available.</div>';
+        ui.channelCount.textContent = '0';
+        return;
       }
 
-      if(assignedSlot === -1) return menuMsg.textContent = "Room is full!";
+      ui.channelCount.textContent = String(channels.length);
+      ui.channelList.innerHTML = '';
 
-      myColorIndex = assignedSlot;
-      currentRoomCode = code;
-      isHost = false;
+      channels.forEach(([channelId, meta]) => {
+        const count = meta && meta.members ? Object.keys(meta.members).length : 0;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `channel-option ${state.channelKey === channelId ? 'active' : ''}`;
+        button.innerHTML = `
+          <div class="channel-name-wrap">
+            <span class="channel-name">${escapeHtml(meta.name || channelId)}</span>
+            <span class="channel-desc">${escapeHtml(meta.description || 'Live channel')}</span>
+          </div>
+          <div class="channel-meta">
+            <span class="channel-dot"></span>
+            <span>${count}</span>
+          </div>
+        `;
+        button.addEventListener('click', () => {
+          if (channelId !== state.channelKey) {
+            joinChannel(channelId);
+          }
+        });
+        ui.channelList.appendChild(button);
+      });
+    }
 
-      update(ref(db, `rooms/${code}/players`), { [assignedSlot]: currentUser }).then(() => {
-        openRoomLobby(code);
-      }).catch(error => showRequestError(menuMsg, 'Joining the room', error));
-    }).catch(error => showRequestError(menuMsg, 'Joining the room', error));
-  };
+    function renderMembers() {
+      const members = Object.values(state.channelMembers || {});
+      ui.memberCount.textContent = `${members.length} members`;
+      ui.memberList.innerHTML = '';
 
-  // Sync Room Lobby Changes
-  function openRoomLobby(code) {
-    document.getElementById('menu-screen').style.display = 'none';
-    document.getElementById('room-lobby-screen').style.display = 'flex';
-    document.getElementById('display-room-code').textContent = code;
-
-    const roomRef = ref(db, `rooms/${code}`);
-    onValue(roomRef, (snapshot) => {
-      const room = snapshot.val();
-      if(!room) return;
-
-      const players = room.players || {};
-      for(let i=0; i<4; i++) {
-        const nameEl = document.getElementById(`slot-${i}-name`);
-        if(players[i]) nameEl.textContent = players[i] + (i===0 ? " (Host)" : "");
-        else nameEl.textContent = "Empty";
+      if (!members.length) {
+        const empty = document.createElement('div');
+        empty.className = 'member-tag';
+        empty.textContent = 'No members connected';
+        ui.memberList.appendChild(empty);
+        return;
       }
 
-      // Enable start button if at least 2 players are present and current user is Host
-      const playerCount = Object.keys(players).length;
-      const startBtn = document.getElementById('btn-start-online-game');
-      if(isHost) {
-        startBtn.style.display = 'block';
-        startBtn.disabled = playerCount < 2;
+      members.forEach((member) => {
+        const row = document.createElement('div');
+        row.className = 'member-row';
+        const name = member.username || state.usersByUid[member.uid]?.username || 'Anonymous';
+        row.innerHTML = `
+          <div class="left">
+            <div class="member-avatar">${getInitials(name)}</div>
+            <div>
+              <div class="member-name">${escapeHtml(name)}${member.uid === state.user?.uid ? ' (You)' : ''}</div>
+              <div class="member-tag">${member.uid === state.user?.uid ? 'Host' : 'Listening'}</div>
+            </div>
+          </div>
+          <span class="status-led ${member.status === 'online' ? '' : 'red'}" style="width:8px;height:8px;border-radius:50%;display:inline-block;"></span>
+        `;
+        ui.memberList.appendChild(row);
+      });
+    }
+
+    function updateStatusDisplay() {
+      const userName = state.profile?.username || state.user?.displayName || 'Radio operator';
+      ui.profileAvatar.textContent = getInitials(userName);
+      ui.profileName.textContent = userName;
+      ui.currentChannelTag.textContent = getChannelName(state.channelKey);
+      ui.channelNameBox.textContent = getChannelName(state.channelKey);
+      ui.loginBox.textContent = state.user ? 'Connected' : 'Offline';
+      ui.presenceStatus.innerHTML = `<span class="status-led ${state.isConnected ? '' : 'red'}"></span> ${state.isConnected ? 'Online' : 'Offline'}`;
+      ui.speakerName.textContent = state.currentSpeakerName || 'Waiting';
+      ui.micStatusLabel.textContent = state.micStream ? 'Active' : 'Ready';
+      ui.micStatusLabel.style.color = state.micStream ? 'var(--green)' : 'var(--amber)';
+
+      if (state.isTransmitting) {
+        ui.pushToTalk.classList.remove('ready', 'receiving');
+        ui.pushToTalk.classList.add('transmitting');
+        ui.pushToTalk.innerHTML = '<span>Transmitting</span>';
+      } else if (state.currentSpeakerName && state.currentSpeakerName !== 'Waiting' && state.currentSpeakerName !== 'Channel busy' && state.currentSpeakerName !== userName) {
+        ui.pushToTalk.classList.remove('ready', 'transmitting');
+        ui.pushToTalk.classList.add('receiving');
+        ui.pushToTalk.innerHTML = '<span>Receiving</span>';
       } else {
-        startBtn.style.display = 'none';
+        ui.pushToTalk.classList.remove('transmitting', 'receiving');
+        ui.pushToTalk.classList.add('ready');
+        ui.pushToTalk.innerHTML = '<span>Ready to transmit</span>';
       }
 
-      // Detect game start signal from host
-      if(room.status === 'playing' && room.gameState) {
-        document.getElementById('again').disabled = !isHost;
-        if(!gameStarted) {
-          gameStarted = true;
-          startOnlineGameView(room);
-        } else if(typeof window.syncGameState === 'function') {
-          window.syncGameState(room.gameState);
-        }
-      }
-    }, error => showRequestError(gameStarted ? document.getElementById('msg') : menuMsg, 'Loading the room', error));
-  }
-
-  // Leave Room Button
-  document.getElementById('btn-leave-room').onclick = () => {
-    if(currentRoomCode && myColorIndex !== null) {
-      remove(ref(db, `rooms/${currentRoomCode}/players/${myColorIndex}`)).then(() => {
-        location.reload();
-      }).catch(error => showRequestError(menuMsg, 'Leaving the room', error));
-      return;
+      ui.pushToTalk.disabled = !(state.user && state.isConnected);
     }
-    location.reload();
-  };
 
-  // Host starts the online game
-  document.getElementById('btn-start-online-game').onclick = () => {
-    get(child(ref(db), `rooms/${currentRoomCode}`)).then(s => {
-      if(!s.exists()) {
-        menuMsg.textContent = "Room not found!";
-        return;
+    function setNetworkStatus() {
+      const online = navigator.onLine;
+      ui.networkLabel.textContent = state.isConnected ? (online ? 'Stable' : 'Limited') : 'Offline';
+      ui.networkLabel.style.color = state.isConnected && online ? 'var(--green)' : 'var(--amber)';
+      ui.connectionStatusLabel.textContent = state.isConnected ? 'Online' : 'Offline';
+      ui.connectionStatusLabel.style.color = state.isConnected ? 'var(--green)' : 'var(--amber)';
+      ui.networkStatus.innerHTML = `<span class="status-led ${state.isConnected ? '' : 'amber'}"></span> ${state.isConnected ? 'Online' : 'Reconnecting'}`;
+    }
+
+    function generateId(prefix = 'rt') {
+      if (window.crypto && crypto.randomUUID) {
+        return `${prefix}-${crypto.randomUUID()}`;
       }
-      const room = s.val();
-      const players = room.players || {};
-      
-      const activePlayersList = [
-        players[0] || null,
-        players[1] || null,
-        players[2] || null,
-        players[3] || null
-      ];
+      return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
 
-      const initialGameState = {
-        players: activePlayersList,
-        pegs: [[-1,-1,-1,-1],[-1,-1,-1,-1],[-1,-1,-1,-1],[-1,-1,-1,-1]],
-        turn: 0,
-        dice: null,
-        bonus: 0,
-        lastMove: null
-      };
+    function ensureDefaultChannels() {
+      const defaultRef = ref(db, 'channels');
+      return get(defaultRef).then((snapshot) => {
+        if (!snapshot.exists()) {
+          const updates = {};
+          DEFAULT_CHANNELS.forEach((channel) => {
+            updates[channel.id] = {
+              name: channel.name,
+              description: channel.description,
+              members: {},
+              speakingLock: { holderUid: null, sessionId: null, expiresAt: 0, acquiredAt: 0 },
+              signalQueue: {},
+              createdAt: serverTimestamp()
+            };
+          });
+          return set(defaultRef, updates);
+        }
 
-      if(activePlayersList.filter(Boolean).length < 2) {
-        menuMsg.textContent = "At least two players are needed to start.";
-        return;
+        const existing = snapshot.val() || {};
+        const toCreate = {};
+        DEFAULT_CHANNELS.forEach((channel) => {
+          if (!existing[channel.id]) {
+            toCreate[channel.id] = {
+              name: channel.name,
+              description: channel.description,
+              members: {},
+              speakingLock: { holderUid: null, sessionId: null, expiresAt: 0, acquiredAt: 0 },
+              signalQueue: {},
+              createdAt: serverTimestamp()
+            };
+          }
+        });
+        if (Object.keys(toCreate).length) {
+          return update(defaultRef, toCreate);
+        }
+        return null;
+      });
+    }
+
+    async function reserveUsername(uid, username) {
+      const normalized = normalizeUsername(username);
+      const usernameRef = ref(db, `usernames/${normalized}`);
+      try {
+        await runTransaction(usernameRef, (current) => {
+          if (current && current !== uid) {
+            throw new Error('USERNAME_TAKEN');
+          }
+          return uid;
+        });
+      } catch (error) {
+        if (String(error.message || error).includes('USERNAME_TAKEN')) {
+          throw new Error('This username is already in use.');
+        }
+        throw error;
       }
+    }
 
-      update(ref(db, `rooms/${currentRoomCode}`), {
-        status: 'playing',
-        gameState: initialGameState
-      }).catch(error => showRequestError(menuMsg, 'Starting the game', error));
-    }).catch(error => showRequestError(menuMsg, 'Starting the game', error));
-  };
+    async function createAccount(username, email, password) {
+      const trimmed = String(username || '').trim();
+      if (!trimmed || trimmed.length < 2) throw new Error('Username must be at least 2 characters long.');
+      if (!/^[a-zA-Z0-9 _-]+$/.test(trimmed)) throw new Error('Username can contain letters, numbers, spaces, underscores, and dashes only.');
+      if (!email || !password || password.length < 6) throw new Error('Please provide a valid email and a password with at least 6 characters.');
+      const authUser = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      await updateProfile(authUser.user, { displayName: trimmed });
+      await reserveUsername(authUser.user.uid, trimmed);
+      const userRef = ref(db, `users/${authUser.user.uid}`);
+      await set(userRef, {
+        uid: authUser.user.uid,
+        username: trimmed,
+        email: email.trim().toLowerCase(),
+        status: 'online',
+        currentChannel: 'general',
+        createdAt: serverTimestamp(),
+        lastSeen: serverTimestamp()
+      });
+      return authUser;
+    }
 
-  async function restartOnlineGame() {
-    if(!isHost || !currentRoomCode || !gameStarted) return;
-    if(!window.confirm('Start a new game for everyone in this room?')) return;
-    try {
-      const snapshot = await get(child(ref(db), `rooms/${currentRoomCode}`));
-      if(!snapshot.exists()) throw new Error('Room no longer exists.');
-      const players = snapshot.val().players || {};
-      const activePlayersList = [players[0] || null, players[1] || null, players[2] || null, players[3] || null];
-      if(activePlayersList.filter(Boolean).length < 2) {
-        menuMsg.textContent = "At least two players are needed to play again.";
-        return;
+    async function login(email, password) {
+      if (!email || !password) throw new Error('Please enter both email and password.');
+      return signInWithEmailAndPassword(auth, email.trim(), password);
+    }
+
+    function mapAuthError(error) {
+      const code = error && error.code ? error.code : '';
+      const message = error && error.message ? error.message : 'Authentication failed.';
+      if (code === 'auth/email-already-in-use') return 'An account already exists for that email.';
+      if (code === 'auth/invalid-email') return 'The email address is not valid.';
+      if (code === 'auth/weak-password') return 'Password is too weak. Use at least 6 characters.';
+      if (code === 'auth/user-not-found' || code === 'auth/wrong-password') return 'Invalid email or password.';
+      if (code === 'auth/user-disabled') return 'This account has been disabled.';
+      if (code === 'auth/network-request-failed') return 'Network error. Please retry.';
+      if (String(message).includes('USERNAME_TAKEN')) return 'This username is already in use.';
+      if (message && message !== 'Authentication failed.') return message;
+      return 'Unable to complete that request.';
+    }
+
+    function subscribeToPresence(uid) {
+      if (state.userPresenceUnsubscribe) {
+        state.userPresenceUnsubscribe();
       }
-      await update(ref(db, `rooms/${currentRoomCode}`), {
-        status: 'playing',
-        gameState: {
-          players: activePlayersList,
-          pegs: [[-1,-1,-1,-1],[-1,-1,-1,-1],[-1,-1,-1,-1],[-1,-1,-1,-1]],
-          turn: 0,
-          dice: null,
-          bonus: 0,
-          over: false,
-          winner: null,
-          lastMove: null
+      const connectedRef = ref(db, '.info/connected');
+      const userPresenceRef = ref(db, `presence/${uid}`);
+      const userRef = ref(db, `users/${uid}`);
+      state.userPresenceUnsubscribe = onValue(connectedRef, async (snapshot) => {
+        const isOnline = !!snapshot.val();
+        state.isConnected = isOnline;
+        setNetworkStatus();
+        if (isOnline) {
+          await set(userPresenceRef, {
+            uid,
+            username: state.profile?.username || state.user?.displayName || 'Radio operator',
+            status: 'online',
+            currentChannel: state.channelKey,
+            lastSeen: serverTimestamp()
+          });
+          await update(userRef, {
+            status: 'online',
+            lastSeen: serverTimestamp(),
+            currentChannel: state.channelKey
+          });
+          onDisconnect(userPresenceRef).remove();
+          onDisconnect(userRef).update({ status: 'offline', lastSeen: serverTimestamp() });
+        } else {
+          await update(userRef, { status: 'offline', lastSeen: serverTimestamp() });
+          if (state.user && state.user.uid === uid) {
+            showToast('Connection lost. Reconnecting...', 'info');
+          }
+        }
+        updateStatusDisplay();
+      });
+    }
+
+    function cleanupPeerConnections() {
+      Object.values(state.activePeers).forEach((pc) => {
+        if (pc && typeof pc.close === 'function') {
+          pc.close();
         }
       });
-    } catch(error) {
-      showRequestError(menuMsg, 'Restarting the game', error);
+      state.activePeers = {};
     }
-  }
-  document.getElementById('again').onclick = restartOnlineGame;
-  document.getElementById('wb').onclick = restartOnlineGame;
 
-  function startOnlineGameView(room) {
-    document.getElementById('room-lobby-screen').style.display = 'none';
-    document.getElementById('game').style.display = 'flex';
-    resize();
-
-    window.initGameEngine(room.gameState, currentRoomCode, myColorIndex, db, update, ref);
-  }
-</script>
-
-<script>
-const COL=['#e04a3c','#35a85f','#3a7bd5','#f2b42a'],LT=['#ff8274','#74dc95','#78afff','#ffdc7a'],DK=['#8a2118','#1d6a3a','#1f4b99','#a1700c'];
-const NAME=['Red','Green','Blue','Yellow'],SAFE=new Set([0,13,26,39,8,21,34,47]),S=40;
-const track=[],L=(x,y,dx,dy,n)=>{for(let i=0;i<n;i++)track.push([x+dx*i,y+dy*i])};
-L(1,6,1,0,5);L(6,5,0,-1,6);L(7,0,1,0,2);L(8,1,0,1,5);L(9,6,1,0,6);L(14,7,0,1,2);L(13,8,-1,0,5);L(8,9,0,1,6);L(7,14,-1,0,2);L(6,13,0,-1,5);L(5,8,-1,0,6);L(0,7,0,-1,2);
-const lane=(c,k)=>[[1+k,7],[7,1+k],[13-k,7],[7,13-k]][c];
-const BASE=[[[2,2],[4,2],[2,4],[4,4]],[[10,2],[12,2],[10,4],[12,4]],[[10,10],[12,10],[10,12],[12,12]],[[2,10],[4,10],[2,12],[4,12]]];
-const cellOf=(c,p,i)=>p<0?BASE[c][i]:p<=50?track[(c*13+p)%52]:p<56?lane(c,p-51):[7,7];
-const $=id=>document.getElementById(id),sl=ms=>new Promise(r=>setTimeout(r,ms)),lerp=(a,b,t)=>a+(b-a)*t;
-const anim=(ms,fn)=>new Promise(res=>{const s=performance.now();(function f(n){const t=Math.min(1,(n-s)/ms);fn(t);t<1?requestAnimationFrame(f):res()})(s)});
-const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
-
-/* Audio Synthesizer */
-let AC=null,muted=false;
-const au=()=>{if(!AC)try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}if(AC&&AC.state==='suspended')AC.resume();return muted?null:AC};
-function tone(f,d,ty='sine',v=.2,t0=0,f2){const a=au();if(!a)return;const t=a.currentTime+t0,o=a.createOscillator(),g=a.createGain();o.type=ty;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.02)}
-function noise(d,v=.2,f=2000,q=1,t0=0){const a=au();if(!a)return;const t=a.currentTime+t0,n=a.sampleRate*d|0,b=a.createBuffer(1,n,a.sampleRate),x=b.getChannelData(0);for(let i=0;i<n;i++)x[i]=(Math.random()*2-1)*(1-i/n);const s=a.createBufferSource(),fl=a.createBiquadFilter(),g=a.createGain();s.buffer=b;fl.type='bandpass';fl.frequency.value=f;fl.Q.value=q;g.gain.value=v;s.connect(fl);fl.connect(g);g.connect(a.destination);s.start(t)}
-let NB=null;
-function nbuf(a){if(!NB){const n=a.sampleRate|0;NB=a.createBuffer(1,n,a.sampleRate);const x=NB.getChannelData(0);for(let i=0;i<n;i++)x[i]=Math.random()*2-1}return NB}
-function knock(t0,v,f,dec,body){const a=au();if(!a)return;const t=a.currentTime+t0,s=a.createBufferSource(),b=a.createBiquadFilter(),h=a.createBiquadFilter(),g=a.createGain();
- s.buffer=nbuf(a);b.type='bandpass';b.frequency.value=f;b.Q.value=3+Math.random()*4;h.type='highpass';h.frequency.value=300;
- g.gain.setValueAtTime(v*4,t);g.gain.exponentialRampToValueAtTime(.001,t+dec);let o=g;
- if(a.createStereoPanner){const p=a.createStereoPanner();p.pan.value=Math.random()*.6-.3;g.connect(p);o=p}
- s.connect(b);b.connect(h);h.connect(g);o.connect(a.destination);s.start(t,Math.random()*.8,dec+.02);
- if(body)tone(body,dec*1.5,'sine',v*.8,t0,body*.5)}
-const SFX={
-roll(){for(let i=0;i<26;i++)knock(i*.016+Math.random()*.012,.1+Math.random()*.18+i*.004,700+Math.random()*1700,.018+Math.random()*.02,Math.random()<.25?150+Math.random()*80:0);[[.46,.9],[.62,.7],[.75,.5],[.85,.36],[.92,.24],[.97,.15]].forEach(([t,v])=>{knock(t,v,1000+Math.random()*500,.07,170);knock(t+.008,v*.6,2600+Math.random()*1500,.025);knock(t+.02+Math.random()*.02,v*.35,1800+Math.random()*1200,.02)});for(let i=0;i<7;i++)knock(.9+i*.02+Math.random()*.015,.1+Math.random()*.06,1500+Math.random()*2200,.02)},
-step(){tone(320,.07,'triangle',.28,0,120);noise(.03,.18,3200,2)},
-capture(){tone(220,.5,'sawtooth',.25,0,40);noise(.45,.4,600,.7);tone(90,.4,'sine',.45,0,30)},
-safe(){tone(660,.15,'sine',.2);tone(990,.25,'sine',.2,.1)},
-six(){tone(784,.12,'triangle',.2);tone(1175,.2,'triangle',.2,.08)},
-home(){[784,988,1319].forEach((f,i)=>tone(f,.3,'sine',.2,i*.09))},
-start(){[523,659,784,1047].forEach((f,i)=>tone(f,.25,'triangle',.2,i*.1))},
-win(){[523,659,784,1047,784,1047,1319].forEach((f,i)=>{tone(f,.4,'triangle',.22,i*.15);tone(f/2,.4,'sine',.12,i*.15)})}};
-$('mute').onclick=()=>{muted=!muted;$('mute').textContent=muted?'🔇':'🔊';};
-
-/* 3D Dice Render */
-const PIP={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]},ORI={1:[0,0],2:[-90,0],3:[0,-90],4:[0,90],5:[90,0],6:[0,180]};
-$('cube').innerHTML=[1,2,3,4,5,6].map(n=>`<div class="face f${n}">${[...Array(9)].map((_,k)=>PIP[n].includes(k)?'<i></i>':'<b></b>').join('')}</div>`).join('');
-let spin=0;
-function setDie(d,roll){const[rx,ry]=ORI[d],c=$('cube');spin++;const e=roll?spin*720:0;c.style.transition=roll?'':'none';c.style.transform=`rotateX(${rx+e}deg) rotateY(${ry+e}deg)`;
- if(roll){const s=$('scene');s.classList.remove('toss');void s.offsetWidth;s.classList.add('toss')}}
-setDie(1,false);
-function pop(t,sub,col){const p=$('pop');p.innerHTML=t+(sub?`<small>${sub}</small>`:'');p.style.color=col;p.classList.remove('show');void p.offsetWidth;p.classList.add('show')}
-
-/* Online Game State Synchronizer */
-let G=null, shake=0, P=[], CF=[], confetti=0;
-let roomCodeGlobal=null, myIndexGlobal=null, dbGlobal=null, updateGlobal=null, refGlobal=null;
-
-window.initGameEngine = function(state, roomCode, myIndex, db, updateFn, refFn) {
-  roomCodeGlobal = roomCode;
-  myIndexGlobal = myIndex;
-  dbGlobal = db;
-  updateGlobal = updateFn;
-  refGlobal = refFn;
-
-  window.syncGameState(state);
-};
-
-function validGameState(state) {
-  const playersAreValid = state && (Array.isArray(state.players) ||
-    (state.players && typeof state.players === 'object'));
-  return playersAreValid &&
-    Object.values(state.players).every(player => player == null || typeof player === 'string') &&
-    Array.isArray(state.pegs) && state.pegs.length === 4 &&
-    state.pegs.every(row => Array.isArray(row) && row.length === 4 &&
-      row.every(p => Number.isInteger(p) && p >= -1 && p <= 56)) &&
-    Number.isInteger(state.turn) && state.turn >= 0 && state.turn < 4 &&
-    Boolean(state.players[state.turn]) &&
-    (state.dice == null || (Number.isInteger(state.dice) && state.dice >= 1 && state.dice <= 6)) &&
-    (!state.over || (Number.isInteger(state.winner) && state.winner >= 0 && state.winner < 4));
-}
-
-window.syncGameState = function(state) {
-  if(!validGameState(state)) {
-    console.error('Received invalid game state from the room.');
-    msg('Game data is invalid. Leave the room and try again.');
-    return;
-  }
-
-  const wasBusy = G && G.busy;
-  const wasWinner = G && G.over && G.winner === state.winner;
-  const players = Array.from({length:4}, (_,i) =>
-    typeof state.players[i] === 'string' ? state.players[i] : null
-  );
-  G = {
-    players,
-    pegs: state.pegs.map(row => row.slice()),
-    turn: state.turn,
-    dice: state.dice,
-    moves: state.dice == null ? [] : legal(state.turn, state.dice),
-    busy: Boolean(wasBusy),
-    over: Boolean(state.over),
-    winner: Number.isInteger(state.winner) ? state.winner : null,
-    syncError: false,
-    bonus: state.bonus || 0,
-    hover: null, mv: null, fly: [], hide: new Set()
-  };
-  if(G.dice != null) setDie(G.dice, false);
-  $('again').disabled = myIndexGlobal !== 0;
-  $('wb').disabled = myIndexGlobal !== 0;
-  if(G.over) showWinner(G.winner, !wasWinner);
-  else $('win').style.display = 'none';
-  ui();
-};
-
-function legal(c,d){ return G.pegs[c].map((p,i)=>p===-1?(d===6?i:-1):(p+d<=56?i:-1)).filter(i=>i>=0); }
-function caps(c,np){const h=[];if(np>50||np<0)return h;const a=(c*13+np)%52;if(SAFE.has(a))return h;G.pegs.forEach((arr,o)=>o!==c&&arr.forEach((q,k)=>{if(q>=0&&q<=50&&(o*13+q)%52===a)h.push([o,k])}));return h}
-const msg=t=>$('msg').textContent=t;
-
-function showWinner(c, playSound=true) {
-  if(!Number.isInteger(c) || !G.players[c]) return;
-  if(playSound) SFX.win();
-  $('wt').textContent = `${G.players[c]} wins!`;
-  $('wt').style.color = COL[c];
-  $('win').style.display = 'flex';
-}
-
-async function persistGameState() {
-  const state = {
-    players: G.players,
-    pegs: G.pegs,
-    turn: G.turn,
-    dice: G.dice,
-    bonus: G.bonus,
-    over: G.over,
-    winner: G.winner
-  };
-  try {
-    await updateGlobal(refGlobal(dbGlobal, `rooms/${roomCodeGlobal}/gameState`), state);
-    return true;
-  } catch(error) {
-    console.error('Could not synchronize game state:', error);
-    G.syncError = true;
-    G.busy = false;
-    ui();
-    msg('Could not sync the game. Check your connection and try again.');
-    return false;
-  }
-}
-
-$('roll').onclick = async () => {
-  if(G && G.turn === myIndexGlobal && !G.busy && !G.syncError && G.dice == null && !G.over) {
-    au();
-    G.busy = true; ui();
-    const d = 1 + Math.random()*6 | 0;
-    SFX.roll(); setDie(d, true); await sl(1050);
-    G.dice = d;
-    G.moves = legal(G.turn, d);
-    pop(d, d===6?'SIX!':'', COL[G.turn]);
-    if(d===6) SFX.six();
-    if(!await persistGameState()) return;
-    G.busy = false;
-    ui();
-
-    if(!G.moves.length) {
-      msg(`${NAME[G.turn]} rolled ${d}: no legal move`);
-      await sl(1200);
-      await nextTurnOnline();
+    async function releaseSpeakingLock() {
+      if (!state.user || !state.channelKey) return;
+      const lockRef = ref(db, `channels/${state.channelKey}/speakingLock`);
+      const snapshot = await get(lockRef);
+      const lock = snapshot.val() || {};
+      if (lock.holderUid === state.user.uid && lock.sessionId === state.currentSessionId) {
+        await remove(lockRef);
+      }
+      state.currentSessionId = null;
+      state.isTransmitting = false;
+      updateStatusDisplay();
     }
-  }
-};
 
-async function nextTurnOnline() {
-  let next = G.turn;
-  for(let offset=1;offset<=4;offset++) {
-    const candidate = (G.turn + offset) % 4;
-    if(G.players[candidate]) { next = candidate; break; }
-  }
-  G.turn = next;
-  G.dice = null;
-  G.moves = [];
-  G.busy = true;
-  if(!await persistGameState()) return;
-  G.busy = false;
-  ui();
-}
-
-async function doMoveOnline(i) {
-  if(!canMove() || !G.moves.includes(i)) return;
-  const c = G.turn, d = G.dice;
-  G.busy = true; G.moves = []; ui();
-  const p = G.pegs[c][i], np = p===-1?0:p+d;
-
-  if(p===-1){
-    const[a,b]=cellOf(c,-1,i),[x,y]=cellOf(c,0,i);
-    await anim(380,t=>{G.mv={c,i,x:lerp(a,x,ease(t)),y:lerp(b,y,ease(t)),z:Math.sin(t*Math.PI)*26}});
-    G.pegs[c][i]=0; G.mv=null; SFX.step();
-  } else {
-    for(let q=p+1;q<=np;q++){
-      const[a,b]=cellOf(c,q-1,i),[x,y]=cellOf(c,q,i);
-      await anim(190,t=>{G.mv={c,i,x:lerp(a,x,t),y:lerp(b,y,t),z:Math.sin(t*Math.PI)*16}});
-      G.pegs[c][i]=q; G.mv=null; SFX.step();
+    async function stopLocalMicrophone() {
+      if (state.micStream) {
+        state.micStream.getTracks().forEach((track) => track.stop());
+        state.micStream = null;
+      }
+      ui.micStatusLabel.textContent = 'Ready';
+      ui.micStatusLabel.style.color = 'var(--amber)';
     }
-  }
 
-  const hit = caps(c, np);
-  if(hit.length){
-    shake=1; SFX.capture();
-    hit.forEach(([o,k])=>{ G.pegs[o][k]=-1; });
-  }
+    async function stopTransmission() {
+      await stopLocalMicrophone();
+      await releaseSpeakingLock();
+      cleanupPeerConnections();
+      state.currentSpeakerName = 'Waiting';
+      updateStatusDisplay();
+    }
 
-  if(G.pegs[c].every(x=>x===56)){
-    G.over=true;
-    G.winner=c;
-    G.dice=null;
-    if(!await persistGameState()) return;
-    G.busy=false;
-    showWinner(c, false);
-    ui();
-    return;
-  }
+    async function ensureOtherMembersPeer(remoteUid) {
+      if (!state.user || !state.channelKey) return null;
+      if (state.activePeers[remoteUid]) {
+        return state.activePeers[remoteUid];
+      }
+      const pc = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+      });
 
-  if(d===6) {
-    G.dice = null;
-    G.moves = [];
-    if(!await persistGameState()) return;
-    G.busy = false;
-    ui();
-  } else {
-    await nextTurnOnline();
-  }
-}
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          sendSignal(remoteUid, 'candidate', event.candidate.toJSON());
+        }
+      };
 
-function ui(){
-  if(!G)return;
-  const chips = $('chips');
-  chips.replaceChildren();
-  G.players.forEach((pName,i)=>{
-    if(!pName) return;
-    const chip = document.createElement('span');
-    chip.className = `chip glass ${G.turn===i&&!G.over?'turn':''}`;
-    chip.style.setProperty('--c',COL[i]);
-    const avatar = document.createElement('span');
-    avatar.className = 'av';
-    avatar.textContent = '👤';
-    const details = document.createElement('span');
-    details.append(document.createTextNode(pName));
-    const pieces = document.createElement('small');
-    pieces.textContent = G.pegs[i].map(x=>x===56?'●':'○').join('');
-    details.append(pieces);
-    chip.append(avatar,details);
-    chips.append(chip);
-  });
-  document.documentElement.style.setProperty('--g',COL[G.turn]+'aa');
-  const isMyTurn = G.turn === myIndexGlobal;
-  $('roll').disabled = !(isMyTurn && !G.busy && !G.syncError && G.dice==null && !G.over);
-  if(isMyTurn && G.dice==null) msg(`Your turn! Roll the dice.`);
-  else if(isMyTurn && G.dice!=null && G.moves.length) msg(`You rolled ${G.dice}. Tap a piece to move.`);
-  else if(isMyTurn && G.dice!=null) msg(`You rolled ${G.dice}. No legal move.`);
-  else if(!isMyTurn) msg(`Waiting for ${G.players[G.turn]}...`);
-  if(G.syncError) msg('Could not sync the game. Check your connection and try again.');
-  if(G.over) msg(`${G.players[G.winner]} wins!`);
-}
+      pc.ontrack = (event) => {
+        const [stream] = event.streams;
+        if (stream) {
+          ui.remoteAudio.srcObject = stream;
+          ui.remoteAudio.play().catch(() => {});
+          const label = state.usersByUid[remoteUid]?.username || 'Remote user';
+          state.currentSpeakerName = label;
+          updateStatusDisplay();
+        }
+      };
 
-/* Canvas Board & Graphics */
-const cv=$('board'),g=cv.getContext('2d'),bc=document.createElement('canvas'),bg=bc.getContext('2d');
-const canMove=()=>G&&!G.busy&&!G.syncError&&!G.over&&G.turn===myIndexGlobal&&G.dice!=null;
-function pegList(){const seen={},out=[];G.pegs.forEach((arr,c)=>arr.forEach((p,i)=>{if(G.hide.has(c+','+i)||(G.mv&&G.mv.c===c&&G.mv.i===i))return;const[x,y]=cellOf(c,p,i);(seen[x+','+y]=seen[x+','+y]||[]).push({c,i,p,x,y})}));
- Object.values(seen).forEach(l=>l.forEach((o,n)=>{const f=l.length>1?(n-(l.length-1)/2)*11:0;o.px=o.x*S+20+f;o.py=o.y*S+20+f/2;out.push(o)}));return out.sort((a,b)=>a.py-b.py)}
-function at(e){const r=cv.getBoundingClientRect(),k=600/r.width,x=(e.clientX-r.left)*k,y=(e.clientY-r.top)*k;let best=null,bd=Math.max(30,26*k);
- pegList().forEach(o=>{if(o.c===G.turn&&G.moves.includes(o.i)){const d=Math.hypot(o.px-x,o.py-y);if(d<bd){bd=d;best=o}}});return best}
-cv.addEventListener('pointerdown',e=>{if(!canMove())return;const h=at(e);if(h){au();doMoveOnline(h.i)}});
-cv.addEventListener('keydown',e=>{
-  if(!canMove() || !/^[1-4]$/.test(e.key)) return;
-  const i=Number(e.key)-1;
-  if(G.moves.includes(i)) {
-    e.preventDefault();
-    au();
-    doMoveOnline(i);
-  }
-});
+      pc.onconnectionstatechange = () => {
+        const status = pc.connectionState;
+        if (status === 'failed' || status === 'closed') {
+          state.currentSpeakerName = 'Waiting';
+          updateStatusDisplay();
+        }
+      };
 
-function rr(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath()}
-function lg(x,a,b,w,h,c1,c2){const q=x.createLinearGradient(a,b,a+w,b+h);q.addColorStop(0,c1);q.addColorStop(1,c2);return q}
-function tile(x,cx,cy,c1,c2){x.save();x.shadowColor='#0006';x.shadowBlur=4;x.shadowOffsetY=2;rr(x,cx*S+2,cy*S+2,S-4,S-4,10);x.fillStyle=lg(x,cx*S,cy*S,S,S,c1,c2);x.fill();x.restore();x.strokeStyle='#fff8';x.lineWidth=1;rr(x,cx*S+3,cy*S+3,S-6,S-6,9);x.stroke()}
-function drawBoard(x){x.clearRect(0,0,600,600);
- x.save();x.shadowColor='#000a';x.shadowBlur=14;rr(x,2,2,596,596,24);x.fillStyle=lg(x,0,0,600,600,'#f8eed4','#d6c394');x.fill();x.restore();
- [[0,0],[9,0],[9,9],[0,9]].forEach(([a,b],c)=>{rr(x,a*S+4,b*S+4,6*S-8,6*S-8,22);x.fillStyle=lg(x,a*S,b*S,6*S,6*S,LT[c],DK[c]);x.fill();
-  x.save();x.shadowColor='#0007';x.shadowBlur=12;x.shadowOffsetY=3;rr(x,(a+1)*S,(b+1)*S,4*S,4*S,18);x.fillStyle='#fbf4e0';x.fill();x.restore();
-  BASE[c].forEach(([p,q])=>{x.beginPath();x.arc(p*S+20,q*S+20,18,0,7);x.fillStyle=COL[c]+'30';x.fill();x.lineWidth=3;x.strokeStyle=COL[c];x.stroke()})});
- track.forEach(([a,b],i)=>{const s=[0,13,26,39].indexOf(i);tile(x,a,b,s>=0?LT[s]:'#fffdf6',s>=0?DK[s]:'#e9dcbb');});
- for(let c=0;c<4;c++)for(let k=0;k<5;k++){const[a,b]=lane(c,k);tile(x,a,b,LT[c],DK[c])}
-}
-function peg(c,px,py,z,s,glow){g.save();g.translate(px,py);g.beginPath();g.ellipse(2,10,13*s*(1-z/200),5*s,0,0,7);g.fillStyle='#0006';g.fill();g.translate(0,-z);g.scale(s,s);
- g.beginPath();g.ellipse(0,6,14,7,0,0,7);g.fillStyle=DK[c];g.fill();
- const q=g.createRadialGradient(-5,-7,2,0,-2,17);q.addColorStop(0,'#fff');q.addColorStop(.35,LT[c]);q.addColorStop(1,DK[c]);g.beginPath();g.arc(0,-2,14,0,7);g.fillStyle=q;g.fill();g.lineWidth=2;g.strokeStyle=glow?'#fff':'#0005';g.stroke();g.restore()}
+      if (state.micStream) {
+        state.micStream.getTracks().forEach((track) => pc.addTrack(track, state.micStream));
+      }
+      state.activePeers[remoteUid] = pc;
+      return pc;
+    }
 
-function frame(t){
- if(!g||!bg)return;
- const k=cv.width/600;g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);
- g.setTransform(k,0,0,k,0,0);g.drawImage(bc,0,0,600,600);
- if(G){
-   pegList().forEach(o=>{
-     const m=canMove()&&o.c===G.turn&&G.moves.includes(o.i);
-     peg(o.c,o.px,o.py,m?Math.abs(Math.sin(t/260))*4:0,1,m);
-   });
-   if(G.mv)peg(G.mv.c,G.mv.x*S+20,G.mv.y*S+20,G.mv.z,1.1,false);
- }
- requestAnimationFrame(frame);
-}
+    async function sendSignal(targetUid, type, payload) {
+      if (!state.user || !state.channelKey) return;
+      const queueRef = ref(db, `channels/${state.channelKey}/signalQueue`);
+      const messageRef = push(queueRef);
+      const message = {
+        id: messageRef.key,
+        to: targetUid,
+        senderUid: state.user.uid,
+        type,
+        payload,
+        createdAt: Date.now()
+      };
+      await set(messageRef, message);
+      setTimeout(() => {
+        remove(messageRef).catch(() => {});
+      }, 40000);
+    }
 
-function resize(){const s=$('stage');if(!s)return;const b=Math.floor(Math.min(s.clientWidth,s.clientHeight));if(b>0)document.documentElement.style.setProperty('--bs',b+'px');
- const d=Math.min(window.devicePixelRatio||1,2),cssWidth=cv.clientWidth,w=Math.round((cssWidth||600)*d);if(w<50)return;
- if(cv.width!==w||cv.height!==w){cv.width=w;cv.height=w}
- if(bc.width!==w||bc.height!==w){bc.width=w;bc.height=w}
- if(!bg||!g){console.error('This browser could not create a 2D canvas context.');msg('Your browser could not draw the board. Update Chrome and reload.');return}
- bg.setTransform(w/600,0,0,w/600,0,0);drawBoard(bg)}
-addEventListener('resize',resize);addEventListener('orientationchange',()=>setTimeout(resize,250));
-if(window.visualViewport) window.visualViewport.addEventListener('resize',resize);
-if(window.ResizeObserver) new ResizeObserver(resize).observe($('stage'));
-if(g&&bg){
- cv.width=cv.height=600;
- bc.width=bc.height=600;
- bg.setTransform(1,0,0,1,0,0);
- drawBoard(bg);
-}else{
- console.error('This browser could not create a 2D canvas context.');
- msg('Your browser could not draw the board. Update Chrome and reload.');
-}
-window.markCanvasReady?.();
-requestAnimationFrame(frame);
-</script>
+    async function processSignalQueue(messages) {
+      if (!messages) return;
+      const entries = Object.entries(messages);
+      if (!entries.length) return;
+      for (const [key, message] of entries) {
+        if (!message || message.to !== state.user?.uid || message.senderUid === state.user?.uid) {
+          continue;
+        }
+
+        try {
+          if (message.type === 'offer' || message.type === 'answer') {
+            const peer = await ensureOtherMembersPeer(message.senderUid);
+            const description = new RTCSessionDescription(message.payload);
+            await peer.setRemoteDescription(description);
+            if (message.type === 'offer') {
+              const answer = await peer.createAnswer();
+              await peer.setLocalDescription(answer);
+              await sendSignal(message.senderUid, 'answer', answer);
+            }
+          }
+
+          if (message.type === 'candidate') {
+            const peer = state.activePeers[message.senderUid];
+            if (peer && peer.remoteDescription) {
+              await peer.addIceCandidate(new RTCIceCandidate(message.payload));
+            }
+          }
+        } catch (error) {
+          console.warn('Signal handling error:', error);
+        } finally {
+          const signalRef = ref(db, `channels/${state.channelKey}/signalQueue/${key}`);
+          remove(signalRef).catch(() => {});
+        }
+      }
+    }
+
+    function attachChannelListeners(channelKey) {
+      state.channelSubscriptions.forEach((unsubscribe) => unsubscribe && unsubscribe());
+      state.channelSubscriptions = [];
+
+      const signalRef = ref(db, `channels/${channelKey}/signalQueue`);
+      const membersRef = ref(db, `channels/${channelKey}/members`);
+      const lockRef = ref(db, `channels/${channelKey}/speakingLock`);
+
+      state.channelSubscriptions.push(
+        onValue(signalRef, (snapshot) => processSignalQueue(snapshot.val() || {})),
+        onValue(membersRef, (snapshot) => {
+          const members = snapshot.val() || {};
+          state.channelMembers = members;
+          renderMembers();
+          Object.entries(members).forEach(([uid, member]) => {
+            state.usersByUid[uid] = { uid, username: member.username || 'Remote user' };
+          });
+        }),
+        onValue(lockRef, (snapshot) => {
+          const lock = snapshot.val() || {};
+          const holderUid = lock.holderUid;
+          if (holderUid && holderUid !== state.user?.uid) {
+            const holderName = state.usersByUid[holderUid]?.username || 'Remote speaker';
+            state.currentSpeakerName = holderName;
+          } else if (holderUid === state.user?.uid) {
+            state.currentSpeakerName = state.profile?.username || 'You';
+          } else {
+            state.currentSpeakerName = 'Waiting';
+          }
+          updateStatusDisplay();
+        })
+      );
+    }
+
+    async function joinChannel(channelKey) {
+      if (!state.user) return;
+      const targetChannel = channelKey || state.channelKey || 'general';
+      const channelRef = ref(db, `channels/${targetChannel}`);
+      const channelSnapshot = await get(channelRef);
+      if (!channelSnapshot.exists()) {
+        showToast('Channel not found.', 'error');
+        return;
+      }
+
+      const userRef = ref(db, `users/${state.user.uid}`);
+      const memberRef = ref(db, `channels/${targetChannel}/members/${state.user.uid}`);
+      const username = state.profile?.username || state.user.displayName || 'Radio operator';
+
+      await set(memberRef, {
+        uid: state.user.uid,
+        username,
+        status: 'online',
+        joinedAt: serverTimestamp()
+      });
+
+      await update(userRef, {
+        currentChannel: targetChannel,
+        lastSeen: serverTimestamp()
+      });
+
+      state.channelKey = targetChannel;
+      state.currentSpeakerName = 'Waiting';
+      attachChannelListeners(targetChannel);
+      renderChannels();
+      updateStatusDisplay();
+      showToast(`Joined ${getChannelName(targetChannel)}`, 'success');
+    }
+
+    async function leaveChannel() {
+      if (!state.user || !state.channelKey) return;
+      const channelKey = state.channelKey;
+      const memberRef = ref(db, `channels/${channelKey}/members/${state.user.uid}`);
+      await remove(memberRef);
+      await update(ref(db, `users/${state.user.uid}`), { currentChannel: 'general', lastSeen: serverTimestamp() });
+      state.channelKey = 'general';
+      cleanupPeerConnections();
+      await stopTransmission();
+      attachChannelListeners('general');
+      renderChannels();
+      updateStatusDisplay();
+      showToast('Left channel', 'info');
+    }
+
+    function setAuthMode(mode) {
+      const registerVisible = mode === 'register';
+      ui.showRegister.classList.toggle('active', registerVisible);
+      ui.showLogin.classList.toggle('active', !registerVisible);
+      ui.showRegister.setAttribute('aria-selected', String(registerVisible));
+      ui.showLogin.setAttribute('aria-selected', String(!registerVisible));
+      ui.registerForm.classList.toggle('hidden', !registerVisible);
+      ui.loginForm.classList.toggle('hidden', registerVisible);
+      setAuthNote('');
+    }
+
+    async function requestSpeakingLock() {
+      if (!state.user || !state.channelKey) {
+        showToast('Join a channel first', 'info');
+        return;
+      }
+
+      const lockRef = ref(db, `channels/${state.channelKey}/speakingLock`);
+      const sessionId = generateId('lock');
+      state.currentSessionId = sessionId;
+      const nowMs = Date.now();
+
+      try {
+        const result = await runTransaction(lockRef, (current) => {
+          const lock = current || {};
+          const expiresAt = Number(lock.expiresAt || 0);
+          if (lock.holderUid && lock.holderUid !== state.user.uid && expiresAt > nowMs) {
+            return undefined;
+          }
+          return {
+            holderUid: state.user.uid,
+            sessionId,
+            expiresAt: nowMs + 18000,
+            acquiredAt: nowMs
+          };
+        });
+
+        if (!result.committed) {
+          state.currentSessionId = null;
+          state.currentSpeakerName = 'Channel busy';
+          updateStatusDisplay();
+          showToast('CHANNEL BUSY', 'error');
+          return;
+        }
+
+        const channelSnapshot = await get(ref(db, `channels/${state.channelKey}`));
+        const members = channelSnapshot.val()?.members || {};
+        const memberIds = Object.keys(members).filter((uid) => uid !== state.user.uid);
+        if (!memberIds.length) {
+          showToast('No other members in this channel.', 'info');
+          await releaseSpeakingLock();
+          return;
+        }
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          showToast('Microphone access is not available on this device.', 'error');
+          await releaseSpeakingLock();
+          return;
+        }
+
+        try {
+          state.micStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+              channelCount: 1
+            },
+            video: false
+          });
+
+          ui.micStatusLabel.textContent = 'Active';
+          ui.micStatusLabel.style.color = 'var(--green)';
+
+          for (const remoteUid of memberIds) {
+            const peer = await ensureOtherMembersPeer(remoteUid);
+            const offer = await peer.createOffer({ offerToReceiveAudio: true });
+            await peer.setLocalDescription(offer);
+            await sendSignal(remoteUid, 'offer', offer);
+          }
+
+          state.currentSpeakerName = state.profile?.username || state.user.displayName || 'You';
+          state.isTransmitting = true;
+          updateStatusDisplay();
+        } catch (error) {
+          console.error('Microphone error:', error);
+          showToast('Microphone access was denied. Please allow access to use push-to-talk.', 'error');
+          await releaseSpeakingLock();
+        }
+      } catch (error) {
+        console.error('Lock request failed', error);
+        state.currentSessionId = null;
+        showToast('Unable to acquire a speaking lock.', 'error');
+      }
+    }
+
+    function registerUiBindings() {
+      ui.showRegister.addEventListener('click', () => setAuthMode('register'));
+      ui.showLogin.addEventListener('click', () => setAuthMode('login'));
+
+      ui.registerForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const username = document.getElementById('reg-username').value;
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+        const confirmPassword = document.getElementById('reg-confirm').value;
+
+        if (!username || !email || !password || !confirmPassword) {
+          setAuthNote('Please fill in every field.', 'error');
+          return;
+        }
+        if (password !== confirmPassword) {
+          setAuthNote('Passwords do not match.', 'error');
+          return;
+        }
+
+        try {
+          setAuthNote('Creating account...', '');
+          await createAccount(username, email, password);
+          setAuthNote('Account created successfully. Logging in...', 'success');
+          await login(email, password);
+        } catch (error) {
+          setAuthNote(mapAuthError(error), 'error');
+          console.error('Registration error:', error);
+        }
+      });
+
+      ui.loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        try {
+          setAuthNote('Signing in...', '');
+          await login(email, password);
+        } catch (error) {
+          setAuthNote(mapAuthError(error), 'error');
+          console.error('Login error:', error);
+          showToast('Login failed', 'error');
+        }
+      });
+
+      ui.pushToTalk.addEventListener('pointerdown', async () => {
+        if (!state.user || !state.isConnected) {
+          showToast('Connection not ready.', 'error');
+          return;
+        }
+        if (state.isTransmitting) {
+          await stopTransmission();
+          return;
+        }
+        await requestSpeakingLock();
+      });
+
+      ui.pushToTalk.addEventListener('pointerup', async () => {
+        if (state.isTransmitting) {
+          await stopTransmission();
+        }
+      });
+
+      ui.pushToTalk.addEventListener('mouseleave', async () => {
+        if (state.isTransmitting) {
+          await stopTransmission();
+        }
+      });
+
+      ui.logoutButton.addEventListener('click', async () => {
+        if (!state.user) return;
+        if (!window.confirm('Log out and close your radio session?')) return;
+        try {
+          await signOut(auth);
+        } catch (error) {
+          console.error('Logout error:', error);
+        }
+      });
+
+      ui.leaveChannelButton.addEventListener('click', async () => {
+        await leaveChannel();
+      });
+
+      ui.settingsButton.addEventListener('click', () => {
+        ui.settingsOverlay.classList.remove('hidden');
+      });
+
+      ui.closeSettings.addEventListener('click', () => {
+        ui.settingsOverlay.classList.add('hidden');
+      });
+
+      ui.soundToggle.addEventListener('change', () => {
+        state.soundEnabled = ui.soundToggle.checked;
+        showToast(state.soundEnabled ? 'Sound enabled' : 'Sound muted', 'info');
+      });
+
+      document.addEventListener('keydown', async (event) => {
+        if (event.code === 'Space' && !event.repeat) {
+          event.preventDefault();
+          if (!state.isTransmitting) {
+            await requestSpeakingLock();
+          } else {
+            await stopTransmission();
+          }
+        }
+      });
+
+      window.addEventListener('online', () => {
+        showToast('Connection restored', 'success');
+        setNetworkStatus();
+      });
+
+      window.addEventListener('offline', () => {
+        showToast('Network offline', 'info');
+        setNetworkStatus();
+      });
+    }
+
+    function loadChannelMetadata() {
+      const channelRef = ref(db, 'channels');
+      onValue(channelRef, (snapshot) => {
+        const channels = snapshot.val() || {};
+        state.channelMap = channels;
+        const channelKey = state.channelKey || 'general';
+        if (!channels[channelKey]) {
+          state.channelKey = 'general';
+        }
+        renderChannels();
+        ui.currentChannelTag.textContent = getChannelName(state.channelKey);
+        ui.channelNameBox.textContent = getChannelName(state.channelKey);
+      });
+    }
+
+    async function initializeAuthentication() {
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          setScreen('auth');
+          state.user = null;
+          state.profile = null;
+          state.channelSubscriptions.forEach((unsubscribe) => unsubscribe && unsubscribe());
+          state.channelSubscriptions = [];
+          cleanupPeerConnections();
+          await stopLocalMicrophone();
+          setAuthNote('Please sign in to continue.', '');
+          return;
+        }
+
+        state.user = user;
+        setScreen('app');
+        const userRef = ref(db, `users/${user.uid}`);
+        const profileSnapshot = await get(userRef);
+        if (!profileSnapshot.exists()) {
+          await set(userRef, {
+            uid: user.uid,
+            username: user.displayName || 'Radio operator',
+            email: user.email || '',
+            status: 'online',
+            currentChannel: 'general',
+            createdAt: serverTimestamp(),
+            lastSeen: serverTimestamp()
+          });
+        }
+        state.profile = (await get(userRef)).val() || {};
+        state.usersByUid[user.uid] = { uid: user.uid, username: state.profile.username || user.displayName || 'Radio operator' };
+        state.channelKey = state.profile.currentChannel || 'general';
+        await ensureDefaultChannels();
+        loadChannelMetadata();
+        attachChannelListeners(state.channelKey);
+        await joinChannel(state.channelKey);
+        subscribeToPresence(user.uid);
+        updateStatusDisplay();
+      });
+    }
+
+    function boot() {
+      startLoadingSequence();
+      setTimeout(() => {
+        updateLoadingProgress(100);
+        setTimeout(() => {
+          ui.loading.classList.add('hidden');
+          setAuthMode('register');
+          setScreen('auth');
+        }, 250);
+      }, 900);
+      registerUiBindings();
+      initializeAuthentication();
+      setNetworkStatus();
+    }
+
+    boot();
+  </script>
 </body>
 </html>
