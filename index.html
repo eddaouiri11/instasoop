@@ -928,6 +928,10 @@
           <label for="reg-password">Password</label>
           <input id="reg-password" name="password" type="password" autocomplete="new-password" placeholder="At least 6 characters" required />
         </div>
+        <div class="field">
+          <label for="reg-confirm">Confirm password</label>
+          <input id="reg-confirm" name="confirm" type="password" autocomplete="new-password" placeholder="Repeat your password" required />
+        </div>
         <button type="submit" class="primary">Register</button>
       </form>
 
@@ -1051,14 +1055,6 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
     import {
-      getAuth,
-      createUserWithEmailAndPassword,
-      signInWithEmailAndPassword,
-      onAuthStateChanged,
-      signOut,
-      updateProfile
-    } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-    import {
       getDatabase,
       ref,
       set,
@@ -1087,23 +1083,22 @@
       const required = ['apiKey', 'authDomain', 'databaseURL', 'projectId', 'appId'];
       const missing = required.filter((key) => !config[key] || String(config[key]).trim() === '');
       if (missing.length) {
-        throw new Error(`Firebase config is incomplete. Missing: ${missing.join(', ')}. Open Firebase Console > Project settings > Your apps and confirm the active web app matches the project you are using.`);
+        throw new Error(`Firebase config is incomplete. Missing: ${missing.join(', ')}. The app must use the active project in Firebase Console.`);
       }
       const authDomain = String(config.authDomain || '').toLowerCase();
       const projectId = String(config.projectId || '').toLowerCase();
       const databaseUrl = String(config.databaseURL || '').toLowerCase();
       if (projectId && !authDomain.includes(projectId) && !authDomain.includes('firebaseapp.com') && !authDomain.includes('web.app')) {
-        console.warn('Firebase authDomain does not match projectId. This commonly triggers "Firebase: Error (auth/configuration-not-found)".');
+        console.warn('Firebase authDomain does not match the active project. This is the usual reason for "Firebase: Error (auth/configuration-not-found)".');
       }
       if (projectId && !databaseUrl.includes(projectId)) {
-        console.warn('Firebase databaseURL does not match the active project. This usually means the app is configured to a different Firebase project.');
+        console.warn('Firebase databaseURL does not match the active project. Use the same project from Firebase Console.');
       }
     }
 
     validateFirebaseConfig(firebaseConfig);
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const db = getDatabase(app);
 
     const DEFAULT_CHANNELS = [
@@ -1205,17 +1200,13 @@
       return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'radio-user';
     }
 
-    function generatePrivateAuthEmail(username) {
-      const base = normalizeUsername(username).replace(/[^a-z0-9]/g, '').slice(0, 18) || 'radio-user';
-      const randomPart = (() => {
-        if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
-          const values = new Uint32Array(3);
-          window.crypto.getRandomValues(values);
-          return Array.from(values).map((value) => value.toString(16).padStart(8, '0')).join('').slice(0, 20);
-        }
-        return `${Date.now()}${Math.random().toString(16).slice(2, 10)}`;
-      })();
-      return `${base}-${randomPart}@radiotalk.internal`;
+    async function hashPassword(value) {
+      if (!window.crypto || !window.crypto.subtle) {
+        return value;
+      }
+      const bytes = new TextEncoder().encode(value);
+      const digest = await window.crypto.subtle.digest('SHA-256', bytes);
+      return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
     }
 
     function getInitials(name) {
@@ -1390,74 +1381,71 @@
       });
     }
 
-    async function reserveUsername(uid, username) {
-      const normalized = normalizeUsername(username);
-      const usernameRef = ref(db, `usernames/${normalized}`);
-      try {
-        await runTransaction(usernameRef, (current) => {
-          if (current && current !== uid) {
-            throw new Error('USERNAME_TAKEN');
-          }
-          return uid;
-        });
-      } catch (error) {
-        if (String(error.message || error).includes('USERNAME_TAKEN')) {
-          throw new Error('This username is already in use.');
-        }
-        throw error;
-      }
-    }
-
     async function createAccount(username, password) {
       const trimmed = String(username || '').trim();
       if (!trimmed || trimmed.length < 2) throw new Error('Username must be at least 2 characters long.');
       if (!/^[a-zA-Z0-9 _-]+$/.test(trimmed)) throw new Error('Username can contain letters, numbers, spaces, underscores, and dashes only.');
-      if (!password || password.length < 6) throw new Error('Please provide a password with at least 6 characters.');
-      const authEmail = generatePrivateAuthEmail(trimmed);
-      const authUser = await createUserWithEmailAndPassword(auth, authEmail, password);
-      await updateProfile(authUser.user, { displayName: trimmed });
-      await reserveUsername(authUser.user.uid, trimmed);
-      const userRef = ref(db, `users/${authUser.user.uid}`);
-      await set(userRef, {
-        uid: authUser.user.uid,
+      if (!password || password.length < 6) throw new Error('Password must be at least 6 characters.');
+
+      const usernameKey = normalizeUsername(trimmed);
+      const accountRef = ref(db, `accounts/${usernameKey}`);
+      const existing = await get(accountRef);
+      if (existing.exists()) {
+        throw new Error('USERNAME_TAKEN');
+      }
+
+      const passwordHash = await hashPassword(password);
+      const record = {
         username: trimmed,
-        authEmail,
+        passwordHash,
+        createdAt: serverTimestamp(),
+        lastSeen: serverTimestamp()
+      };
+
+      await set(accountRef, record);
+      const userRef = ref(db, `users/${usernameKey}`);
+      await set(userRef, {
+        uid: usernameKey,
+        username: trimmed,
         status: 'online',
         currentChannel: 'general',
         createdAt: serverTimestamp(),
         lastSeen: serverTimestamp()
       });
-      return authUser;
+      return { uid: usernameKey, username: trimmed, displayName: trimmed };
     }
 
     async function login(username, password) {
       const trimmed = String(username || '').trim();
       if (!trimmed || !password) throw new Error('Please enter both username and password.');
       const usernameKey = normalizeUsername(trimmed);
-      const usernameRef = ref(db, `usernames/${usernameKey}`);
-      const uidSnapshot = await get(usernameRef);
-      const uid = uidSnapshot.val();
-      if (!uid) {
-        throw new Error('No account was found for that username.');
+      const accountRef = ref(db, `accounts/${usernameKey}`);
+      const snapshot = await get(accountRef);
+      if (!snapshot.exists()) {
+        throw new Error('NO_ACCOUNT_FOR_USERNAME');
       }
-      const userRef = ref(db, `users/${uid}`);
-      const userSnapshot = await get(userRef);
-      const profile = userSnapshot.val() || {};
-      const authEmail = profile.authEmail || profile.email || generatePrivateAuthEmail(trimmed);
-      return signInWithEmailAndPassword(auth, authEmail, password);
+      const account = snapshot.val() || {};
+      const passwordHash = await hashPassword(password);
+      if (account.passwordHash !== passwordHash) {
+        throw new Error('INVALID_PASSWORD');
+      }
+      const userRef = ref(db, `users/${usernameKey}`);
+      await update(userRef, {
+        status: 'online',
+        lastSeen: serverTimestamp(),
+        currentChannel: 'general'
+      });
+      return { uid: usernameKey, username: trimmed, displayName: trimmed };
     }
 
     function mapAuthError(error) {
-      const code = error && error.code ? error.code : '';
       const message = error && error.message ? error.message : 'Authentication failed.';
-      if (code === 'auth/email-already-in-use') return 'An account with this generated identity already exists.';
-      if (code === 'auth/invalid-email') return 'The internal identity is not valid. Please try again.';
-      if (code === 'auth/weak-password') return 'Password is too weak. Use at least 6 characters.';
-      if (code === 'auth/user-not-found' || code === 'auth/wrong-password') return 'Invalid username or password.';
-      if (code === 'auth/user-disabled') return 'This account has been disabled.';
-      if (code === 'auth/network-request-failed') return 'Network error. Please retry.';
       if (String(message).includes('USERNAME_TAKEN')) return 'This username is already in use.';
-      if (String(message).includes('No account was found for that username')) return 'No account was found for that username.';
+      if (String(message).includes('NO_ACCOUNT_FOR_USERNAME')) return 'No account found for that username. Please register first.';
+      if (String(message).includes('INVALID_PASSWORD')) return 'Invalid username or password.';
+      if (String(message).includes('Please enter both username and password.')) return 'Please enter both username and password.';
+      if (String(message).includes('Username must be at least 2 characters long.')) return 'Username must be at least 2 characters long.';
+      if (String(message).includes('Password must be at least 6 characters.')) return 'Password must be at least 6 characters.';
       if (message && message !== 'Authentication failed.') return message;
       return 'Unable to complete that request.';
     }
@@ -1814,6 +1802,39 @@
       }
     }
 
+    async function openSession(userData) {
+      const usernameKey = normalizeUsername(userData.username || userData.uid || 'radio-user');
+      state.user = {
+        uid: usernameKey,
+        username: userData.username || userData.displayName || 'Radio operator',
+        displayName: userData.displayName || userData.username || 'Radio operator'
+      };
+      setScreen('app');
+
+      const userRef = ref(db, `users/${usernameKey}`);
+      const profileSnapshot = await get(userRef);
+      if (!profileSnapshot.exists()) {
+        await set(userRef, {
+          uid: usernameKey,
+          username: state.user.username,
+          status: 'online',
+          currentChannel: 'general',
+          createdAt: serverTimestamp(),
+          lastSeen: serverTimestamp()
+        });
+      }
+
+      state.profile = (await get(userRef)).val() || {};
+      state.usersByUid[usernameKey] = { uid: usernameKey, username: state.profile.username || state.user.username };
+      state.channelKey = state.profile.currentChannel || 'general';
+      await ensureDefaultChannels();
+      loadChannelMetadata();
+      attachChannelListeners(state.channelKey);
+      await joinChannel(state.channelKey);
+      subscribeToPresence(usernameKey);
+      updateStatusDisplay();
+    }
+
     function registerUiBindings() {
       ui.showRegister.addEventListener('click', () => setAuthMode('register'));
       ui.showLogin.addEventListener('click', () => setAuthMode('login'));
@@ -1822,17 +1843,22 @@
         event.preventDefault();
         const username = document.getElementById('reg-username').value;
         const password = document.getElementById('reg-password').value;
+        const confirmPassword = document.getElementById('reg-confirm').value;
 
-        if (!username || !password) {
-          setAuthNote('Please provide both username and password.', 'error');
+        if (!username || !password || !confirmPassword) {
+          setAuthNote('Please fill in all fields.', 'error');
+          return;
+        }
+        if (password !== confirmPassword) {
+          setAuthNote('Passwords do not match.', 'error');
           return;
         }
 
         try {
           setAuthNote('Creating account...', '');
-          await createAccount(username, password);
+          const userData = await createAccount(username, password);
           setAuthNote('Account created successfully. Logging in...', 'success');
-          await login(username, password);
+          await openSession(userData);
         } catch (error) {
           setAuthNote(mapAuthError(error), 'error');
           console.error('Registration error:', error);
@@ -1845,7 +1871,8 @@
         const password = document.getElementById('login-password').value;
         try {
           setAuthNote('Signing in...', '');
-          await login(username, password);
+          const userData = await login(username, password);
+          await openSession(userData);
         } catch (error) {
           setAuthNote(mapAuthError(error), 'error');
           console.error('Login error:', error);
@@ -1881,10 +1908,20 @@
         if (!state.user) return;
         if (!window.confirm('Log out and close your radio session?')) return;
         try {
-          await signOut(auth);
+          if (state.user && state.user.uid) {
+            await update(ref(db, `users/${state.user.uid}`), { status: 'offline', lastSeen: serverTimestamp() });
+          }
         } catch (error) {
           console.error('Logout error:', error);
         }
+        state.user = null;
+        state.profile = null;
+        state.channelSubscriptions.forEach((unsubscribe) => unsubscribe && unsubscribe());
+        state.channelSubscriptions = [];
+        cleanupPeerConnections();
+        await stopLocalMicrophone();
+        setScreen('auth');
+        setAuthNote('Please sign in to continue.', '');
       });
 
       ui.leaveChannelButton.addEventListener('click', async () => {
@@ -1942,44 +1979,14 @@
     }
 
     async function initializeAuthentication() {
-      onAuthStateChanged(auth, async (user) => {
-        if (!user) {
-          setScreen('auth');
-          state.user = null;
-          state.profile = null;
-          state.channelSubscriptions.forEach((unsubscribe) => unsubscribe && unsubscribe());
-          state.channelSubscriptions = [];
-          cleanupPeerConnections();
-          await stopLocalMicrophone();
-          setAuthNote('Please sign in to continue.', '');
-          return;
-        }
-
-        state.user = user;
-        setScreen('app');
-        const userRef = ref(db, `users/${user.uid}`);
-        const profileSnapshot = await get(userRef);
-        if (!profileSnapshot.exists()) {
-          await set(userRef, {
-            uid: user.uid,
-            username: user.displayName || 'Radio operator',
-            authEmail: user.email || generatePrivateAuthEmail(user.displayName || 'radio-user'),
-            status: 'online',
-            currentChannel: 'general',
-            createdAt: serverTimestamp(),
-            lastSeen: serverTimestamp()
-          });
-        }
-        state.profile = (await get(userRef)).val() || {};
-        state.usersByUid[user.uid] = { uid: user.uid, username: state.profile.username || user.displayName || 'Radio operator' };
-        state.channelKey = state.profile.currentChannel || 'general';
-        await ensureDefaultChannels();
-        loadChannelMetadata();
-        attachChannelListeners(state.channelKey);
-        await joinChannel(state.channelKey);
-        subscribeToPresence(user.uid);
-        updateStatusDisplay();
-      });
+      setScreen('auth');
+      state.user = null;
+      state.profile = null;
+      state.channelSubscriptions.forEach((unsubscribe) => unsubscribe && unsubscribe());
+      state.channelSubscriptions = [];
+      cleanupPeerConnections();
+      await stopLocalMicrophone();
+      setAuthNote('Please sign in to continue.', '');
     }
 
     function boot() {
